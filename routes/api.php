@@ -4,6 +4,7 @@ use App\Http\Controllers\API\Admin\CategoryController;
 use App\Http\Controllers\API\Admin\EventController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\LoginController;
+use App\Http\Controllers\API\LogoutController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -28,6 +29,7 @@ Route::middleware(['auth:api'])->group(function(){
     });
 });
 
+//'BEGIN' :- For admin route
 Route::middleware(['auth:api', 'onlyAdmin'])->group(function(){
     Route::prefix('category')->name('category.')->group(function(){
         Route::controller(CategoryController::class)->group(function(){
@@ -38,7 +40,16 @@ Route::middleware(['auth:api', 'onlyAdmin'])->group(function(){
 
     Route::prefix('events')->name('event.')->group(function(){
         Route::controller(EventController::class)->group(function(){
+            Route::get('/list/{type}', 'index')->name('list');
             Route::post('/store', 'store')->name('store');
+            Route::post('/details/{event}', 'show')->name('details');
         });
+    });
+});
+//'END' :- For admin route
+
+Route::middleware(['auth:api'])->group(function(){
+    Route::controller(LogoutController::class)->group(function(){
+        Route::post('/auth/logout', 'logout')->name('logout.us');
     });
 });
