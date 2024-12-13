@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\API\Admin\CategoryController;
+use App\Http\Controllers\API\Admin\CourseController;
 use App\Http\Controllers\API\Admin\EventController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\LoginController;
@@ -35,6 +36,12 @@ Route::middleware(['auth:api', 'onlyAdmin'])->group(function(){
         Route::controller(CategoryController::class)->group(function(){
             Route::post('/store', 'store')->name('store');
             Route::post('/update', 'update')->name('update');
+        });
+    });
+
+    Route::controller(CourseController::class)->group(function(){
+        Route::prefix('course')->name('course.')->group(function(){
+            Route::post('/store', 'store')->name('store');
         });
     });
 
