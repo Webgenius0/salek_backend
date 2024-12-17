@@ -8,6 +8,7 @@ use App\Http\Controllers\API\InstructorController;
 use App\Http\Controllers\API\LoginController;
 use App\Http\Controllers\API\LogoutController;
 use App\Http\Controllers\API\RequestController;
+use App\Http\Controllers\API\StripeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -75,9 +76,9 @@ Route::middleware(['auth:api', 'onlyStudent'])->group(function(){
         });
     });
 
-    Route::controller(CourseController::class)->group(function(){
+    Route::controller(StripeController::class)->group(function(){
         Route::prefix('course')->name('course.')->group(function(){
-            Route::post('/enroll/{id}', 'enroll')->name('enroll.course');
+            Route::post('/enroll/{id}', 'store')->name('enroll.course');
         });
     });
 });

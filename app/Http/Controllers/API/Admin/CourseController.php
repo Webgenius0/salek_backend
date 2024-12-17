@@ -2,14 +2,11 @@
 
 namespace App\Http\Controllers\API\Admin;
 
+use App\Models\Course;
 use Illuminate\Http\Request;
 use App\Services\CourseService;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CourseStoreRequest;
-use App\Models\Course;
-
-use Stripe\Stripe;
-use Stripe\PaymentIntent;
 
 class CourseController extends Controller
 {
@@ -103,18 +100,5 @@ class CourseController extends Controller
     public function show($id)
     {
         return $this->courseServiceObj->show($id);
-    }
-
-    public function enroll(Request $request, $id)
-    {
-        Stripe::setApiKey(env('STRIPE_SECRET'));
-
-        $paymentIntent = PaymentIntent::create([
-            'amount' => 1000,
-            'currency' => 'usd',
-            'metadata' => ['integration_check' => 'accept_a_payment'],
-        ]);
-
-        return $paymentIntent;
     }
 }
