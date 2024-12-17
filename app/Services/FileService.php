@@ -13,11 +13,14 @@ class FileService extends Service
         }
 
         $imageName = Str::slug($name) . '.' . $file->extension();
-        $path      = public_path('uploads/' . $folder);
+
+        $path = public_path('uploads/' . $folder);
         if (!file_exists($path)) {
             mkdir($path, 0755, true);
         }
+
         $file->move($path, $imageName);
+        
         return 'uploads/' . $folder . '/' . $imageName;
     }
 }

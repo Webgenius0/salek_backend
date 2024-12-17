@@ -16,4 +16,16 @@ class Lesson extends Model
         'video_url',
         'duration',
     ];
+
+    // Relation Start
+    public function chapter()
+    {
+        return $this->belongsTo(Chapter::class);
+    }
+
+    public function course()
+    {
+        return $this->belongsTo(Course::class);
+    }
+
 }

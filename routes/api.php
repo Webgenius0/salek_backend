@@ -42,6 +42,7 @@ Route::middleware(['auth:api', 'onlyAdmin'])->group(function(){
     Route::controller(CourseController::class)->group(function(){
         Route::prefix('course')->name('course.')->group(function(){
             Route::post('/store', 'store')->name('store');
+            Route::post('/details/{course}', 'show')->name('details');
         });
     });
 

@@ -16,4 +16,21 @@ class Course extends Model
         'price',
         'status',
     ];
+
+    public function getKeyName()
+    {
+        return 'slug';
+    }
+
+    // Relation Start
+    public function chapters()
+    {
+        return $this->hasMany(Chapter::class);
+    }
+
+    public function lessons()
+    {
+        return $this->hasManyThrough(Lesson::class, Chapter::class);
+    }
+
 }

@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\Course;
+use App\Models\Lesson;
+use App\Models\Chapter;
 use App\Traits\ApiResponse;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
@@ -27,6 +29,7 @@ class CourseService extends Service
      * @param integer $category_id
      * @param integer $totalClass
      * @param integer $price
+     * @param array $chapters
      * @return mixed
     */
     public function store(
@@ -35,7 +38,8 @@ class CourseService extends Service
         string $description,
         int $category_id,
         int $totalClass,
-        int $price
+        int $price,
+        array $chapters
     )
     {
         try {
@@ -54,7 +58,43 @@ class CourseService extends Service
 
             DB::commit();
             if($res){
-                return 'Here add chapter wise class';
+
+                foreach ($chapters as $chapterKey => $chapterData) {
+                    $chapter             = new Chapter();
+                    $chapter->course_id  = $this->courseObj->id;
+                    $chapter->name       = $chapterData['chapter_name'];
+                    
+                    $chapter->save();
+
+                    foreach ($chapterData['lessons'] as $lessonKey => $lessonData) {
+                        $imagePath = null;
+                        if (isset($lessonData['image_url']) && $lessonData['image_url']) {
+                            $fileName  = time() . '.' . $lessonData['image_url']->getClientOriginalExtension();
+                            $imagePath = 'uploads/course/lessons/thumbnail/' . $fileName;
+                            $lessonData['image_url']->move(public_path('uploads/course/lessons/thumbnail'), $fileName);
+                        }
+
+                        $videoPath = null;
+                        if (isset($lessonData['video_url']) && $lessonData['video_url']) {
+                            $fileName  = time() . '.' . $lessonData['video_url']->getClientOriginalExtension();
+                            $videoPath = 'uploads/course/lessons/videos/' . $fileName;
+                            $lessonData['video_url']->move(public_path('uploads/course/lessons/videos'), $fileName);
+                        }
+
+                        $lesson             = new Lesson();
+                        $lesson->chapter_id = $chapter->id;
+                        $lesson->course_id  = $this->courseObj->id;
+                        $lesson->name       = $lessonData['lesson_name'];
+                        $lesson->duration   = $lessonData['duration'];
+                        $lesson->image_url  = $imagePath;
+                        $lesson->video_url  = $videoPath;
+                        
+                        $lesson->save();
+                    }
+                }
+
+                DB::commit();
+                return $this->successResponse(true, 'Course and chapters created successfully.', $this->courseObj, 201);
             }
         }catch(\Illuminate\Database\QueryException $e){
             DB::rollback();
