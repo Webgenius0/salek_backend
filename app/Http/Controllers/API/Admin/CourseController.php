@@ -18,6 +18,7 @@ class CourseController extends Controller
 
     public function store(CourseStoreRequest $request)
     {
+        return $request->chapters;
         $creatorId   = request()->user()->id;
         $name        = $request->input('name');
         $description = $request->input('description');

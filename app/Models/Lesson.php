@@ -4,12 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class ChapterClass extends Model
+class Lesson extends Model
 {
+    
     protected $fillable = [
+        'chapter_id',
         'course_id',
-        'courses_chapter_id',
-        'title',
+        'name',
+        'lesson_order',
         'image_url',
         'video_url',
         'duration',
