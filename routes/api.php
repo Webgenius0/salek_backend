@@ -74,11 +74,26 @@ Route::middleware(['auth:api', 'onlyStudent'])->group(function(){
             Route::get('/list', 'index')->name('list');
         });
     });
+
+    Route::controller(CourseController::class)->group(function(){
+        Route::prefix('course')->name('course.')->group(function(){
+            Route::post('/enroll/{id}', 'enroll')->name('enroll.course');
+        });
+    });
 });
 //'END' :- For student route
 
+
+
 //'BEGIN' :- For global route
 Route::middleware(['auth:api'])->group(function(){
+
+    Route::controller(InstructorController::class)->group(function(){
+        Route::prefix('instructor')->name('instructor.')->group(function(){
+            Route::get('/profile/{id}', 'show')->name('profile');
+        });
+    });
+
     Route::controller(CourseController::class)->group(function(){
         Route::prefix('course')->name('course.')->group(function(){
             Route::get('/all', 'index')->name('list');
