@@ -18,12 +18,12 @@ class CourseController extends Controller
 
     public function store(CourseStoreRequest $request)
     {
-        $creatorId = request()->user()->id;
-        $name = $request->input('name');
+        $creatorId   = request()->user()->id;
+        $name        = $request->input('name');
         $description = $request->input('description');
         $category_id = $request->input('category_id');
-        $totalClass = $request->input('total_class');
-        $price = $request->input('price');
+        $totalClass  = $request->input('total_class');
+        $price       = $request->input('price');
 
         return $this->courseServiceObj->store(
             (int) $creatorId,

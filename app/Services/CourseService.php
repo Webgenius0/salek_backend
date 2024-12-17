@@ -3,11 +3,14 @@
 namespace App\Services;
 
 use App\Models\Course;
+use App\Traits\ApiResponse;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 
 class CourseService extends Service
 {
+    use ApiResponse;
+    
     public $courseObj;
 
     public function __construct()
@@ -15,6 +18,17 @@ class CourseService extends Service
         $this->courseObj = new Course();
     }
 
+    /**
+     * method for course create
+     *
+     * @param integer $creatorId
+     * @param string $name
+     * @param string $description
+     * @param integer $category_id
+     * @param integer $totalClass
+     * @param integer $price
+     * @return mixed
+    */
     public function store(
         int $creatorId,
         string $name,
@@ -42,9 +56,22 @@ class CourseService extends Service
             if($res){
                 return 'Here add chapter wise class';
             }
-        } catch (\Exception $e) {
+        }catch(\Illuminate\Database\QueryException $e){
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'error' => 'Database Error',
+                'message' => $e->getMessage(),
+            ], 500);
+        } 
+        catch (\Exception $e) {
             DB::rollback();
             info($e);
+            return response()->json([
+                'success' => false,
+                'error' => 'Database Error',
+                'message' => $e->getMessage(),
+            ], 500);
         }
     }
 }
