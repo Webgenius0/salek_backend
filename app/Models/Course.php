@@ -17,11 +17,6 @@ class Course extends Model
         'status',
     ];
 
-    public function getKeyName()
-    {
-        return 'slug';
-    }
-
     // Relation Start
     public function chapters()
     {
@@ -33,4 +28,13 @@ class Course extends Model
         return $this->hasManyThrough(Lesson::class, Chapter::class);
     }
 
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'category_id', 'id');
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by', 'id');
+    }
 }

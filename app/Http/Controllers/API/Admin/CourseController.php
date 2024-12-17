@@ -17,6 +17,52 @@ class CourseController extends Controller
         $this->courseServiceObj = new CourseService();
     }
 
+    public function index()
+    {
+        $courses = Course::with(['chapters.lessons', 'category', 'creator'])->latest()->get();
+
+        $data = $courses->map(function($course){
+            return [
+                'course_id'    => $course->id,
+                'course_title' => $course->title,
+                'price'        => $course->price,
+                'review'       => 4.9 . (232 . ' Reviews'),
+                'total_class'  => $course->total_class,
+                'students'     => 1,                        234,
+            ];
+        });
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'All Courses',
+            'data'    => $data,
+            'code'    => 200,
+        ], 200);
+    }
+
+    public function popularCourse()
+    {
+        $courses = Course::with(['chapters.lessons', 'category', 'creator'])->latest()->get();
+
+        $data = $courses->map(function($course){
+            return [
+                'course_id'    => $course->id,
+                'course_title' => $course->title,
+                'price'        => $course->price,
+                'review'       => 4.9 . (232 . ' Reviews'),
+                'total_class'  => $course->total_class,
+                'students'     => 1,                        234,
+            ];
+        });
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'Popular Courses',
+            'data'    => $data,
+            'code'    => 200,
+        ], 200);
+    }
+
     /**
      * course store method
      *
@@ -51,8 +97,8 @@ class CourseController extends Controller
         );
     }
 
-    public function show(Course $course)
+    public function show($id)
     {
-        return $course;
+        return $this->courseServiceObj->show($id);
     }
 }

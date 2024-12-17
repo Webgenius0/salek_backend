@@ -60,4 +60,10 @@ class User extends Authenticatable implements JWTSubject
     {
         return [];
     }
+
+    // Relation Start
+    public function courses()
+    {
+        return $this->hasMany(Course::class, 'created_by');
+    }
 }

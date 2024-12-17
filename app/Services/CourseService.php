@@ -114,4 +114,46 @@ class CourseService extends Service
             ], 500);
         }
     }
+
+    public function show($id)
+    {
+        $course = Course::with(['chapters.lessons', 'category', 'creator'])->find($id);
+        
+        if (!$course) {
+            return $this->failedResponse('Course not found', 404);
+        }
+
+        $chaptersData = [];
+
+        foreach ($course->chapters as $index => $chapter) {
+            $lessonData = [];
+
+            foreach ($chapter->lessons as $lesson) {
+                $lessonData[] = [
+                    'lesson_name' => $lesson->name,
+                    'duration'    => $lesson->duration,
+                    'video_url'   => $lesson->video_url,
+                    'image_url'   => $lesson->image_url,
+                ];
+            }
+
+            $chaptersData[] = [
+                'chapter_name'  => $chapter->name,
+                'chapter_index' => $index + 1,
+                'lessons'       => $lessonData,
+            ];
+        }
+
+        $data = [
+            'course_id'      => $course->id,
+            'course_title'   => $course->name,
+            'description'    => $course->description,
+            'total_duration' => $course->lessons->sum('duration'),
+            'total_class'    => $course->total_class,
+            'instructor'     => $course->creator->name,
+            'chapters'       => $chaptersData,
+        ];
+
+        return $this->successResponse(true, 'Course with chapters and lessons', $data, 200);
+    }
 }
