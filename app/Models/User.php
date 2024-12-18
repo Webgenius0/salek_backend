@@ -63,6 +63,13 @@ class User extends Authenticatable implements JWTSubject
     }
 
     // Relation Start
+    public function purchasedCourses()
+    {
+        return $this->belongsToMany(Course::class, 'course_user')
+                    ->withPivot('price', 'access_granted', 'purchased_at')
+                    ->withTimestamps();
+    }
+    
     public function courses()
     {
         return $this->hasMany(Course::class, 'created_by');
@@ -71,5 +78,10 @@ class User extends Authenticatable implements JWTSubject
     public function linkRequests()
     {
         return $this->hasMany(LinkRequest::class, 'parent_id')->where('status', 'accept');
+    }
+
+    public function reviews()
+    {
+        return $this->morphMany(Review::class, 'reviewable');
     }
 }

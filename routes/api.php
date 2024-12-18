@@ -8,8 +8,11 @@ use App\Http\Controllers\API\InstructorController;
 use App\Http\Controllers\API\LoginController;
 use App\Http\Controllers\API\LogoutController;
 use App\Http\Controllers\API\ParentController;
+use App\Http\Controllers\API\ProfileController;
 use App\Http\Controllers\API\RequestController;
+use App\Http\Controllers\API\ReviewController;
 use App\Http\Controllers\API\StripeController;
+use App\Http\Controllers\API\StudentController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -17,16 +20,19 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::controller(AuthController::class)->group(function(){
-    Route::post('/user/registration', 'store')->name('user.registration');
-    Route::post('/verify/account', 'verify')->name('verify.account');
-    Route::post('/forget/password', 'forgetPassword')->name('forget.password');
-    Route::post('/update/password', 'updatePassword')->name('update.password');
+Route::middleware('guest')->group(function () {
+    Route::controller(AuthController::class)->group(function(){
+        Route::post('/user/registration', 'store')->name('user.registration');
+        Route::post('/verify/account', 'verify')->name('verify.account');
+        Route::post('/forget/password', 'forgetPassword')->name('forget.password');
+        Route::post('/update/password', 'updatePassword')->name('update.password');
+    });
+
+    Route::controller(LoginController::class)->group(function(){
+        Route::post('/auth/login', 'store')->name('login.us');
+    });
 });
 
-Route::controller(LoginController::class)->group(function(){
-    Route::post('/auth/login', 'store')->name('login.us');
-});
 
 Route::middleware(['auth:api'])->group(function(){
     Route::controller(LoginController::class)->group(function(){
@@ -86,6 +92,22 @@ Route::middleware(['auth:api', 'onlyParent'])->group(function(){
 
 //'BEGIN' :- For student route
 Route::middleware(['auth:api', 'onlyStudent'])->group(function(){
+    
+    Route::controller(StudentController::class)->group(function(){
+        Route::prefix('student')->name('student.')->group(function(){
+            Route::get('/dashboard', 'index')->name('dashboard');
+            Route::get('/request', 'getRequest')->name('request');
+            Route::get('/accept/request/{stdId}', 'acceptRequest')->name('accept');
+            Route::get('/cancel/request/{stdId}', 'cancelRequest')->name('cancel');
+        });
+    });
+
+    Route::controller(ReviewController::class)->group(function(){
+        Route::prefix('review')->name('review.')->group(function(){
+            Route::post('/store', 'store')->name('store');
+        });
+    });
+
     Route::controller(InstructorController::class)->group(function(){
         Route::prefix('instructor')->name('instructor.')->group(function(){
             Route::get('/list', 'index')->name('list');
@@ -100,10 +122,14 @@ Route::middleware(['auth:api', 'onlyStudent'])->group(function(){
 });
 //'END' :- For student route
 
-
-
 //'BEGIN' :- For global route
 Route::middleware(['auth:api'])->group(function(){
+
+    Route::controller(ProfileController::class)->group(function(){
+        Route::prefix('profile')->name('profile.')->group(function(){
+            Route::post('/update', 'update')->name('update');
+        });
+    });
 
     Route::controller(InstructorController::class)->group(function(){
         Route::prefix('instructor')->name('instructor.')->group(function(){

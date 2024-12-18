@@ -37,4 +37,26 @@ class Course extends Model
     {
         return $this->belongsTo(User::class, 'created_by', 'id');
     }
+
+    public function reviews()
+    {
+        return $this->morphMany(Review::class, 'reviewable');
+    }
+
+    public function averageRating()
+    {
+        return $this->reviews()->avg('rating');
+    }
+
+    public function reviewCount()
+    {
+        return $this->reviews()->count();
+    }
+
+    public function purchasers()
+    {
+        return $this->belongsToMany(User::class, 'course_user')
+                    ->withPivot('price', 'access_granted', 'purchased_at')
+                    ->withTimestamps();
+    }
 }
