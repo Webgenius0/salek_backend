@@ -15,6 +15,7 @@ use App\Http\Controllers\API\InstructorController;
 use App\Http\Controllers\API\Admin\EventController;
 use App\Http\Controllers\API\Admin\CourseController;
 use App\Http\Controllers\API\Admin\CategoryController;
+use App\Http\Controllers\API\CardController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -67,6 +68,12 @@ Route::middleware(['auth:api', 'onlyAdmin'])->group(function(){
             Route::get('/list/{type}', 'index')->name('list');
             Route::post('/store', 'store')->name('store');
             Route::post('/details/{event}', 'show')->name('details');
+        });
+    });
+
+    Route::prefix('card')->name('card.')->group(function(){
+        Route::controller(CardController::class)->group(function(){
+            Route::post('/store', 'store')->name('store');
         });
     });
 });
@@ -151,6 +158,12 @@ Route::middleware(['auth:api'])->group(function(){
     Route::prefix('events')->name('event.')->group(function(){
         Route::controller(EventController::class)->group(function(){
             Route::get('/popular', 'popularEvent')->name('popular');
+        });
+    });
+
+    Route::prefix('card')->name('card.')->group(function(){
+        Route::controller(CardController::class)->group(function(){
+            Route::get('/list', 'index')->name('list');
         });
     });
 
