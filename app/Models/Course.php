@@ -59,4 +59,10 @@ class Course extends Model
                     ->withPivot('price', 'access_granted', 'purchased_at')
                     ->withTimestamps();
     }
+
+    public function studentLesson()
+    {
+        return $this->hasMany(Lesson::class);
+    }
+
 }

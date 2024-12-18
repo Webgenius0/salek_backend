@@ -69,6 +69,14 @@ class User extends Authenticatable implements JWTSubject
                     ->withPivot('price', 'access_granted', 'purchased_at')
                     ->withTimestamps();
     }
+
+    public function completedLessons()
+    {
+        return $this->belongsToMany(Lesson::class, 'lesson_user')
+                    ->withPivot('completed', 'completed_at')
+                    ->withTimestamps();
+    }
+
     
     public function courses()
     {
