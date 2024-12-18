@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Event;
+use App\Models\Payment;
 use App\Models\User;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
@@ -26,6 +28,43 @@ class InstructorController extends Controller
         });
 
         return $this->successResponse(true, 'Our Instructors', $data, 200);
+    }
+
+    public function dashboard()
+    {
+        $allStudents = User::where('role', 'student')->get();
+
+        $newUsers = $allStudents->filter(function($student){
+            return $student->created_at >= now()->subDays(7);
+        });
+
+        $totalRevenue = Payment::sum('amount');
+
+        $events = Event::where('status', 'complete')->orWhere('status', 'upcoming')->get();
+
+        $totalBooking = $events->filter(function($event){
+            return $event->status === 'complete';
+        });
+
+        $upcomingEvents = $events->filter(function($event){
+            return $event->status === 'upcoming';
+        });
+        
+        $data = [
+            'student_overview' => [
+                'new_student' => count($newUsers),
+                'total_student' => count($allStudents),
+                'total_revenue' => $totalRevenue,
+            ],
+
+            'event_overview' => [
+                'total_booking' => count($totalBooking),
+                'upcoming_event' => count($upcomingEvents),
+                'total_revenue' => $totalRevenue,
+            ],
+        ];
+
+        return $data;
     }
 
     public function show($id)

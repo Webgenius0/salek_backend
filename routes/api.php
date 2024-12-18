@@ -7,6 +7,7 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\InstructorController;
 use App\Http\Controllers\API\LoginController;
 use App\Http\Controllers\API\LogoutController;
+use App\Http\Controllers\API\ParentController;
 use App\Http\Controllers\API\RequestController;
 use App\Http\Controllers\API\StripeController;
 use Illuminate\Http\Request;
@@ -37,6 +38,7 @@ Route::middleware(['auth:api'])->group(function(){
 Route::middleware(['auth:api', 'onlyAdmin'])->group(function(){
     Route::prefix('category')->name('category.')->group(function(){
         Route::controller(CategoryController::class)->group(function(){
+            Route::get('/list', 'index')->name('list');
             Route::post('/store', 'store')->name('store');
             Route::post('/update', 'update')->name('update');
         });
@@ -45,6 +47,12 @@ Route::middleware(['auth:api', 'onlyAdmin'])->group(function(){
     Route::controller(CourseController::class)->group(function(){
         Route::prefix('course')->name('course.')->group(function(){
             Route::post('/store', 'store')->name('store');
+        });
+    });
+
+    Route::controller(InstructorController::class)->group(function(){
+        Route::prefix('instructor')->name('instructor.')->group(function(){
+            Route::get('/dashboard', 'dashboard')->name('dashboard');
         });
     });
 
@@ -60,9 +68,17 @@ Route::middleware(['auth:api', 'onlyAdmin'])->group(function(){
 
 //'BEGIN' :- For parent route
 Route::middleware(['auth:api', 'onlyParent'])->group(function(){
+
+    Route::controller(ParentController::class)->group(function(){
+        Route::prefix('/parent')->name('parent.')->group(function(){
+            Route::get('/dashboard', 'index')->name('dashboard');
+        });
+    });
+
     Route::controller(RequestController::class)->group(function(){
         Route::prefix('request')->name('request.')->group(function(){
             Route::post('/link/{id}', 'store')->name('link');
+            Route::post('/cancel/{id}', 'cancelRequest')->name('cancel');
         });
     });
 });
@@ -100,6 +116,12 @@ Route::middleware(['auth:api'])->group(function(){
             Route::get('/all', 'index')->name('list');
             Route::post('/details/{id}', 'show')->name('details');
             Route::get('/popular', 'popularCourse')->name('popular');
+        });
+    });
+
+    Route::prefix('events')->name('event.')->group(function(){
+        Route::controller(EventController::class)->group(function(){
+            Route::get('/popular', 'popularEvent')->name('popular');
         });
     });
 

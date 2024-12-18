@@ -19,6 +19,11 @@ class CategoryService extends Service
         $this->categoryObj = new Category();
     }
 
+    public function index(array $categories)
+    {
+        return $this->successResponse(true, 'Category List', $categories, 200);
+    }
+
     public function store($name, $createdBy)
     {
         try {

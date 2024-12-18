@@ -20,17 +20,29 @@ class EventController extends Controller
         $this->eventServiceObj = new EventService();    
     }
 
-    public function index($type)
+    public function index(string $type)
     {
         $query = Event::with(['category:id,name'])
-            ->select('id', 'title', 'thumbnail', 'event_location', 'category_id', 'status')
-            ->where('created_by', request()->user()->id);
-
+            ->select('id', 'title', 'thumbnail', 'event_location', 'category_id', 'status');
+        
         if ($type !== 'all') {
             $query->where('status', $type);
         }
 
         $events = $query->get();
+
+        return $this->successResponse(true, ucfirst($type) . ' Event list', $events, 200);
+    }
+
+    public function popularEvent()
+    {
+        $type = 'popular';
+        
+        $query = Event::with(['category:id,name'])
+            ->select('id', 'title', 'thumbnail', 'event_location', 'category_id', 'status');
+        
+
+        $events = $query->latest()->get();
 
         return $this->successResponse(true, ucfirst($type) . ' Event list', $events, 200);
     }
@@ -62,15 +74,16 @@ class EventController extends Controller
         );
     }
 
-    public function show(Event $event)
+    public function show(Event $event = null)
     {
-        if ($event->created_by !== request()->user()->id) {
-            return $this->failedResponse('You are not authorized to view this event.', 400);
+        if(!$event || $event->created_by !== request()->user()->id){
+            return $this->failedResponse('Event not found or You are not authorized to view this event.', 404);
         }
 
         $data = [
             'event_id'    => $event->id,
             'event_title' => $event->title,
+            'event_slug'  => $event->slug,
             'description' => $event->description,
             'category'    => $event->category->name,
             'price'       => $event->price,

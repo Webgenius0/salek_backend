@@ -67,4 +67,9 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(Course::class, 'created_by');
     }
+
+    public function linkRequests()
+    {
+        return $this->hasMany(LinkRequest::class, 'parent_id')->where('status', 'accept');
+    }
 }
