@@ -38,7 +38,8 @@ class StripeService extends Service
         ]);
 
         return response()->json([
-            'message'        => 'PaymentIntent created successfully.',
+            'status' => true,
+            'message'        => 'Payment Intent created successfully.',
             'payment_intent' => $paymentIntent->id,
             'client_secret'  => $paymentIntent->client_secret,
         ]);

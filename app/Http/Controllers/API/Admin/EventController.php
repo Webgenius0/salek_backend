@@ -34,6 +34,18 @@ class EventController extends Controller
         return $this->successResponse(true, ucfirst($type) . ' Event list', $events, 200);
     }
 
+    /**
+     * upcoming event method
+     * call event service class method
+     * static method
+     *
+     * @return mixed
+    */
+    public function upcomingEvent()
+    {
+        return EventService::upcomingEvent();
+    }
+
     public function popularEvent()
     {
         $type = 'popular';

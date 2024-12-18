@@ -21,7 +21,15 @@ class StudentController extends Controller
     */
     public function index()
     {
-        return 'Student Dashboard';
+        $user = Auth::user();
+        
+        $data = [
+            'id' => $user->id,
+            'name' =>'Hey, ' . $user->name,
+            'welcome_msg' => 'Lets start learning',
+        ];
+
+        return $data;
     }
 
     /**

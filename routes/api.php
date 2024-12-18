@@ -119,6 +119,9 @@ Route::middleware(['auth:api', 'onlyStudent'])->group(function(){
             Route::post('/enroll/{id}', 'store')->name('enroll.course');
         });
     });
+
+    Route::get('/upcoming/event', [EventController::class, 'upcomingEvent'])->name('upcomig.event');
+    Route::get('/current/courses', [CourseController::class, 'currentCourse'])->name('current.course');
 });
 //'END' :- For student route
 

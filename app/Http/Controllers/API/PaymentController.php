@@ -21,8 +21,11 @@ class PaymentController extends Controller
     
     public function store(StoreStripeRequest $request, $id)
     {   
-        $itemType = $request->item_type;
+        $itemType     = $request->item_type;
+        $purchaseType = $request->purchase_type;
+        $currency     = $request->currency;
+        $itemId       = $request->item_id;
         
-        return $this->stripeServiceObj->createPayment((string) $itemType, $request->purchase_type, (string) $request->currency, $request->item_id, $id);
+        return $this->stripeServiceObj->createPayment((string) $itemType, $purchaseType, (string) $currency,$itemId, $id);
     }
 }

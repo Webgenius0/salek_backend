@@ -28,7 +28,7 @@ class CourseController extends Controller
                 'price'        => $course->price,
                 'review'       => 4.9 . (232 . ' Reviews'),
                 'total_class'  => $course->total_class,
-                'students'     => 1,                        234,
+                'students'     => 1234,
             ];
         });
 
@@ -95,5 +95,12 @@ class CourseController extends Controller
     public function show($id)
     {
         return $this->courseServiceObj->show($id);
+    }
+
+    public function currentCourse()
+    {
+        $user = request()->user();
+
+        return $user->purchasedCourses;
     }
 }

@@ -21,6 +21,48 @@ class EventService extends Service
         $this->fileServiceObj = new FileService();
     }
 
+    /**
+     * this is upcoming event method
+     * comes from Eventcontroller
+     * service class method
+     *
+     * @return mixed
+    */
+    public static function upcomingEvent()
+    {
+        $upcomingEvents = Event::with(['category', 'creator'])->where('status', 'upcoming')->latest()->get();
+        
+        if($upcomingEvents->isEmpty()){
+            return response()->json([
+                'status' => false,
+                'message' => 'Event not found',
+                'code' =>  404
+            ]);
+        }
+
+        $events = $upcomingEvents->map(function($event){
+            return [
+                'event_id'          => $event->id,
+                'event_title'       => $event->title,
+                'category'          => $event->category->name,
+                'event_description' => $event->description,
+                'event_date'        => $event->event_date,
+                'event_location'    => $event->event_location,
+                'price'             => $event->price,
+                'thumbnail'         => $event->thumbnail,
+                'creator'           => $event->creator->name,
+                'status'            => $event->status,
+            ];
+        });
+        
+        return response()->json([
+            'status'  => true,
+            'message' => 'Upcoming Event',
+            'data'    => $events,
+            'code'    => 200
+        ]);
+    }
+
     public function store(
 
         int $creatorId,
