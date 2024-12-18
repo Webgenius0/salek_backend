@@ -40,27 +40,15 @@ class CourseController extends Controller
         ], 200);
     }
 
+    /**
+     * Popular Courses
+     * Calculate popularity based on reviews,ratings,purchase history
+     *
+     * @return mixed
+    */
     public function popularCourse()
     {
-        $courses = Course::with(['chapters.lessons', 'category', 'creator'])->latest()->get();
-
-        $data = $courses->map(function($course){
-            return [
-                'course_id'    => $course->id,
-                'course_title' => $course->title,
-                'price'        => $course->price,
-                'review'       => 4.9 . (232 . ' Reviews'),
-                'total_class'  => $course->total_class,
-                'students'     => 1,                        234,
-            ];
-        });
-
-        return response()->json([
-            'status'  => true,
-            'message' => 'Popular Courses',
-            'data'    => $data,
-            'code'    => 200,
-        ], 200);
+        return $this->courseServiceObj->popularCourse();
     }
 
     /**
@@ -97,6 +85,13 @@ class CourseController extends Controller
         );
     }
 
+    /**
+     * Course Details method
+     * call the service class method
+     *
+     * @param [string] $id
+     * @return mixed
+    */
     public function show($id)
     {
         return $this->courseServiceObj->show($id);

@@ -1,20 +1,20 @@
 <?php
 
-use App\Http\Controllers\API\Admin\CategoryController;
-use App\Http\Controllers\API\Admin\CourseController;
-use App\Http\Controllers\API\Admin\EventController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
-use App\Http\Controllers\API\InstructorController;
 use App\Http\Controllers\API\LoginController;
 use App\Http\Controllers\API\LogoutController;
 use App\Http\Controllers\API\ParentController;
+use App\Http\Controllers\API\ReviewController;
+use App\Http\Controllers\API\PaymentController;
 use App\Http\Controllers\API\ProfileController;
 use App\Http\Controllers\API\RequestController;
-use App\Http\Controllers\API\ReviewController;
-use App\Http\Controllers\API\StripeController;
 use App\Http\Controllers\API\StudentController;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\API\InstructorController;
+use App\Http\Controllers\API\Admin\EventController;
+use App\Http\Controllers\API\Admin\CourseController;
+use App\Http\Controllers\API\Admin\CategoryController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -114,7 +114,7 @@ Route::middleware(['auth:api', 'onlyStudent'])->group(function(){
         });
     });
 
-    Route::controller(StripeController::class)->group(function(){
+    Route::controller(PaymentController::class)->group(function(){
         Route::prefix('course')->name('course.')->group(function(){
             Route::post('/enroll/{id}', 'store')->name('enroll.course');
         });

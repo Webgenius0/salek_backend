@@ -1,31 +1,23 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Services;
 
-use Stripe\Stripe;
-use App\Models\Course;
 use App\Models\Payment;
 use Stripe\PaymentIntent;
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Requests\StoreStripeRequest;
 
-class StripeController extends Controller
+class StripeService extends Service
 {
-    public function store(StoreStripeRequest $request, $id)
+    public function createPayment(string $itemType, $purchase_type, string $currency, $item_id, $id)
     {
-        $itemType = $request->item_type;
         $itemType = ucfirst(strtolower($itemType));
-        $model    = app("App\Models\\$itemType");
-        $item     = $model::where('id', $id)->first();
+        $model = app("App\Models\\$itemType");
+        $item = $model::where('id', $id)->first();
         
-        Stripe::setApiKey(env('STRIPE_SECRET'));
-
         $paymentIntent = PaymentIntent::create([
             'amount'   => $item->price * 100,
-            'currency' => $request->currency,
-            'metadata' => ['purchase_type' => $request->purchase_type],
+            'currency' => $currency,
+            'metadata' => ['purchase_type' => $purchase_type],
         ]);
 
         $metadata = $paymentIntent->metadata ? json_encode($paymentIntent->metadata) : null;
@@ -33,11 +25,11 @@ class StripeController extends Controller
         $payment = Payment::create([
             'payment_id'       => $paymentIntent->id,
             'amount'           => $item->price,
-            'currency'         => $request->currency,
+            'currency'         => $currency,
             'status'           => $paymentIntent->status,
             'user_id'          => Auth::id(),
-            'purchase_type'    => $request->purchase_type,
-            'item_id'          => $request->item_id,
+            'purchase_type'    => $purchase_type,
+            'item_id'          => $item_id,
             'quantity'         => 1,
             'transaction_date' => now(),
             'payment_method'   => 'credit_card',

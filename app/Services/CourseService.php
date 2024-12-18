@@ -115,6 +115,52 @@ class CourseService extends Service
         }
     }
 
+    /**
+    * Course Service class
+    * return popular class
+    * father controller name coursecontroller
+    *
+    * @param [string] $id
+    * @return mixed
+    */
+    public function popularCourse()
+    {
+        $popularCourses = Course::select('courses.*')
+                ->leftJoin('course_user', 'courses.id', '=', 'course_user.course_id')
+                ->leftJoin('reviews', 'courses.id', '=', 'reviews.reviewable_id')
+                ->selectRaw('
+                    COUNT(DISTINCT course_user.user_id) AS purchase_count,
+                    AVG(reviews.rating) AS avg_rating,
+                    COUNT(reviews.id) AS total_reviews,
+                    (COUNT(DISTINCT course_user.user_id) * 0.7 + AVG(reviews.rating) * 0.3) AS popularity_score
+                ')
+                ->groupBy('courses.id')
+                ->orderBy('popularity_score', 'desc')
+                ->take(10)
+                ->get();
+        
+            
+        $data = $popularCourses->map(function($course){
+            return [
+                'course_id'    => $course->id,
+                'course_title' => $course->name,
+                'price'        => $course->price,
+                'review'       => number_format($course->avg_rating, 1) . ' (' . $course->total_reviews . ' Reviews)',
+                'total_class'  => $course->total_class,
+                'students'     => 1234,
+            ];
+        });
+
+        return $this->successResponse(true, 'Popular Courses', $data, 200);
+    }
+
+    /**
+     * Course Details method
+     * Service Helper method
+     *
+     * @param [string] $id
+     * @return mixed
+    */
     public function show($id)
     {
         $course = Course::with(['chapters.lessons', 'category', 'creator'])->find($id);
@@ -150,8 +196,12 @@ class CourseService extends Service
             'description'    => $course->description,
             'total_duration' => $course->lessons->sum('duration'),
             'total_class'    => $course->total_class,
-            'instructor'     => $course->creator->name,
-            'chapters'       => $chaptersData,
+            'instructor'     => [
+                'avatar'      => $course->creator->avatar,
+                'name'        => $course->creator->name,
+                'designation' => $course->creator->designation,
+            ],
+            'chapters' => $chaptersData,
         ];
 
         return $this->successResponse(true, 'Course with chapters and lessons', $data, 200);
