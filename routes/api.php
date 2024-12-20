@@ -173,3 +173,5 @@ Route::middleware(['auth:api'])->group(function(){
     });
 });
 //'END' :- For global route
+
+Route::post('/stripe/webhook', [PaymentController::class, 'handleWebhook'])->name('stripe.webhook');

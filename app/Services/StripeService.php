@@ -2,46 +2,57 @@
 
 namespace App\Services;
 
+use Stripe\Stripe;
 use App\Models\Payment;
 use Stripe\PaymentIntent;
+use App\Traits\ApiResponse;
 use Illuminate\Support\Facades\Auth;
 
 class StripeService extends Service
 {
-    public function createPayment(string $itemType, $purchase_type, string $currency, $item_id, $id)
+    use ApiResponse;
+
+    public function __construct()
+    {
+        Stripe::setApiKey(env('STRIPE_SECRET'));
+    }
+    
+    public function createPayment(string $itemType, string $currency, $item_id, $id, string $paymentType, string $paymentMethod)
     {
         $itemType = ucfirst(strtolower($itemType));
-        $model = app("App\Models\\$itemType");
-        $item = $model::where('id', $id)->first();
+        $model    = app("App\Models\\$itemType");
+        $item     = $model::where('id', $id)->first();
         
+        if ($paymentType === 'monthly') {
+            $total = round($item->price / 12);
+        } else {
+            $total = $item->price;
+        }
+
         $paymentIntent = PaymentIntent::create([
-            'amount'   => $item->price * 100,
+            'amount'   => $total * 100,
             'currency' => $currency,
-            'metadata' => ['purchase_type' => $purchase_type],
+            'metadata' => [
+                'user_id'       => Auth::id(),
+                'item_id'       => $item->id,
+                'amount'        => $total,
+                'currency'      => $currency,
+                'quantity'      => 1,
+                'paymentMethod' => $paymentMethod,
+                'purchase_type' => $paymentType,
+            ],
         ]);
 
-        $metadata = $paymentIntent->metadata ? json_encode($paymentIntent->metadata) : null;
-
-        $payment = Payment::create([
-            'payment_id'       => $paymentIntent->id,
-            'amount'           => $item->price,
-            'currency'         => $currency,
-            'status'           => $paymentIntent->status,
-            'user_id'          => Auth::id(),
-            'purchase_type'    => $purchase_type,
-            'item_id'          => $item_id,
-            'quantity'         => 1,
-            'transaction_date' => now(),
-            'payment_method'   => 'credit_card',
-            'metadata'         => $metadata,
-            // 'receipt_url'      => $paymentIntent->charges->data[0]->receipt_url,
+        Payment::create([
+            'payment_id'     => $paymentIntent->id,
+            'user_id'        => Auth::id(),
+            'item_id'        => $item->id,
+            'amount'         => $total,
+            'currency'       => $currency,
+            'quantity'       => 1,
+            'payment_method' => $paymentMethod,
         ]);
 
-        return response()->json([
-            'status' => true,
-            'message'        => 'Payment Intent created successfully.',
-            'payment_intent' => $paymentIntent->id,
-            'client_secret'  => $paymentIntent->client_secret,
-        ]);
+        return $this->successResponse(true, 'Payment Intent created successfully.', $paymentIntent->client_secret, 200);
     }
 }

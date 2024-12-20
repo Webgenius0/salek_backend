@@ -27,6 +27,7 @@ class StoreStripeRequest extends FormRequest
             'item_id'   => ['required'],
             'currency'  => ['required', 'in:usd'],
             'item_type' => ['required', 'in:course,event'],
+            'payment_type' => ['required', 'in:monthly,annual,subscription'],
         ];
     }
 
