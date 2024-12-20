@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateProfileRequest;
+use App\Models\Purchase;
 
 class ProfileController extends Controller
 {
@@ -39,5 +40,32 @@ class ProfileController extends Controller
             info($e);
             return response()->json(['status' => false, 'message' => 'Database error', $e->getMessage(), 422]);
         }
+    }
+
+    public function show()
+    {
+        $user = request()->user();
+
+        $courseIds = $user->purchasedCourses->pluck('id');
+
+        $purchaseHistory = Purchase::where('user_id', $user->id)
+            ->whereIn('course_id', $courseIds)
+            ->get();
+        
+        $coursePayments = $purchaseHistory->map(function ($purchase) use ($user) {
+            $course = $user->purchasedCourses->firstWhere('id', $purchase->course_id);
+                return [
+                    'course_id' => $purchase->course_id,
+                    'course_title' => $course->name ?? 'Unknown Course',
+                    'next_payment_date' => $purchase->next_payment_date,
+                ];
+        });
+        
+        $data = [
+            'total_course' => $user->purchasedCourses->count(),
+            'next_payment_dates' => $coursePayments,
+        ];
+
+        return $this->successResponse(true, 'Student Course', $data, 200);
     }
 }

@@ -16,6 +16,7 @@ use App\Http\Controllers\API\Admin\EventController;
 use App\Http\Controllers\API\Admin\CourseController;
 use App\Http\Controllers\API\Admin\CategoryController;
 use App\Http\Controllers\API\CardController;
+use App\Http\Controllers\API\SubscriptionController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -85,6 +86,7 @@ Route::middleware(['auth:api', 'onlyParent'])->group(function(){
     Route::controller(ParentController::class)->group(function(){
         Route::prefix('/parent')->name('parent.')->group(function(){
             Route::get('/dashboard', 'index')->name('dashboard');
+            Route::get('/student/list', 'show')->name('student');
         });
     });
 
@@ -92,6 +94,12 @@ Route::middleware(['auth:api', 'onlyParent'])->group(function(){
         Route::prefix('request')->name('request.')->group(function(){
             Route::post('/link/{id}', 'store')->name('link');
             Route::post('/cancel/{id}', 'cancelRequest')->name('cancel');
+        });
+    });
+
+    Route::controller(SubscriptionController::class)->group(function(){
+        Route::prefix('subscription')->name('subscription.')->group(function(){
+            Route::post('/parent', 'parentSubscribe')->name('parentsubscribe');
         });
     });
 });
@@ -106,6 +114,7 @@ Route::middleware(['auth:api', 'onlyStudent'])->group(function(){
             Route::get('/request', 'getRequest')->name('request');
             Route::get('/accept/request/{stdId}', 'acceptRequest')->name('accept');
             Route::get('/cancel/request/{stdId}', 'cancelRequest')->name('cancel');
+            Route::get('/parent/list', 'show')->name('show');
         });
     });
 
@@ -125,6 +134,18 @@ Route::middleware(['auth:api', 'onlyStudent'])->group(function(){
         Route::prefix('course')->name('course.')->group(function(){
             Route::get('/enroll/{id}', 'create')->name('enroll');
             Route::post('/pay/{id}', 'store')->name('pay.course');
+        });
+    });
+
+    Route::controller(ProfileController::class)->group(function(){
+        Route::prefix('profile')->name('profile.')->group(function(){
+            Route::post('/show', 'show')->name('show');
+        });
+    });
+
+    Route::controller(SubscriptionController::class)->group(function(){
+        Route::prefix('subscription')->name('subscription.')->group(function(){
+            Route::post('/store', 'store')->name('store');
         });
     });
 

@@ -99,4 +99,33 @@ class StudentController extends Controller
 
         return $this->successResponse(true, 'Request canceled', [], 200);
     }
+
+    /**
+     * parent list show
+     *
+     * @return mixed
+    */
+    public function show()
+    {
+        $user = Auth::user();
+        $requests = LinkRequest::with(['student'])->where('student_id', $user->id)->where('status', 'accept')->get();
+
+        if($requests->isEmpty()){
+            return $this->failedResponse('Request not found', 404);
+        }
+
+        $data = [
+            'id'     => $user->id,
+            'name'   => $user->name,
+            'avatar' => $user->avatar,
+            'count'  => $requests->count(),
+            'parent' => [
+                'id'     => $requests->first()->parent->id,
+                'name'   => $requests->first()->parent->name,
+                'avatar' => $requests->first()->parent->avatar,
+            ],
+        ];
+
+        return $this->successResponse(true, 'Request list', $data, 200);
+    }
 }

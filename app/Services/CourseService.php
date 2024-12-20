@@ -212,4 +212,34 @@ class CourseService extends Service
 
         return $this->successResponse(true, 'Course with chapters and lessons', $data, 200);
     }
+
+    public function currentCourse($user)
+    {
+        $courses = $user->purchasedCourses->map(function($course) use ($user){
+
+            $totalLessons = $course->lessons->count();
+
+            // Count the completed lessons
+            $completedLessons = $course->lessons->filter(function($lesson) use ($user) {
+                // Check if the user is associated with the lesson and then check if it's completed
+                $userLesson = $lesson->users->where('user_id', $user->id)->first();
+                return $userLesson && $userLesson->pivot->completed; // Check if $userLesson is not null
+            })->count();
+
+            // Calculate completion rate
+            $completionRate = $totalLessons > 0 ? round(($completedLessons / $totalLessons) * 100) : 0;
+
+            $courseAvatar = $course->lessons->first()->image_url ?? null;
+            return [
+                'course_id'       => $course->id,
+                'course_title'    => $course->name,
+                'course_avatar'   => $courseAvatar,
+                'completion_rate' => $completionRate . '%',
+                'total_class'     => $course->total_class,
+                'students'        => $course->purchasers->count(),
+            ];
+        });
+
+        return $this->successResponse(true, 'Current Courses', $courses, 200);
+    }
 }

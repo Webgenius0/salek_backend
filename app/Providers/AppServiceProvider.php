@@ -19,6 +19,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        if (!defined('MONTHLY_SUBSCRIPTION')) {
+            define('MONTHLY_SUBSCRIPTION', 50);
+            define('QUARTERLY_DISCOUNT', 10);
+            define('ANNUAL_DISCOUNT', 16);
+        }
     }
 }

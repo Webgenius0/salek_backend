@@ -35,6 +35,10 @@ class User extends Authenticatable implements JWTSubject
      * @var list<string>
      */
     protected $hidden = [
+        'stripe_id',
+        'pm_type',
+        'pm_last_four',
+        'trial_ends_at',
         'password',
         'remember_token',
     ];
@@ -65,7 +69,7 @@ class User extends Authenticatable implements JWTSubject
     // Relation Start
     public function purchasedCourses()
     {
-        return $this->belongsToMany(Course::class, 'course_user')
+        return $this->belongsToMany(Course::class, 'course_user', 'user_id', 'course_id')
                     ->withPivot('price', 'access_granted', 'purchased_at')
                     ->withTimestamps();
     }
@@ -91,5 +95,19 @@ class User extends Authenticatable implements JWTSubject
     public function reviews()
     {
         return $this->morphMany(Review::class, 'reviewable');
+    }
+
+    /**
+     * Get the active subscription for the user.
+     */
+    public function activeSubscription()
+    {
+        return $this->hasOne(Subscription::class)
+            ->where('ends_at', '>=', now());
+    }
+
+    public function hasActiveSubscription()
+    {
+        return $this->activeSubscription && $this->activeSubscription->stripe_status === 'active';
     }
 }

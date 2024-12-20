@@ -6,7 +6,7 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class LoginRequest extends FormRequest
+class SubscriptionStoreRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -20,19 +20,20 @@ class LoginRequest extends FormRequest
      * Get the validation rules that apply to the request.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
+    */
     public function rules(): array
     {
         return [
-            'email'    => ['required', 'email', 'exists:users,email'],
-            'password' => ['required', 'string', 'min:4']
+            'type' => ['required', 'string', 'in:monthly,quarterly,annual'],
         ];
     }
 
-    public function messages(): array
+    public function messages()
     {
         return [
-            'email.exists' => 'The email not found in our system.',
+            'type.required' => 'Subscription type is required',
+            'type.string'   => 'Subscription type must be a string',
+            'type.in'       => 'Subscription type must be one of the following: monthly, quarterly, annual',
         ];
     }
 
@@ -42,6 +43,6 @@ class LoginRequest extends FormRequest
             'status' => false,
             'errors' => $validator->errors(),
             'code'   => 422
-        ], 422));
+        ],422));
     }
 }

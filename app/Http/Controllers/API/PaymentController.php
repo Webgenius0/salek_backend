@@ -35,14 +35,19 @@ class PaymentController extends Controller
             $course = Course::find($id);
 
             $user = User::find(Auth::id());
-
+            $userSubscription = $user->hasActiveSubscription();
+            
+            if($userSubscription){
+                return response()->json(['message' => 'You already have an active subscription!']);
+            }
+            
             $paymentObj = new Payment();
 
             $paymentObj->payment_id    = Str::random($length = 10);
             $paymentObj->user_id       = $user->id;
             $paymentObj->item_id       = $course->id;
             $paymentObj->amount        = $course->price;
-            $paymentObj->currency      = 'usd';
+            $paymentObj->currency      = 'USD';
             $paymentObj->purchase_type = 'stripe';
             $paymentObj->quantity      = 1;
 

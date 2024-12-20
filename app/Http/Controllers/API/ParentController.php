@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
+use App\Models\User;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -41,5 +42,23 @@ class ParentController extends Controller
             return $this->failedResponse('You have no student right now.', 404);
         }
         
+    }
+
+    public function show()
+    {
+        $user = Auth::user();
+
+        $myStudent = $user->linkRequests->first();
+
+        $student = User::find($myStudent->student_id);
+
+        $data = [
+            'id' => $student->id,
+            'name' => $student->name,
+            'email' => $student->email,
+            'avatar' => $student->avatar,
+        ];
+
+        return $this->successResponse(true, 'Student details', $data, 200);
     }
 }

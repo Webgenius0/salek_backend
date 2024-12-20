@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Services\CourseService;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CourseStoreRequest;
+use Illuminate\Support\Facades\Auth;
 
 class CourseController extends Controller
 {
@@ -19,7 +20,14 @@ class CourseController extends Controller
 
     public function index()
     {
-        $courses = Course::with(['chapters.lessons', 'category', 'creator', 'purchasers'])->latest()->get();
+        $userId = Auth::id();
+
+        $courses = Course::with(['chapters.lessons', 'category', 'creator'])
+            ->whereDoesntHave('purchasers', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })
+            ->latest()
+            ->get();
 
         $data = $courses->map(function($course){
             return [
@@ -103,6 +111,6 @@ class CourseController extends Controller
     {
         $user = request()->user();
 
-        return $user->purchasedCourses;
+        return $this->courseServiceObj->currentCourse($user);
     }
 }
