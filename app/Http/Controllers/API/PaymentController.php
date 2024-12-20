@@ -12,6 +12,8 @@ use App\Models\Purchase;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Services\StripeService;
+use App\Services\PaymentService;
+use App\Services\PurchaseService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
@@ -20,68 +22,87 @@ use App\Http\Requests\StoreStripeRequest;
 
 class PaymentController extends Controller
 {
-    public $stripeServiceObj;
+    public $stripeServiceObj,$paymentServiceObj, $purchaseServiceObj;
     
     public function __construct()
     {
         $this->stripeServiceObj = new StripeService();
+        $this->paymentServiceObj = new PaymentService();
+        $this->purchaseServiceObj = new PurchaseService();
     }
 
-    public function create($id)
+    public function create(Request $request, $id)
     {
         try {
             DB::beginTransaction();
 
-            $course = Course::find($id);
+            $course       = Course::find($id);
+            $user         = User::find(Auth::id());
+            $payment_type = $request->payment_type;
 
-            $user = User::find(Auth::id());
-            $userSubscription = $user->hasActiveSubscription();
-            
-            if($userSubscription){
-                return response()->json(['message' => 'You already have an active subscription!']);
+            if($payment_type === 'monthly'){
+
+                // $lastPayment = Payment::where('user_id', $user->id)->where('item_id', $course->id)->orderBy('created_at', 'desc')->get();
+
+                // if($lastPayment->isNotEmpty()){
+                //     $lastPaymentMoney = $lastPayment->last()->amount;
+                //     $totalValue = $lastPayment->sum('amount');
+                // }
+
+                $coursePrice = $course->price;
+                $courseMonth = $course->total_month;
+                $additionalChargePercentage = $course->additional_charge;
+
+                $additionalCharge = ($additionalChargePercentage / 100) * $coursePrice;
+                $totalPriceWithCharge = $coursePrice + $additionalCharge;
+
+                $perMonthMoney = $totalPriceWithCharge / $courseMonth;
+
+                $newBalance = $perMonthMoney;
+                
+                $this->paymentServiceObj->store($user->id, $course->id, $newBalance);
             }
+
+
+
+
+
             
-            $paymentObj = new Payment();
+            
+            // $userSubscription = $user->hasActiveSubscription();
+            // if($userSubscription){
+            //     return response()->json(['message' => 'You already have an active subscription!']);
+            // }
+            // $purchaseCourse = Purchase::where('user_id', $user->id)->where('course_id', $course->id)->first();
+            // if($purchaseCourse){
+            //     if($purchaseCourse->amount_paid >= $course->price){
+            //         return response()->json(['message' => 'You already have access to this course!']);
 
-            $paymentObj->payment_id    = Str::random($length = 10);
-            $paymentObj->user_id       = $user->id;
-            $paymentObj->item_id       = $course->id;
-            $paymentObj->amount        = $course->price;
-            $paymentObj->currency      = 'USD';
-            $paymentObj->purchase_type = 'stripe';
-            $paymentObj->quantity      = 1;
+            //     }
+            // }
+            // $this->purchaseServiceObj->store($user->id, $course->id, $course->price);
+            // $this->paymentServiceObj->store($user->id, $course->id, $course->price);
+            
+            
 
-            $paymentObj->save();
+            // $alreadyPurchased = $user->purchasedCourses()->where('course_id', $course->id)->first();
 
-            $purchaseObj = new Purchase();
-
-            $purchaseObj->user_id      = $user->id;
-            $purchaseObj->course_id    = $course->id;
-            $purchaseObj->payment_plan = 'monthly';
-            $purchaseObj->amount_paid  = 33;
-            $purchaseObj->payment_date = Carbon::now();
-            $purchaseObj-> next_payment_date = Carbon::now()->addDays(30);
-
-            $purchaseObj->save();
-
-            $alreadyPurchased = $user->purchasedCourses()->where('course_id', $course->id)->first();
-
-            if ($alreadyPurchased) {
-                DB::table('course_user')
-                    ->where('user_id', $user->id)
-                    ->where('course_id', $course->id)
-                    ->update([
-                        'price' => $course->price,
-                        'purchased_at' => Carbon::now(),
-                        'access_granted' => true,
-                    ]);
-            } else {
-                $user->purchasedCourses()->attach($course->id, [
-                    'price' => $course->price,
-                    'purchased_at' => Carbon::now(),
-                    'access_granted' => true,
-                ]);
-            }
+            // if ($alreadyPurchased) {
+            //     DB::table('course_user')
+            //         ->where('user_id', $user->id)
+            //         ->where('course_id', $course->id)
+            //         ->update([
+            //             'price' => $course->price,
+            //             'purchased_at' => Carbon::now(),
+            //             'access_granted' => true,
+            //         ]);
+            // } else {
+            //     $user->purchasedCourses()->attach($course->id, [
+            //         'price' => $course->price,
+            //         'purchased_at' => Carbon::now(),
+            //         'access_granted' => true,
+            //     ]);
+            // }
 
             DB::commit();
             return response()->json(['message' => 'Course purchased successfully!']);

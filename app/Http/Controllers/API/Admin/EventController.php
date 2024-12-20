@@ -68,6 +68,7 @@ class EventController extends Controller
         $event_date     = $request->input('event_date');
         $event_location = trim($request->input('event_location'));
         $price          = trim($request->input('price'));
+        $total_seat     = trim($request->input('total_seat'));
 
         $thumbnail      = null;
         if($request->hasFile('thumbnail')){
@@ -82,7 +83,8 @@ class EventController extends Controller
             $event_date, 
             (string) $event_location, 
             (int) $price, 
-            $thumbnail
+            $thumbnail,
+            (int) $total_seat
         );
     }
 

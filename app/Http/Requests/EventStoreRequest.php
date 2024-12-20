@@ -30,6 +30,7 @@ class EventStoreRequest extends FormRequest
             'event_date'     => ['required', 'date'],
             'event_location' => ['required'],
             'price'          => ['required', 'integer'],
+            'total_seat'     => ['required', 'integer'],
             'thumbnail'      => ['required'],
         ];
     }

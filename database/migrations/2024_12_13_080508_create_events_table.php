@@ -20,6 +20,7 @@ return new class extends Migration
             $table->timestamp('event_date')->nullable();
             $table->string('event_location', 500)->nullable();
             $table->integer('price')->nullable();
+            $table->integer('total_seat')->nullable();
             $table->string('thumbnail', 250)->nullable();
             $table->foreignId('created_by')->constrained('users')->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onUpdate('cascade')->onDelete('cascade');

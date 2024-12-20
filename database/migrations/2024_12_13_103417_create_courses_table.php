@@ -20,6 +20,8 @@ return new class extends Migration
             $table->string('description', 1000)->nullable();
             $table->integer('total_class');
             $table->integer('price');
+            $table->integer('total_month')->nullable();
+            $table->integer('additional_charge')->nullable();
             $table->enum('status', ['publish', 'unpublish']);
             $table->timestamps();
         });

@@ -14,6 +14,8 @@ class Course extends Model
         'description',
         'total_class',
         'price',
+        'total_month',
+        'additional_charge',
         'status',
     ];
 

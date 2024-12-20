@@ -72,7 +72,8 @@ class EventService extends Service
         $event_date,
         string $event_location,
         int $price,
-        $thumbnail
+        $thumbnail,
+        int $total_seat
     )
     {
         try {
@@ -91,6 +92,7 @@ class EventService extends Service
             $this->eventObj->event_date     = $event_date;
             $this->eventObj->event_location = $event_location;
             $this->eventObj->price          = $price;
+            $this->eventObj->total_seat     = $total_seat;
             $this->eventObj->created_by     = $creatorId;
             $this->eventObj->status         = 'upcoming';
             $this->eventObj->created_at     = Carbon::now();

@@ -35,6 +35,8 @@ class CourseStoreRequest extends FormRequest
             'chapters.*.lessons.*.duration'    => ['required', 'string'],
             'chapters.*.lessons.*.image_url'   => ['nullable', 'image'],
             'chapters.*.lessons.*.video_url'   => ['nullable', 'mimes:mp4,avi,mkv'],
+            'total_month'                      => ['required', 'integer'],
+            'additional_charge'                => ['required', 'integer'],
         ];
     }
 

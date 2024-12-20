@@ -132,7 +132,7 @@ Route::middleware(['auth:api', 'onlyStudent'])->group(function(){
 
     Route::controller(PaymentController::class)->group(function(){
         Route::prefix('course')->name('course.')->group(function(){
-            Route::get('/enroll/{id}', 'create')->name('enroll');
+            Route::post('/enroll/{id}', 'create')->name('enroll');
             Route::post('/pay/{id}', 'store')->name('pay.course');
         });
     });

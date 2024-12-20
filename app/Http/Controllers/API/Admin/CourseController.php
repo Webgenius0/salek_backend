@@ -69,13 +69,15 @@ class CourseController extends Controller
     */
     public function store(CourseStoreRequest $request)
     {
-        $creatorId   = request()->user()->id;
-        $name        = $request->input('course.name');
-        $description = $request->input('course.description');
-        $category_id = $request->input('course.category_id');
-        $totalClass  = $request->input('course.total_class');
-        $price       = $request->input('course.price');
-        $chapters    = $request->chapters;
+        $creatorId         = request()->user()->id;
+        $name              = $request->input('course.name');
+        $description       = $request->input('course.description');
+        $category_id       = $request->input('course.category_id');
+        $totalClass        = $request->input('course.total_class');
+        $price             = $request->input('course.price');
+        $chapters          = $request->chapters;
+        $total_month       = $request->input('total_month');
+        $additional_charge = $request->input('additional_charge');
         
         if (is_null($chapters) || empty($chapters)) {
             return response()->json([
@@ -91,7 +93,9 @@ class CourseController extends Controller
             (int) $category_id,
             (int) $totalClass,
             (int) $price,
-            $chapters
+            $chapters,
+            (int) $total_month,
+            (int) $additional_charge
         );
     }
 

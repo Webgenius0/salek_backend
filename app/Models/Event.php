@@ -14,6 +14,7 @@ class Event extends Model
         'event_date',
         'event_location',
         'price',
+        'total_seat',
         'thumbnail',
         'created_by',
         'updated_by',

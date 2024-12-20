@@ -30,6 +30,8 @@ class CourseService extends Service
      * @param integer $totalClass
      * @param integer $price
      * @param array $chapters
+     * @param int $total_month
+     * @param int $additional_charge
      * @return mixed
     */
     public function store(
@@ -39,7 +41,9 @@ class CourseService extends Service
         int $category_id,
         int $totalClass,
         int $price,
-        array $chapters
+        array $chapters,
+        int $total_month,
+        int $additional_charge
     )
     {
         try {
@@ -47,14 +51,16 @@ class CourseService extends Service
 
             $chaptersPerLevel = 2;
 
-            $this->courseObj->created_by  = $creatorId;
-            $this->courseObj->name        = Str::title($name);
-            $this->courseObj->slug        = Str::slug($name, '-');
-            $this->courseObj->description = $description;
-            $this->courseObj->category_id = $category_id;
-            $this->courseObj->total_class = $totalClass;
-            $this->courseObj->price       = $price;
-            $this->courseObj->status      = 'publish';
+            $this->courseObj->created_by        = $creatorId;
+            $this->courseObj->name              = Str::title($name);
+            $this->courseObj->slug              = Str::slug($name, '-');
+            $this->courseObj->description       = $description;
+            $this->courseObj->category_id       = $category_id;
+            $this->courseObj->total_class       = $totalClass;
+            $this->courseObj->price             = $price;
+            $this->courseObj->total_month       = $total_month;
+            $this->courseObj->additional_charge = $additional_charge;
+            $this->courseObj->status            = 'publish';
 
             $res = $this->courseObj->save();
 
