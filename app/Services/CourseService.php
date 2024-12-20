@@ -45,6 +45,8 @@ class CourseService extends Service
         try {
             DB::beginTransaction();
 
+            $chaptersPerLevel = 2;
+
             $this->courseObj->created_by  = $creatorId;
             $this->courseObj->name        = Str::title($name);
             $this->courseObj->slug        = Str::slug($name, '-');
@@ -61,8 +63,12 @@ class CourseService extends Service
 
                 foreach ($chapters as $chapterKey => $chapterData) {
                     $chapter             = new Chapter();
+
+                    $level = floor($chapterKey / $chaptersPerLevel) + 1;
+
                     $chapter->course_id  = $this->courseObj->id;
                     $chapter->name       = $chapterData['chapter_name'];
+                    $chapter->chapter_order = $level;
                     
                     $chapter->save();
 
