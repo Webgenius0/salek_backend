@@ -19,16 +19,18 @@ class CourseController extends Controller
 
     public function index()
     {
-        $courses = Course::with(['chapters.lessons', 'category', 'creator'])->latest()->get();
+        $courses = Course::with(['chapters.lessons', 'category', 'creator', 'purchasers'])->latest()->get();
 
         $data = $courses->map(function($course){
             return [
                 'course_id'    => $course->id,
-                'course_title' => $course->title,
+                'course_title' => $course->name,
                 'price'        => $course->price,
                 'review'       => 4.9 . (232 . ' Reviews'),
+                'total_chapter'  => $course->chapters->count(),
+                'total_level' => $course->chapters->max('chapter_order'),
                 'total_class'  => $course->total_class,
-                'students'     => 1234,
+                'students'     => $course->purchasers->count(),
             ];
         });
 

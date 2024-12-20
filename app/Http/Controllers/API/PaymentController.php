@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Course;
 use App\Models\Payment;
 use App\Models\Purchase;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Services\StripeService;
 use Illuminate\Support\Facades\DB;
@@ -28,33 +29,68 @@ class PaymentController extends Controller
 
     public function create($id)
     {
-        $course = Course::find($id);
+        try {
+            DB::beginTransaction();
 
-        $user = User::find(Auth::id());
+            $course = Course::find($id);
 
-        $paymentObj = new Purchase();
+            $user = User::find(Auth::id());
 
-        $paymentObj->user_id = $user->id;
-        $paymentObj->course_id = $course->id;
-        $paymentObj->payment_plan = 'monthly';
-        $paymentObj->amount_paid = 33;
-        $paymentObj->payment_date = Carbon::now();
-        $paymentObj-> next_payment_date = Carbon::now()->addDays(30);
+            $paymentObj = new Payment();
 
-        $paymentObj->save();
+            $paymentObj->payment_id    = Str::random($length = 10);
+            $paymentObj->user_id       = $user->id;
+            $paymentObj->item_id       = $course->id;
+            $paymentObj->amount        = $course->price;
+            $paymentObj->currency      = 'usd';
+            $paymentObj->purchase_type = 'stripe';
+            $paymentObj->quantity      = 1;
 
-        $alreadyPurchased = $user->purchasedCourses()->where('course_id', $course->id)->exists();
+            $paymentObj->save();
 
-        if ($alreadyPurchased) {
-            return response()->json(['message' => 'You have already purchased this course.'], 400);
+            $purchaseObj = new Purchase();
+
+            $purchaseObj->user_id      = $user->id;
+            $purchaseObj->course_id    = $course->id;
+            $purchaseObj->payment_plan = 'monthly';
+            $purchaseObj->amount_paid  = 33;
+            $purchaseObj->payment_date = Carbon::now();
+            $purchaseObj-> next_payment_date = Carbon::now()->addDays(30);
+
+            $purchaseObj->save();
+
+            $alreadyPurchased = $user->purchasedCourses()->where('course_id', $course->id)->first();
+
+            if ($alreadyPurchased) {
+                DB::table('course_user')
+                    ->where('user_id', $user->id)
+                    ->where('course_id', $course->id)
+                    ->update([
+                        'price' => $course->price,
+                        'purchased_at' => Carbon::now(),
+                        'access_granted' => true,
+                    ]);
+            } else {
+                $user->purchasedCourses()->attach($course->id, [
+                    'price' => $course->price,
+                    'purchased_at' => Carbon::now(),
+                    'access_granted' => true,
+                ]);
+            }
+
+            DB::commit();
+            return response()->json(['message' => 'Course purchased successfully!']);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            info($e);
+            return response()->json([
+                'status' => false,
+                'message' => 'Something went wrong',
+                'error' => $e->getMessage(),
+                'code' => 500
+            ], 500);
         }
-
-        $user->purchasedCourses()->attach($course->id, [
-            'price' => $course->price,
-            'purchased_at' =>  Carbon::now(),
-        ]);
-
-        return response()->json(['message' => 'Course purchased successfully!']);
     }
     
     public function store(StoreStripeRequest $request, $id)
