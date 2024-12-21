@@ -16,6 +16,9 @@ class Course extends Model
         'price',
         'total_month',
         'additional_charge',
+        'introduction_title',
+        'cover_photo',
+        'class_video',
         'status',
     ];
 

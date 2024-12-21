@@ -41,71 +41,93 @@ class CourseService extends Service
         int $category_id,
         int $totalClass,
         int $price,
-        array $chapters,
         int $total_month,
-        int $additional_charge
+        int $additional_charge,
+        string $introduction_title,
+        $cover_photo,
+        $class_video
     )
     {
         try {
             DB::beginTransaction();
 
-            $chaptersPerLevel = 2;
+            if($cover_photo != null){
+                $cover_photo_name = time() . '.' . $cover_photo->getClientOriginalExtension();
+                $cover_photo->move(public_path('uploads/course/introduction/cover_photo'), $cover_photo_name);
+                $this->courseObj->cover_photo = 'uploads/course/introduction/cover_photo/' . $cover_photo_name;
+            }
 
-            $this->courseObj->created_by        = $creatorId;
-            $this->courseObj->name              = Str::title($name);
-            $this->courseObj->slug              = Str::slug($name, '-');
-            $this->courseObj->description       = $description;
-            $this->courseObj->category_id       = $category_id;
-            $this->courseObj->total_class       = $totalClass;
-            $this->courseObj->price             = $price;
-            $this->courseObj->total_month       = $total_month;
-            $this->courseObj->additional_charge = $additional_charge;
-            $this->courseObj->status            = 'publish';
+            if($class_video != null){
+                $class_video_name = time() . '.' . $class_video->getClientOriginalExtension();
+                $class_video->move(public_path('uploads/course/introduction/class_video'), $class_video_name);
+                $this->courseObj->class_video = 'uploads/course/introduction/class_video/' . $class_video_name;
+            }
+
+            $this->courseObj->created_by         = $creatorId;
+            $this->courseObj->name               = Str::title($name);
+            $this->courseObj->slug               = Str::slug($name, '-');
+            $this->courseObj->description        = $description;
+            $this->courseObj->category_id        = $category_id;
+            $this->courseObj->total_class        = $totalClass;
+            $this->courseObj->price              = $price;
+            $this->courseObj->total_month        = $total_month;
+            $this->courseObj->additional_charge  = $additional_charge;
+            $this->courseObj->introduction_title = $introduction_title;
+            $this->courseObj->status             = 'publish';
 
             $res = $this->courseObj->save();
 
             DB::commit();
             if($res){
 
-                foreach ($chapters as $chapterKey => $chapterData) {
-                    $chapter             = new Chapter();
+                // foreach ($chapters as $chapterKey => $chapterData) {
+                //     $chapter             = new Chapter();
 
-                    $level = floor($chapterKey / $chaptersPerLevel) + 1;
+                //     $level = floor($chapterKey / $chaptersPerLevel) + 1;
 
-                    $chapter->course_id  = $this->courseObj->id;
-                    $chapter->name       = $chapterData['chapter_name'];
-                    $chapter->chapter_order = $level;
+                //     $levelLabel = match ($level) {
+                //         1       => 'Beginner',
+                //         2       => 'Intermediate',
+                //         3       => 'Advanced',
+                //         default => 'Excellent',
+                //     };
+
+                //     $chapter->course_id     = $this->courseObj->id;
+                //     $chapter->name          = $chapterData['chapter_name'];
+                //     $chapter->slug          = Str::slug($chapterData['chapter_name'], '-');
+                //     $chapter->level_label   = $levelLabel;
+                //     $chapter->chapter_order = $level;
                     
-                    $chapter->save();
+                //     $chapter->save();
 
-                    foreach ($chapterData['lessons'] as $lessonKey => $lessonData) {
-                        $imagePath = null;
-                        if (isset($lessonData['image_url']) && $lessonData['image_url']) {
-                            $fileName  = time() . '.' . $lessonData['image_url']->getClientOriginalExtension();
-                            $imagePath = 'uploads/course/lessons/thumbnail/' . $fileName;
-                            $lessonData['image_url']->move(public_path('uploads/course/lessons/thumbnail'), $fileName);
-                        }
+                //     foreach ($chapterData['lessons'] as $lessonKey => $lessonData) {
+                //         $imagePath = null;
+                //         if (isset($lessonData['image_url']) && $lessonData['image_url']) {
+                //             $fileName  = time() . '.' . $lessonData['image_url']->getClientOriginalExtension();
+                //             $imagePath = 'uploads/course/lessons/thumbnail/' . $fileName;
+                //             $lessonData['image_url']->move(public_path('uploads/course/lessons/thumbnail'), $fileName);
+                //         }
 
-                        $videoPath = null;
-                        if (isset($lessonData['video_url']) && $lessonData['video_url']) {
-                            $fileName  = time() . '.' . $lessonData['video_url']->getClientOriginalExtension();
-                            $videoPath = 'uploads/course/lessons/videos/' . $fileName;
-                            $lessonData['video_url']->move(public_path('uploads/course/lessons/videos'), $fileName);
-                        }
+                //         $videoPath = null;
+                //         if (isset($lessonData['video_url']) && $lessonData['video_url']) {
+                //             $fileName  = time() . '.' . $lessonData['video_url']->getClientOriginalExtension();
+                //             $videoPath = 'uploads/course/lessons/videos/' . $fileName;
+                //             $lessonData['video_url']->move(public_path('uploads/course/lessons/videos'), $fileName);
+                //         }
 
-                        $lesson             = new Lesson();
-                        $lesson->chapter_id = $chapter->id;
-                        $lesson->course_id  = $this->courseObj->id;
-                        $lesson->name       = $lessonData['lesson_name'];
-                        $lesson->duration   = $lessonData['duration'];
-                        $lesson->image_url  = $imagePath;
-                        $lesson->video_url  = $videoPath;
+                //         $lesson             = new Lesson();
+                //         $lesson->chapter_id = $chapter->id;
+                //         $lesson->course_id  = $this->courseObj->id;
+                //         $lesson->name       = $lessonData['lesson_name'];
+                //         $lesson->duration   = $lessonData['duration'];
+                //         $lesson->image_url  = $imagePath;
+                //         $lesson->video_url  = $videoPath;
                         
-                        $lesson->save();
-                    }
-                }
+                //         $lesson->save();
+                //     }
+                // }
 
-                DB::commit();
+                // DB::commit();
                 return $this->successResponse(true, 'Course and chapters created successfully.', $this->courseObj, 201);
             }
         }catch(\Illuminate\Database\QueryException $e){

@@ -22,6 +22,11 @@ return new class extends Migration
             $table->integer('price');
             $table->integer('total_month')->nullable();
             $table->integer('additional_charge')->nullable();
+
+            $table->string('introduction_title', 250)->nullable();
+            $table->string('cover_photo', 250)->nullable();
+            $table->string('class_video', 250)->nullable();
+
             $table->enum('status', ['publish', 'unpublish']);
             $table->timestamps();
         });

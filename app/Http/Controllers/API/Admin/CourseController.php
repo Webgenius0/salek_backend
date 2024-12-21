@@ -69,21 +69,24 @@ class CourseController extends Controller
     */
     public function store(CourseStoreRequest $request)
     {
-        $creatorId         = request()->user()->id;
-        $name              = $request->input('course.name');
-        $description       = $request->input('course.description');
-        $category_id       = $request->input('course.category_id');
-        $totalClass        = $request->input('course.total_class');
-        $price             = $request->input('course.price');
-        $chapters          = $request->chapters;
-        $total_month       = $request->input('total_month');
-        $additional_charge = $request->input('additional_charge');
-        
-        if (is_null($chapters) || empty($chapters)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Chapters data is missing or invalid.',
-            ], 400);
+        $creatorId          = request()->user()->id;
+        $name               = $request->input('name');
+        $description        = $request->input('description');
+        $category_id        = $request->input('category_id');
+        $totalClass         = $request->input('total_class');
+        $price              = $request->input('price');
+        $total_month        = $request->input('total_month');
+        $additional_charge  = $request->input('additional_charge');
+        $introduction_title = $request->input('introduction_title');
+
+        $cover_photo = null;
+        if($request->hasFile('cover_photo')) {
+            $cover_photo = $request->file('cover_photo');
+        }
+
+        $class_video = null;
+        if($request->hasFile('class_video')) {
+            $class_video = $request->file('class_video');
         }
 
         return $this->courseServiceObj->store(
@@ -93,9 +96,11 @@ class CourseController extends Controller
             (int) $category_id,
             (int) $totalClass,
             (int) $price,
-            $chapters,
             (int) $total_month,
-            (int) $additional_charge
+            (int) $additional_charge,
+            (string) $introduction_title,
+            $cover_photo,
+            $class_video
         );
     }
 
