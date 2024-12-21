@@ -168,7 +168,7 @@ class CourseController extends Controller
     {
         return $this->courseServiceObj->show($id);
     }
-
+    
     public function currentCourse()
     {
         $user = request()->user();

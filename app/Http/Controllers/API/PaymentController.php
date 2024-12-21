@@ -127,6 +127,13 @@ class PaymentController extends Controller
         $paymentType   = $request->payment_type;
         $paymentMethod = $request->payment_method;
         
+        $user = User::find(Auth::id());
+
+        $subscription = $user->hasActiveSubscription();
+
+        if($subscription){
+            return $this->paymentServiceObj->update($user->id, $itemId, $paymentType, $paymentMethod);
+        }
 
         if($paymentMethod === 'stripe'){
             return $this->stripeServiceObj->createPayment(
