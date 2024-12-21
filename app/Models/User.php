@@ -110,4 +110,9 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->activeSubscription && $this->activeSubscription->stripe_status === 'active';
     }
+
+    public function profile()
+    {
+        return $this->hasOne(Profile::class);
+    }
 }

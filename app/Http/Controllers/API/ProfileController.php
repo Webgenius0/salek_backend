@@ -2,17 +2,62 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Models\Purchase;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StorePhotoRequest;
 use App\Http\Requests\UpdateProfileRequest;
-use App\Models\Purchase;
+use App\Models\Profile;
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 
 class ProfileController extends Controller
 {
     use ApiResponse;
+
+    /**
+     * Store a newly created resource in public.
+     *
+     * @param  StorePhotoRequest  $request
+    */
+    public function store(StorePhotoRequest $request)
+    {
+        $user = User::find(request()->user()->id);
+
+        if(!$user) {
+            return $this->failedResponse('User not found', 404);
+        }
+
+        if($request->hasFile('avatar')) {
+            $file     = $request->file('avatar');
+            $fileName = time() . '.' . $file->getClientOriginalExtension();
+            
+            $profile = Profile::where('user_id', $user->id)->first();
+
+            if($profile) {
+                $file->move(public_path('uploads/profile'), $fileName);
+
+                $profile->avatar = 'uploads/profile/' . $fileName;
+                $profile->save();
+            } else {
+                $profile          = new Profile();
+                $profile->user_id = $user->id;
+                $profile->avatar  = 'uploads/profile/' . $fileName;
+                $profile->save();
+            }
+
+            return $this->successResponse(true, 'Profile picture uploaded successfully', $profile, 200);
+        }
+    }
     
+    /**
+     * Update the specified resource in public.
+     *
+     * @param  UpdateProfileRequest  $request
+    */
     public function update(UpdateProfileRequest $request)
     {
         try {
@@ -24,14 +69,44 @@ class ProfileController extends Controller
             $email        = $request->input('email');
             $mobile_phone = $request->input('mobile_phone');
             $gender       = $request->input('gender');
+            $class_no     = $request->input('class_no');
+            $class_name   = $request->input('class_name');
 
 
             $user->name = $name;
             $user->email = $email;
 
-            $user->save();
+            $res = $user->save();
 
             DB::commit();
+            if($res){
+                $profile = Profile::where('user_id', $user->id)->first();
+
+                if(!$profile){
+                    $profileObj = new Profile();
+
+                    $profileObj->user_id    = $user->id;
+                    $profileObj->dob        = $dob;
+                    $profileObj->phone      = $mobile_phone;
+                    $profileObj->gender     = $gender;
+                    $profileObj->class_no   = $class_no;
+                    $profileObj->class_name = $class_name;
+
+                    $profileObj->save();
+                }
+
+                if($profile){
+                    $profile->dob        = $dob;
+                    $profile->phone      = $mobile_phone;
+                    $profile->gender     = $gender;
+                    $profile->class_no   = $class_no;
+                    $profile->class_name = $class_name;
+
+                    $profile->save();
+                }
+
+                return $this->successResponse(true, 'Update your information successfully', $user, 200);
+            }
             
             return $this->successResponse(true, 'Update your information successfully', $user, 200);
 
@@ -42,10 +117,15 @@ class ProfileController extends Controller
         }
     }
 
-    public function show()
+    /**
+     * Display the specified resource in public.
+     *
+     * @return \Illuminate\Http\JsonResponse
+    */
+    public function show() :JsonResponse
     {
-        $user = request()->user();
-
+        $user = User::find(Auth::id());
+        
         $courseIds = $user->purchasedCourses->pluck('id');
 
         $purchaseHistory = Purchase::where('user_id', $user->id)
@@ -62,7 +142,12 @@ class ProfileController extends Controller
         });
         
         $data = [
-            'total_course' => $user->purchasedCourses->count(),
+            'id'                 => $user->id,
+            'name'               => $user->name,
+            'avatar'             => $user->profile->avatar,
+            'class_no'           => $user->profile->class_no,
+            'class_name'         => $user->profile->class_name,
+            'total_course'       => $user->purchasedCourses->count(),
             'next_payment_dates' => $coursePayments,
         ];
 

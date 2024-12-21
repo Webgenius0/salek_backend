@@ -17,6 +17,7 @@ use App\Http\Controllers\API\Admin\CourseController;
 use App\Http\Controllers\API\Admin\CategoryController;
 use App\Http\Controllers\API\CardController;
 use App\Http\Controllers\API\SubscriptionController;
+use App\Http\Controllers\API\VideoController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -128,6 +129,13 @@ Route::middleware(['auth:api', 'onlyStudent'])->group(function(){
         });
     });
 
+    Route::controller(VideoController::class)->group(function(){
+        Route::prefix('video')->name('video.')->group(function(){
+            Route::post('/show', 'show')->name('show');
+            Route::post('/status/update', 'update')->name('update');
+        });
+    });
+
     Route::controller(InstructorController::class)->group(function(){
         Route::prefix('instructor')->name('instructor.')->group(function(){
             Route::get('/list', 'index')->name('list');
@@ -171,6 +179,7 @@ Route::middleware(['auth:api'])->group(function(){
     Route::controller(ProfileController::class)->group(function(){
         Route::prefix('profile')->name('profile.')->group(function(){
             Route::post('/update', 'update')->name('update');
+            Route::post('/photo', 'store')->name('photo');
         });
     });
 

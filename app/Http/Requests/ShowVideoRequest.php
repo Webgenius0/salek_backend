@@ -2,12 +2,11 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Validation\Rule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class UpdateProfileRequest extends FormRequest
+class ShowVideoRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,13 +24,9 @@ class UpdateProfileRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'         => ['required', 'string', 'min:2'],
-            'dob'          => ['nullable'],
-            'email'        => ['required', 'email', Rule::unique('users')->ignore($this->user()->id)],
-            'mobile_phone' => ['nullable', 'string', 'max:15'],
-            'gender'       => ['nullable', 'in:male,female,custom'],
-            'class_no'     => ['nullable', 'integer'],
-            'class_name'   => ['nullable', 'string'],
+            'course_id'  => ['required', 'integer'],
+            'chapter_id' => ['required', 'integer', 'exists:chapters,id'],
+            'lesson_id'  => ['required', 'integer', 'exists:lessons,id'],
         ];
     }
 
@@ -40,7 +35,7 @@ class UpdateProfileRequest extends FormRequest
         throw new HttpResponseException(response()->json([
             'status' => false,
             'errors' => $validator->errors(),
-            'code'   => 422
+            'code'   => 422,
         ], 422));
     }
 }
