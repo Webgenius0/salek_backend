@@ -259,13 +259,11 @@ class CourseService extends Service
                     'lesson_name' => $lesson->name,
                     'duration'    => $lesson->duration,
                     'video_url'   => $lesson->video_url,
-                    'image_url'   => $lesson->image_url,
                 ];
             }
 
             $chaptersData[] = [
                 'chapter_name'  => $chapter->name,
-                'chapter_index' => $index + 1,
                 'lessons'       => $lessonData,
             ];
         }
@@ -273,13 +271,14 @@ class CourseService extends Service
         $data = [
             'course_id'      => $course->id,
             'course_title'   => $course->name,
+            'course_thumbnail'   => $course->cover_photo,
+            'course_video'   => $course->class_video,
             'description'    => $course->description,
             'total_duration' => $course->lessons->sum('duration'),
             'total_class'    => $course->total_class,
             'instructor'     => [
                 'avatar'      => $course->creator->avatar,
                 'name'        => $course->creator->name,
-                'designation' => $course->creator->designation,
             ],
             'chapters' => $chaptersData,
         ];
@@ -287,6 +286,13 @@ class CourseService extends Service
         return $this->successResponse(true, 'Course with chapters and lessons', $data, 200);
     }
 
+    /**
+     * Current Course method
+     * Service Helper method
+     *
+     * @param [string] $user
+     * @return mixed
+    */
     public function currentCourse($user)
     {
         $courses = $user->purchasedCourses->map(function($course) use ($user){
@@ -341,5 +347,74 @@ class CourseService extends Service
         }
 
         return $this->successResponse(true, 'Course with chapters and lessons', $chaptersData, 200);
+    }
+
+    /**
+     * Course With Class method
+     * Service Helper method
+     *
+     * @param [string] $course
+     * @return mixed
+    */
+    public function courseWithClass($course)
+    {
+        $data = $course->chapters->map(function($chapter){
+            return [
+                'chapter_id'   => $chapter->id,
+                'chapter_name' => $chapter->name,
+                'level'        => $chapter->level_label,
+                'total_lesson' => $chapter->lessons->count(),
+                'lessons' => $chapter->lessons->map(function($lesson){
+                    return [
+                        'lesson_id'   => $lesson->id,
+                        'lesson_name' => $lesson->name,
+                        'video_url'   => $lesson->video_url,
+                        'duration'    => $lesson->duration,
+                    ];
+                }),
+            ];
+        });
+        
+        return $this->successResponse(true, 'All Classes', $data, 200);
+    }
+
+    /**
+     * Course Achievement method
+     * Service Helper method
+     *
+     * @param [string] $course
+     * @return mixed
+    */
+    public function courseAchievement($course)
+    {
+        $data = "This module is under development";
+
+        return $this->successResponse(true, 'Course Achievement', $data, 200);
+    }
+
+    /**
+     * Ongoing Course method
+     * Service Helper method
+     *
+     * @return mixed
+    */
+    public function ongoingCourse()
+    {
+        $data = 'This module is under development';
+
+        return $this->successResponse(true, 'Ongoing Courses', $data, 200);
+    }
+
+    /**
+     * Complete Course method
+     * Service Helper method
+     *
+     * @return mixed
+    */
+    public function completeCourse()
+    {
+        $data = 'This module is under development';
+
+        return $this->successResponse(true, 'Completed Courses', $data, 200);
     }
 }
