@@ -55,6 +55,11 @@ Route::middleware(['auth:api', 'onlyAdmin'])->group(function(){
     Route::controller(CourseController::class)->group(function(){
         Route::prefix('course')->name('course.')->group(function(){
             Route::post('/store', 'store')->name('store');
+            Route::post('/chpater/store', 'chapterStore')->name('chapter');
+            Route::post('/lesson/store', 'lessonStore')->name('lesson');
+
+            Route::get('/list', 'courseList')->name('all');
+            Route::get('/wise/chapter/{id}', 'courseWiseChapter')->name('wisechapter');
         });
     });
 

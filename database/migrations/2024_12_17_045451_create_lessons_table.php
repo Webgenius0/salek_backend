@@ -17,7 +17,6 @@ return new class extends Migration
             $table->foreignId('course_id')->nullable()->constrained('courses')->onUpdate('cascade')->onDelete('cascade');
             $table->string('name', 250)->nullable();
             $table->integer('lesson_order')->default(0);
-            $table->string('image_url', 250)->nullable();
             $table->string('video_url', 250)->nullable();
             $table->string('duration', 50)->nullable();
             $table->timestamps();

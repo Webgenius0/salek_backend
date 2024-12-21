@@ -6,8 +6,10 @@ use App\Models\Course;
 use Illuminate\Http\Request;
 use App\Services\CourseService;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CourseStoreRequest;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\CourseStoreRequest;
+use App\Http\Requests\LessonStoreRequest;
+use App\Http\Requests\ChapterStoreRequest;
 
 class CourseController extends Controller
 {
@@ -18,6 +20,12 @@ class CourseController extends Controller
         $this->courseServiceObj = new CourseService();
     }
 
+    /**
+     * Index method
+     * Get all courses
+     *
+     * @return mixed
+    */
     public function index()
     {
         $userId = Auth::id();
@@ -48,6 +56,17 @@ class CourseController extends Controller
             'data'    => $data,
             'code'    => 200,
         ], 200);
+    }
+
+    /**
+     * Course List
+     * Get all courses
+     *
+     * @return mixed
+    */
+    public function courseList()
+    {
+        return $this->courseServiceObj->courseList();
     }
 
     /**
@@ -105,6 +124,40 @@ class CourseController extends Controller
     }
 
     /**
+     * Chapter Store method
+     *
+     * @param ChapterStoreRequest $request
+     * @return mixed
+    */
+    public function chapterStore(ChapterStoreRequest $request)
+    {
+        $course_id     = $request->input('course_id');
+        $name          = $request->input('name');
+        $level_label   = $request->input('level_label');
+        $chapter_order = $request->input('chapter_order');
+        
+        return $this->courseServiceObj->chapterStore($course_id, $name, $level_label, $chapter_order);
+    }
+
+    /**
+     * Lesson Store method
+     *
+     * @param LessonStoreRequest $request
+     * @return mixed
+    */
+    public function lessonStore(LessonStoreRequest $request)
+    {
+        $course_id    = $request->input('course_id');
+        $chapter_id   = $request->input('chapter_id');
+        $name         = $request->input('name');
+        $lesson_order = $request->input('lesson_order');
+        $video        = $request->file('video_url');
+        $duration     = $request->input('duration');
+
+        return $this->courseServiceObj->lessonStore($course_id, $chapter_id, $name, $lesson_order, $video, $duration);
+    }
+
+    /**
      * Course Details method
      * call the service class method
      *
@@ -121,5 +174,17 @@ class CourseController extends Controller
         $user = request()->user();
 
         return $this->courseServiceObj->currentCourse($user);
+    }
+
+    /**
+     * Course wise chapter
+     * Get all chapters of a course
+     *
+     * @param [string] $id
+     * @return mixed
+    */
+    public function courseWiseChapter($id)
+    {
+        return $this->courseServiceObj->courseWiseChapter($id);
     }
 }

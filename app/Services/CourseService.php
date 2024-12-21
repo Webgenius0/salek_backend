@@ -6,6 +6,7 @@ use App\Models\Course;
 use App\Models\Lesson;
 use App\Models\Chapter;
 use App\Traits\ApiResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 
@@ -18,6 +19,22 @@ class CourseService extends Service
     public function __construct()
     {
         $this->courseObj = new Course();
+    }
+
+    public function courseList()
+    {
+        $courses = Course::where('created_by', Auth::id())
+            ->latest()
+            ->get();
+
+        $data = $courses->map(function($course){
+            return [
+                'course_id'    => $course->id,
+                'course_title' => $course->name,
+            ];
+        });
+
+        return $this->successResponse(true, 'All Courses', $data, 200);
     }
 
     /**
@@ -79,56 +96,7 @@ class CourseService extends Service
 
             DB::commit();
             if($res){
-
-                // foreach ($chapters as $chapterKey => $chapterData) {
-                //     $chapter             = new Chapter();
-
-                //     $level = floor($chapterKey / $chaptersPerLevel) + 1;
-
-                //     $levelLabel = match ($level) {
-                //         1       => 'Beginner',
-                //         2       => 'Intermediate',
-                //         3       => 'Advanced',
-                //         default => 'Excellent',
-                //     };
-
-                //     $chapter->course_id     = $this->courseObj->id;
-                //     $chapter->name          = $chapterData['chapter_name'];
-                //     $chapter->slug          = Str::slug($chapterData['chapter_name'], '-');
-                //     $chapter->level_label   = $levelLabel;
-                //     $chapter->chapter_order = $level;
-                    
-                //     $chapter->save();
-
-                //     foreach ($chapterData['lessons'] as $lessonKey => $lessonData) {
-                //         $imagePath = null;
-                //         if (isset($lessonData['image_url']) && $lessonData['image_url']) {
-                //             $fileName  = time() . '.' . $lessonData['image_url']->getClientOriginalExtension();
-                //             $imagePath = 'uploads/course/lessons/thumbnail/' . $fileName;
-                //             $lessonData['image_url']->move(public_path('uploads/course/lessons/thumbnail'), $fileName);
-                //         }
-
-                //         $videoPath = null;
-                //         if (isset($lessonData['video_url']) && $lessonData['video_url']) {
-                //             $fileName  = time() . '.' . $lessonData['video_url']->getClientOriginalExtension();
-                //             $videoPath = 'uploads/course/lessons/videos/' . $fileName;
-                //             $lessonData['video_url']->move(public_path('uploads/course/lessons/videos'), $fileName);
-                //         }
-
-                //         $lesson             = new Lesson();
-                //         $lesson->chapter_id = $chapter->id;
-                //         $lesson->course_id  = $this->courseObj->id;
-                //         $lesson->name       = $lessonData['lesson_name'];
-                //         $lesson->duration   = $lessonData['duration'];
-                //         $lesson->image_url  = $imagePath;
-                //         $lesson->video_url  = $videoPath;
-                        
-                //         $lesson->save();
-                //     }
-                // }
-
-                // DB::commit();
-                return $this->successResponse(true, 'Course and chapters created successfully.', $this->courseObj, 201);
+                return $this->successResponse(true, 'Course created successfully.', $this->courseObj, 201);
             }
         }catch(\Illuminate\Database\QueryException $e){
             DB::rollback();
@@ -146,6 +114,84 @@ class CourseService extends Service
                 'error' => 'Database Error',
                 'message' => $e->getMessage(),
             ], 500);
+        }
+    }
+
+    /**
+     * method for chapter create
+     *
+     * @param integer $course_id
+     * @param string $name
+     * @param string $level_label
+     * @param integer $chapter_order
+     * @return mixed
+    */
+    public function chapterStore($course_id, string $name, string $level_label, $chapter_order)
+    {
+        try {
+            DB::beginTransaction();
+
+            $chapter = new Chapter();
+
+            $chapter->course_id     = $course_id;
+            $chapter->name          = $name;
+            $chapter->slug          = Str::slug($name, '-');
+            $chapter->level_label   = $level_label;
+            $chapter->chapter_order = $chapter_order;
+
+            $res = $chapter->save();
+            DB::commit();
+            if($res){
+                return $this->successResponse(true, 'Chapter created successfully.', $chapter, 201);
+            }
+        } catch (\Exception $e) {
+            DB::rollback();
+            info($e);
+            return $this->failedResponse('Failed to create chapter.', $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * method for lesson create
+     *
+     * @param integer $course_id
+     * @param integer $chapter_id
+     * @param string $name
+     * @param integer $lesson_order
+     * @param $video
+     * @param integer $duration
+     * @return mixed
+    */
+    public function lessonStore($course_id, $chapter_id, string $name, $lesson_order, $video, $duration)
+    {
+        try {
+            DB::beginTransaction();
+
+            $lesson = new Lesson();
+
+            $videoPath = null;
+            if($video != null){
+                $fileName  = time() . '.' . $video->getClientOriginalExtension();
+                $videoPath = 'uploads/course/lessons/videos/' . $fileName;
+                $video->move(public_path('uploads/course/lessons/videos'), $fileName);
+            }
+
+            $lesson->chapter_id = $chapter_id;
+            $lesson->course_id  = $course_id;
+            $lesson->name       = $name;
+            $lesson->lesson_order = $lesson_order;
+            $lesson->video_url  = $videoPath;
+            $lesson->duration   = $duration;
+
+            $res = $lesson->save();
+            DB::commit();
+            if($res){
+                return $this->successResponse(true, 'Lesson created successfully.', $lesson, 201);
+            }
+        } catch (\Exception $e) {
+            DB::rollback();
+            info($e);
+            return $this->failedResponse('Failed to create lesson.', $e->getMessage(), 500);
         }
     }
 
@@ -269,5 +315,32 @@ class CourseService extends Service
         });
 
         return $this->successResponse(true, 'Current Courses', $courses, 200);
+    }
+
+    /**
+     * Course Wise Chapter method
+     * Service Helper method
+     *
+     * @param [string] $id
+     * @return mixed
+    */
+    public function courseWiseChapter($id)
+    {
+        $course = Course::with('chapters')->find($id);
+        
+        if (!$course) {
+            return $this->failedResponse('Course not found', 404);
+        }
+
+        $chaptersData = [];
+
+        foreach ($course->chapters as $chapter) {
+            $chaptersData[] = [
+                'chapter_id'  => $chapter->id,
+                'chapter_name'  => $chapter->name,
+            ];
+        }
+
+        return $this->successResponse(true, 'Course with chapters and lessons', $chaptersData, 200);
     }
 }
