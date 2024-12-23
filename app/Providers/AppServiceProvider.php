@@ -23,6 +23,7 @@ class AppServiceProvider extends ServiceProvider
             define('MONTHLY_SUBSCRIPTION', 50);
             define('QUARTERLY_DISCOUNT', 10);
             define('ANNUAL_DISCOUNT', 16);
+            define('TOTAL_NUMBER', 100);
         }
     }
 }

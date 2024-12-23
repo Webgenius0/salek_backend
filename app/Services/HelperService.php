@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\StudentHomework;
+use App\Models\StudentProgress;
 use Illuminate\Support\Facades\Auth;
 
 class HelperService extends Service

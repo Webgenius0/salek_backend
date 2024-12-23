@@ -17,6 +17,7 @@ use App\Http\Controllers\API\Admin\CourseController;
 use App\Http\Controllers\API\Admin\CategoryController;
 use App\Http\Controllers\API\CardController;
 use App\Http\Controllers\API\HomeworkController;
+use App\Http\Controllers\API\ProgressController;
 use App\Http\Controllers\API\SubscriptionController;
 use App\Http\Controllers\API\VideoController;
 
@@ -137,18 +138,30 @@ Route::middleware(['auth:api', 'onlyStudent'])->group(function(){
         });
     });
 
+    //For Video Route
     Route::controller(VideoController::class)->group(function(){
         Route::prefix('video')->name('video.')->group(function(){
             Route::post('/show', 'show')->name('show');
             Route::post('/status/update', 'update')->name('update');
         });
     });
+    //For Video Route
 
+    // For Instructor Route
     Route::controller(InstructorController::class)->group(function(){
         Route::prefix('instructor')->name('instructor.')->group(function(){
             Route::get('/list', 'index')->name('list');
         });
     });
+    // For Instructor Route
+
+    // For Student Progress Route
+    Route::controller(ProgressController::class)->group(function(){
+        Route::prefix('progress')->name('progress.')->group(function(){
+            Route::post('/store', 'store')->name('calculate');
+        });
+    });
+    // For Student Progress Route
 
     Route::controller(PaymentController::class)->group(function(){
         Route::prefix('course')->name('course.')->group(function(){

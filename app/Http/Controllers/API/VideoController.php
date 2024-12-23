@@ -11,6 +11,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\ShowVideoRequest;
 use App\Models\LessonUser;
+use App\Services\HelperService;
 
 class VideoController extends Controller
 {
@@ -18,9 +19,9 @@ class VideoController extends Controller
      * Display the specified resource.
      *
      * @param  ShowVideoRequest  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return mixed
     */
-    public function show(ShowVideoRequest $request) : JsonResponse
+    public function show(ShowVideoRequest $request) : mixed
     {
         $user = User::find(Auth::id());
         
@@ -32,39 +33,47 @@ class VideoController extends Controller
         $chapterId = $request->input('chapter_id');
         $lessonId  = $request->input('lesson_id');
 
-        if (LessonUser::where('user_id', $user->id)->where('completed', 0)->latest()->exists()) {
-            return response()->json(['message' => 'Your previous video not seen properly.'], 403);
-        }
-
         $course = Course::with(['chapters.lessons'])->where('id',$courseId)->first();
 
         if(!$course) {
             return response()->json(['message' => 'Course not found.'], 404);
         }
 
-        $checkCourse = CourseUser::where('user_id', $user->id)->where('course_id', $courseId)->first();
+        $checkCourse = CourseUser::where('user_id', $user->id)->where('course_id', $courseId)->where('access_granted', 1)->first();
 
         if(!$checkCourse) {
             return response()->json(['message' => 'You are not enrolled in this course.'], 404);
         }
 
         $video = $course->chapters->where('id', $chapterId)->first()->lessons->where('id', $lessonId)->first();
-
+        
         if(!$video) {
             return response()->json(['message' => 'Video not found.'], 404);
         }
 
-        return response()->json(['message' => 'Video found.', 'data' => $video], 200);
+        $data = [
+            'name'      => $video->name,
+            'video_url' => $video->video_url,
+            'duration'  => $video->duration,
+        ];
+
+        return response()->json(['message' => 'Video found.', 'data' => $data], 200);
     }
 
     /**
      * Update the specified resource in public.
      *
      * @param  ShowVideoRequest  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return mixed
     */
-    public function update(ShowVideoRequest $request) : JsonResponse
+    public function update(ShowVideoRequest $request) : mixed
     {
+        $watchedTime = $request->input('watched_time');
+        
+        if(!$watchedTime){
+            return response()->json(['message' => 'Watched time is required.!']);
+        }
+        
         $user = User::find(Auth::id());
         
         if(!$user || $user->role !== 'student') {
@@ -81,11 +90,7 @@ class VideoController extends Controller
             return response()->json(['message' => 'Course not found.'], 404);
         }
 
-        if (LessonUser::where('user_id', $user->id)->where('completed', 0)->latest()->exists()) {
-            return response()->json(['message' => 'Your previous video not seen properly.'], 403);
-        }
-
-        if (!CourseUser::where('user_id', $user->id)->where('course_id', $courseId)->exists()) {
+        if (!CourseUser::where('user_id', $user->id)->where('course_id', $courseId)->where('access_granted', 1)->exists()) {
             return response()->json(['message' => 'You are not enrolled in this course.'], 403);
         }
 
@@ -94,25 +99,43 @@ class VideoController extends Controller
             ->flatMap->lessons
             ->where('id', $lessonId)
             ->first();
-
+        
         if (!$video) {
             return response()->json(['message' => 'Video not found.'], 404);
         }
-
+        
         $lessonUser = LessonUser::firstOrNew(
             ['user_id' => $user->id, 'lesson_id' => $lessonId]
         );
 
-        if ($lessonUser->exists && $lessonUser->completed) {
-            return response()->json(['message' => 'You have already completed this video.'], 200);
+        if($lessonUser->completed == 1){
+            return response()->json([
+                'status'  => false,
+                'message' => 'Your progress already updated.!',
+                'code'    => 422
+            ]);
         }
 
-        $lessonUser->completed    = 1;
-        $lessonUser->completed_at = now();
+        $totalDuration = $video->duration * 60;
+        $watchedTime += $lessonUser->watched_time;
+        
+        if($watchedTime >= $totalDuration){
+            $lessonUser->completed    = 1;
+            $lessonUser->completed_at = now();
+            $lessonUser->watched_time = $totalDuration;
+
+            $lessonUser->save();
+
+            return response()->json([
+                'message' => 'Your video is completely seen'
+            ]);
+        }
+
+        $lessonUser->watched_time = $watchedTime;
         $lessonUser->save();
 
         return response()->json([
-            'message' => 'Your video is marked as complete.',
+            'message' => 'Your video watched time added.',
             'data'    => $video,
         ], 200);
     }
