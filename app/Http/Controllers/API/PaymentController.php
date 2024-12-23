@@ -41,14 +41,6 @@ class PaymentController extends Controller
             $payment_type = $request->payment_type;
 
             if($payment_type === 'monthly'){
-
-                // $lastPayment = Payment::where('user_id', $user->id)->where('item_id', $course->id)->orderBy('created_at', 'desc')->get();
-
-                // if($lastPayment->isNotEmpty()){
-                //     $lastPaymentMoney = $lastPayment->last()->amount;
-                //     $totalValue = $lastPayment->sum('amount');
-                // }
-
                 $coursePrice = $course->price;
                 $courseMonth = $course->total_month;
                 $additionalChargePercentage = $course->additional_charge;
@@ -62,48 +54,7 @@ class PaymentController extends Controller
                 
                 $this->paymentServiceObj->store($user->id, $course->id, $newBalance);
             }
-
-
-
-
-
             
-            
-            // $userSubscription = $user->hasActiveSubscription();
-            // if($userSubscription){
-            //     return response()->json(['message' => 'You already have an active subscription!']);
-            // }
-            // $purchaseCourse = Purchase::where('user_id', $user->id)->where('course_id', $course->id)->first();
-            // if($purchaseCourse){
-            //     if($purchaseCourse->amount_paid >= $course->price){
-            //         return response()->json(['message' => 'You already have access to this course!']);
-
-            //     }
-            // }
-            // $this->purchaseServiceObj->store($user->id, $course->id, $course->price);
-            // $this->paymentServiceObj->store($user->id, $course->id, $course->price);
-            
-            
-
-            // $alreadyPurchased = $user->purchasedCourses()->where('course_id', $course->id)->first();
-
-            // if ($alreadyPurchased) {
-            //     DB::table('course_user')
-            //         ->where('user_id', $user->id)
-            //         ->where('course_id', $course->id)
-            //         ->update([
-            //             'price' => $course->price,
-            //             'purchased_at' => Carbon::now(),
-            //             'access_granted' => true,
-            //         ]);
-            // } else {
-            //     $user->purchasedCourses()->attach($course->id, [
-            //         'price' => $course->price,
-            //         'purchased_at' => Carbon::now(),
-            //         'access_granted' => true,
-            //     ]);
-            // }
-
             DB::commit();
             return response()->json(['message' => 'Course purchased successfully!']);
 

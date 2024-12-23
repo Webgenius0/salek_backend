@@ -7,6 +7,7 @@ use App\Services\QuestionService;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreHomeworkRequest;
 use App\Models\Course;
+use App\Models\Homework;
 
 class HomeworkController extends Controller
 {
@@ -37,6 +38,12 @@ class HomeworkController extends Controller
 
         $user   = request()->user();
         $course = Course::find($course_id);
+
+        if($type === 'single'){
+            if(Homework::where('course_id', $course->id)->exists()){
+                return response()->json(['message' => 'You already created a homework for this course.']);
+            }
+        }
 
         if(!$course){
             return response()->json(['message' => 'Course not found'], 404);
