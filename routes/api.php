@@ -16,6 +16,7 @@ use App\Http\Controllers\API\Admin\EventController;
 use App\Http\Controllers\API\Admin\CourseController;
 use App\Http\Controllers\API\Admin\CategoryController;
 use App\Http\Controllers\API\CardController;
+use App\Http\Controllers\API\HomeworkController;
 use App\Http\Controllers\API\SubscriptionController;
 use App\Http\Controllers\API\VideoController;
 
@@ -74,6 +75,13 @@ Route::middleware(['auth:api', 'onlyAdmin'])->group(function(){
         Route::controller(EventController::class)->group(function(){
             Route::post('/store', 'store')->name('store');
             Route::post('/details/{event}', 'show')->name('details');
+        });
+    });
+
+    Route::controller(HomeworkController::class)->group(function(){
+        Route::prefix('homework')->name('homework.')->group(function(){
+            Route::post('/store', 'store')->name('store');
+            Route::post('/update', 'update')->name('update');
         });
     });
 
