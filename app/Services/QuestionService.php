@@ -38,22 +38,6 @@ class QuestionService extends Service
         try {
             DB::beginTransaction();
 
-            if($type === 'single'){
-                if(!$course_id){
-                    return response()->json(['message' => 'Course id is required'], 400);
-                }
-
-                if($this->homeworkObj::where('course_id', $course_id)->where('type', 'single')->exists()){
-                    return response()->json(['message' => 'Single homework already exists for this course'], 400);
-                }
-            }
-
-            if($type === 'multiple'){
-                if($chapter_id === null && $lesson_id === null){
-                    return response()->json(['message' => 'Chapter id or Lesson id is required'], 400);
-                }
-            }
-
             $this->homeworkObj->course_id  = $course_id;
             $this->homeworkObj->chapter_id = $chapter_id;
             $this->homeworkObj->lesson_id  = $lesson_id;

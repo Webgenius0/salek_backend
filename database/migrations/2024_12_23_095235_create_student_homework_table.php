@@ -19,6 +19,7 @@ return new class extends Migration
             $table->decimal('score', 10, 2)->nullable();
             $table->text('comment')->nullable();
             $table->datetime('submission_at')->nullable();
+            $table->enum('status', ['in_time', 'late'])->default('in_time');
             $table->timestamps();
         });
     }

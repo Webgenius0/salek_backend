@@ -132,11 +132,13 @@ Route::middleware(['auth:api', 'onlyStudent'])->group(function(){
         });
     });
 
+    //For Review Route
     Route::controller(ReviewController::class)->group(function(){
         Route::prefix('review')->name('review.')->group(function(){
             Route::post('/store', 'store')->name('store');
         });
     });
+    //For Review Route
 
     //For Video Route
     Route::controller(VideoController::class)->group(function(){
@@ -147,14 +149,6 @@ Route::middleware(['auth:api', 'onlyStudent'])->group(function(){
     });
     //For Video Route
 
-    // For Instructor Route
-    Route::controller(InstructorController::class)->group(function(){
-        Route::prefix('instructor')->name('instructor.')->group(function(){
-            Route::get('/list', 'index')->name('list');
-        });
-    });
-    // For Instructor Route
-
     // For Student Progress Route
     Route::controller(ProgressController::class)->group(function(){
         Route::prefix('progress')->name('progress.')->group(function(){
@@ -162,6 +156,14 @@ Route::middleware(['auth:api', 'onlyStudent'])->group(function(){
         });
     });
     // For Student Progress Route
+
+    //For Homework route
+    Route::controller(HomeworkController::class)->group(function(){
+        Route::prefix('homework')->name('homework.')->group(function(){
+            Route::post('/submit/work', 'submit')->name('add_homework');
+        });
+    });
+    //For Homework route
 
     Route::controller(PaymentController::class)->group(function(){
         Route::prefix('course')->name('course.')->group(function(){
@@ -205,6 +207,7 @@ Route::middleware(['auth:api'])->group(function(){
 
     Route::controller(InstructorController::class)->group(function(){
         Route::prefix('instructor')->name('instructor.')->group(function(){
+            Route::get('/list', 'index')->name('list');
             Route::get('/profile/{id}', 'show')->name('profile');
         });
     });

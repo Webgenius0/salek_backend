@@ -6,7 +6,7 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class StoreHomeworkRequest extends FormRequest
+class  StoreHomeworkRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,14 +24,14 @@ class StoreHomeworkRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'course_id'     => 'nullable|integer|exists:courses,id',
-            'chapter_id'    => 'nullable|integer|exists:chapters,id',
-            'lesson_id'     => 'nullable|integer|exists:lessons,id',
+            'course_id'     => 'required|integer|exists:courses,id',
+            'chapter_id'    => 'required|integer|exists:chapters,id',
+            'lesson_id'     => 'required|integer|exists:lessons,id',
             'title'         => 'required|string|max:255',
             'instruction'   => 'required|string',
             'file'          => 'nullable|mimes:jpeg,png,jpg,gif,pdf|max:5120',
             'link'          => 'nullable|string|url|max:255',
-            'deadline'      => 'nullable|date|after:now',
+            'deadline'      => 'required|date|after:now',
             'type'          => 'required|in:single,multiple',
             'question_type' => 'required|in:files,links',
         ];

@@ -13,5 +13,6 @@ class StudentHomework extends Model
         'score',
         'comment',
         'submission_at',
+        'status',
     ];
 }

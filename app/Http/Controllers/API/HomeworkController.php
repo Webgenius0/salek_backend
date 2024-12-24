@@ -2,27 +2,42 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Models\User;
+use App\Models\Course;
+use App\Models\Homework;
 use Illuminate\Http\Request;
 use App\Services\QuestionService;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\StoreWorkRequest;
 use App\Http\Requests\StoreHomeworkRequest;
-use App\Models\Course;
-use App\Models\Homework;
+use App\Services\HomeworkService;
 
 class HomeworkController extends Controller
 {
-    public $questionServiceObj;
+    public $questionServiceObj,$homeworkServiceObj;
 
     public function __construct()
     {
         $this->questionServiceObj = new QuestionService();
+        $this->homeworkServiceObj = new HomeworkService();
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created homework in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @param  \App\Http\Requests\StoreHomeworkRequest  $request
+     * @return \Illuminate\Http\JsonResponse
+     *
+     * This method handles the creation of a new homework assignment. It retrieves
+     * the necessary input data from the request, validates the course and user
+     * permissions, and checks for existing homework if the type is 'single'.
+     * Depending on the question type, it either requires a file upload or a link.
+     * Finally, it delegates the storage operation to the question service.
+     *
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException If the course is not found.
+     * @throws \Symfony\Component\HttpKernel\Exception\HttpException If the user is not authorized to create homework for the course.
+     * @throws \Symfony\Component\HttpKernel\Exception\HttpException If required file or link is missing.
     */
     public function store(StoreHomeworkRequest $request)
     {
@@ -36,39 +51,56 @@ class HomeworkController extends Controller
         $type          = $request->input('type');
         $question_type = $request->input('question_type');
 
-        $user   = request()->user();
+        $user   = User::find(Auth::id());
         $course = Course::find($course_id);
 
-        if($type === 'single'){
-            if(Homework::where('course_id', $course->id)->exists()){
-                return response()->json(['message' => 'You already created a homework for this course.']);
-            }
-        }
-
-        if(!$course){
+        if(!$course):
             return response()->json(['message' => 'Course not found'], 404);
-        }
+        endif;
 
-        if($course->created_by !== $user->id){
+        if($course->created_by !== $user->id):
             return response()->json(['message' => 'You are not authorized to create homework for this course'], 403);
-        }
+        endif;
 
         $file = null;
 
         if($question_type === 'files'){
-            if(empty($request->file('file'))){
+            if(empty($request->file('file'))):
                 return response()->json(['message' => 'File is required'], 400);
-            }
+            endif;
 
-            if($request->hasFile('file')){
+            if($request->hasFile('file')):
                 $file = $request->file('file');
-            }
+            endif;
         }else{
-            if(!$link){
+            if(!$link):
                 return response()->json(['message' => 'Link is required']);
-            }
+            endif;
         }
 
+        if($type === 'single'):
+            if(Homework::where('course_id', $course->id)->exists()):
+                return response()->json(['message' => 'You already created a homework for this course.']);
+            endif;
+        endif;
+
         return $this->questionServiceObj->store($course_id, $chapter_id, $lesson_id, $title, $instruction, $file, $link, $deadline, $type,$question_type);
+    }
+
+    /**
+     * Handles the submission of a homework request.
+     *
+     * @param StoreWorkRequest $request The request object containing the homework submission data.
+     * @return mixed The result of the homework service store method.
+    */
+    public function submit(StoreWorkRequest $request) :mixed
+    {
+        $homeworkId = $request->input('homework_id');
+        
+        if($request->hasFile('file')){
+            $file = $request->file('file');
+        }
+
+        return $this->homeworkServiceObj->store($homeworkId, $file);
     }
 }
