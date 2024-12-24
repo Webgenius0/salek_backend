@@ -99,7 +99,7 @@ class User extends Authenticatable implements JWTSubject
 
     /**
      * Get the active subscription for the user.
-     */
+    */
     public function activeSubscription()
     {
         return $this->hasOne(Subscription::class)

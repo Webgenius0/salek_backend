@@ -38,7 +38,7 @@ class SubscriptionController extends Controller
 
             $user = User::find(Auth::id());
         
-            $type = $request->type;
+            $type = $request->input('type');
 
             $subscription = Subscription::where('user_id', $user->id)->first();
             

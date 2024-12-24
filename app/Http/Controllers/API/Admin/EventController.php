@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\API\Admin;
 
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use App\Http\Requests\EventStoreRequest;
 use App\Models\Event;
-use App\Services\EventService;
 use App\Traits\ApiResponse;
+use Illuminate\Http\Request;
+use App\Services\EventService;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreBookEvent;
+use App\Http\Requests\EventStoreRequest;
 
 class EventController extends Controller
 {
@@ -88,6 +89,16 @@ class EventController extends Controller
         );
     }
 
+    /**
+     * Display the specified event.
+     *
+     * @param  int  $id  The ID of the event to display.
+     * @return \Illuminate\Http\Response
+     *
+     * This method retrieves an event by its ID and checks if the event exists and if the current user is authorized to view it.
+     * If the event does not exist or the user is not authorized, it returns a failed response with a 404 status code.
+     * If the event exists and the user is authorized, it returns a success response with the event details.
+    */
     public function show($id)
     {
         $event = Event::find($id);
@@ -111,5 +122,19 @@ class EventController extends Controller
         ];
 
         return $this->successResponse(true, 'Event details', $data, 200);
+    }
+
+    /**
+     * Books an event based on the provided request data.
+     *
+     * @param StoreBookEvent $request The request object containing event booking details.
+     * @return mixed The result of the event booking operation.
+    */
+    public function bookEvent(StoreBookEvent $request)
+    {
+        $eventId = $request->input('event_id');
+        $seat    = $request->input('seat');
+
+        return $this->eventServiceObj->bookEvent($eventId, $seat);
     }
 }

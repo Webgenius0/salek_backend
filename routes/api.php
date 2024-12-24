@@ -165,6 +165,12 @@ Route::middleware(['auth:api', 'onlyStudent'])->group(function(){
     });
     //For Homework route
 
+    Route::prefix('events')->name('event.')->group(function(){
+        Route::controller(EventController::class)->group(function(){
+            Route::post('/booking', 'bookEvent')->name('booking');
+        });
+    });
+
     Route::controller(PaymentController::class)->group(function(){
         Route::prefix('course')->name('course.')->group(function(){
             Route::post('/pay', 'store')->name('pay.course');

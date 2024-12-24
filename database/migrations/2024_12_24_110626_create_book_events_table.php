@@ -11,13 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('lesson_user', function (Blueprint $table) {
+        Schema::create('book_events', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('event_id')->constrained('events')->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('user_id')->constrained('users')->onUpdate('cascade')->onDelete('cascade');
-            $table->foreignId('lesson_id')->constrained('lessons')->onUpdate('cascade')->onDelete('cascade');
-            $table->decimal('score', 10,2)->default(0.00);
-            $table->boolean('completed')->default(false);
-            $table->timestamp('completed_at')->nullable();
+            $table->unsignedInteger('seats')->nullable();
+            $table->enum('status', ['pending','accept', 'reject'])->default('pending');
             $table->timestamps();
         });
     }
@@ -27,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('lesson_user');
+        Schema::dropIfExists('book_events');
     }
 };

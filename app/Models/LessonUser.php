@@ -11,6 +11,7 @@ class LessonUser extends Model
     protected $fillable = [
         'user_id',
         'lesson_id',
+        'score',
         'completed',
         'completed_at',
         'watched_time'
