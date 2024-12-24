@@ -88,22 +88,26 @@ class EventController extends Controller
         );
     }
 
-    public function show(Event $event = null)
+    public function show($id)
     {
+        $event = Event::find($id);
+        
         if(!$event || $event->created_by !== request()->user()->id){
             return $this->failedResponse('Event not found or You are not authorized to view this event.', 404);
         }
 
         $data = [
-            'event_id'    => $event->id,
-            'event_title' => $event->title,
-            'event_slug'  => $event->slug,
-            'description' => $event->description,
-            'category'    => $event->category->name,
-            'price'       => $event->price,
-            'thumbnail'   => $event->thumbnail,
-            'created_by'  => $event->creator->name,
-            'status'      => $event->status,
+            'event_id'       => $event->id,
+            'event_title'    => $event->title,
+            'event_slug'     => $event->slug,
+            'description'    => $event->description,
+            'event_location' => $event->event_location,
+            'category'       => $event->category->name,
+            'price'          => $event->price,
+            'thumbnail'      => $event->thumbnail,
+            'created_by'     => $event->creator->name,
+            'status'         => $event->status,
+            'event_date'     => $event->created_at,
         ];
 
         return $this->successResponse(true, 'Event details', $data, 200);

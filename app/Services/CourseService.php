@@ -219,11 +219,12 @@ class CourseService extends Service
                 ->take(10)
                 ->get();
         
-            
+        
         $data = $popularCourses->map(function($course){
             return [
                 'course_id'    => $course->id,
                 'course_title' => $course->name,
+                'thumbnail'    => $course->cover_photo,
                 'price'        => $course->price,
                 'review'       => number_format($course->avg_rating, 1) . ' (' . $course->total_reviews . ' Reviews)',
                 'total_class'  => $course->total_class,

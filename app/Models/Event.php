@@ -22,11 +22,6 @@ class Event extends Model
         'flag',
     ];
 
-    public function getKeyName()
-    {
-        return 'slug';
-    }
-
     // Relation Start
     public function category()
     {

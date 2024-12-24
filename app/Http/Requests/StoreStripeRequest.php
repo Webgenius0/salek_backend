@@ -24,10 +24,11 @@ class StoreStripeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'item_id'   => ['required'],
-            'currency'  => ['required', 'in:usd'],
-            'item_type' => ['required', 'in:course,event'],
-            'payment_type' => ['required', 'in:monthly,annual,subscription'],
+            'item_id'          => ['required'],
+            'currency'         => ['required', 'in:usd'],
+            'item_type'        => ['required', 'in:course,event'],
+            'payment_type'     => ['required', 'in:monthly,annual,subscription'],
+            'subscription_fee' => ['nullable', 'integer']
         ];
     }
 

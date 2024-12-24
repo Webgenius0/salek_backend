@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade')->onUpdate('cascade');
             $table->foreignId('course_id')->constrained('courses')->onDelete('cascade')->onUpdate('cascade');
-            $table->enum('payment_plan', ['monthly', 'annual', 'subscriptio'])->default('annual');
+            $table->enum('payment_plan', ['monthly', 'annual', 'subscription'])->default('annual');
             $table->decimal('amount_paid', 10, 2);
             $table->timestamp('payment_date');
             $table->timestamp('next_payment_date');

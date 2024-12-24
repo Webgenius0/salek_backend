@@ -75,7 +75,7 @@ Route::middleware(['auth:api', 'onlyAdmin'])->group(function(){
     Route::prefix('events')->name('event.')->group(function(){
         Route::controller(EventController::class)->group(function(){
             Route::post('/store', 'store')->name('store');
-            Route::post('/details/{event}', 'show')->name('details');
+            Route::get('/details/{id}', 'show')->name('details');
         });
     });
 
@@ -165,8 +165,7 @@ Route::middleware(['auth:api', 'onlyStudent'])->group(function(){
 
     Route::controller(PaymentController::class)->group(function(){
         Route::prefix('course')->name('course.')->group(function(){
-            Route::post('/enroll/{id}', 'create')->name('enroll');
-            Route::post('/pay/{id}', 'store')->name('pay.course');
+            Route::post('/pay', 'store')->name('pay.course');
         });
     });
 
