@@ -14,6 +14,8 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 
+use function PHPUnit\Framework\returnSelf;
+
 class ProfileController extends Controller
 {
     use ApiResponse;
@@ -43,61 +45,50 @@ class ProfileController extends Controller
         try {
             DB::beginTransaction();
 
-            $user         = request()->user();
-            $name         = $request->input('name');
-            $dob          = $request->input('dob');
-            $email        = $request->input('email');
-            $mobile_phone = $request->input('mobile_phone');
-            $gender       = $request->input('gender');
-            $class_no     = $request->input('class_no');
-            $class_name   = $request->input('class_name');
+            $user = User::with('profile')->findOrFail(Auth::id());
 
-            $path = null;
-            if($request->hasFile('avatar')):
-                $avatar = $request->file('avatar');
+            if(!$user):
+                return $this->failedResponse('User not found', 404);
+            endif;
+
+            $user->name  = $request->input('name');
+            $user->email = $request->input('email');
+            $user->save();
+
+            $path = $user->profile->avatar ?? null;
+            if ($request->hasFile('avatar')) {
+                $avatar   = $request->file('avatar');
                 $fileName = time() . '.' . $avatar->getClientOriginalExtension();
                 $avatar->move(public_path('uploads/profile'), $fileName);
                 $path = 'uploads/profile/' . $fileName;
-            endif;
+            }
 
+            $profileData = [
+                'avatar'     => $path,
+                'dob'        => $request->input('dob'),
+                'phone'      => $request->input('mobile_phone'),
+                'gender'     => $request->input('gender'),
+                'class_no'   => $request->input('class_no'),
+                'class_name' => $request->input('class_name'),
+            ];
 
-            $user->name = $name;
-            $user->email = $email;
+            $user->profile()->updateOrCreate(['user_id' => $user->id], $profileData);
 
-            $res = $user->save();
+            $data = [
+                'id'         => $user->id,
+                'name'       => $user->name,
+                'avatar'     => $path,
+                'email'      => $user->email,
+                'mobile_no'  => $user->profile->phone,
+                'gender'     => $user->profile->gender,
+                'dob'        => $user->profile->dob ?? null,
+                'class_no'   => $user->profile->class_no ?? null,
+                'class_name' => $user->profile->class_name ?? null,
+            ];
 
             DB::commit();
-            if($res){
-                $profile = Profile::where('user_id', $user->id)->first();
 
-                if(!$profile){
-                    $profileObj = new Profile();
-
-                    $profileObj->user_id    = $user->id;
-                    $profileObj->avatar     = $path;
-                    $profileObj->dob        = $dob;
-                    $profileObj->phone      = $mobile_phone;
-                    $profileObj->gender     = $gender;
-                    $profileObj->class_no   = $class_no;
-                    $profileObj->class_name = $class_name;
-
-                    $profileObj->save();
-                }
-
-                if($profile){
-                    $profile->path       = $path;
-                    $profile->dob        = $dob;
-                    $profile->phone      = $mobile_phone;
-                    $profile->gender     = $gender;
-                    $profile->class_no   = $class_no;
-                    $profile->class_name = $class_name;
-
-                    $profile->save();
-                }
-
-                return $this->successResponse(true, 'Update your information successfully', $user, 200);
-            }
-            return $this->failedResponse('Update information failed', $user, 200);
+            return $this->successResponse(true, 'Update your information successfully', $data, 200);
         } catch (\Exception $e) {
             DB::rollback();
             info($e);
