@@ -17,46 +17,26 @@ use Illuminate\Support\Facades\Auth;
 class ProfileController extends Controller
 {
     use ApiResponse;
-
-    /**
-     * Store a newly created resource in public.
-     *
-     * @param  StorePhotoRequest  $request
-    */
-    public function store(StorePhotoRequest $request)
-    {
-        $user = User::find(request()->user()->id);
-
-        if(!$user) {
-            return $this->failedResponse('User not found', 404);
-        }
-
-        if($request->hasFile('avatar')) {
-            $file     = $request->file('avatar');
-            $fileName = time() . '.' . $file->getClientOriginalExtension();
-            
-            $profile = Profile::where('user_id', $user->id)->first();
-
-            if($profile) {
-                $file->move(public_path('uploads/profile'), $fileName);
-
-                $profile->avatar = 'uploads/profile/' . $fileName;
-                $profile->save();
-            } else {
-                $profile          = new Profile();
-                $profile->user_id = $user->id;
-                $profile->avatar  = 'uploads/profile/' . $fileName;
-                $profile->save();
-            }
-
-            return $this->successResponse(true, 'Profile picture uploaded successfully', $profile, 200);
-        }
-    }
     
     /**
-     * Update the specified resource in public.
+     * Update the user's profile information.
      *
-     * @param  UpdateProfileRequest  $request
+     * @param UpdateProfileRequest $request The request object containing the user's updated profile information.
+     * @return \Illuminate\Http\JsonResponse A JSON response indicating the success or failure of the update operation.
+     *
+     * @throws \Exception If there is an error during the database transaction.
+     *
+     * This method performs the following steps:
+     * 1. Begins a database transaction.
+     * 2. Retrieves the authenticated user.
+     * 3. Extracts the updated profile information from the request.
+     * 4. Handles the avatar file upload if provided.
+     * 5. Updates the user's name and email.
+     * 6. Commits the transaction if the user update is successful.
+     * 7. Updates or creates the user's profile with the provided information.
+     * 8. Returns a success response if the profile update is successful.
+     * 9. Returns a failure response if the profile update fails.
+     * 10. Rolls back the transaction and logs the exception if an error occurs.
     */
     public function update(UpdateProfileRequest $request)
     {
@@ -72,6 +52,14 @@ class ProfileController extends Controller
             $class_no     = $request->input('class_no');
             $class_name   = $request->input('class_name');
 
+            $path = null;
+            if($request->hasFile('avatar')):
+                $avatar = $request->file('avatar');
+                $fileName = time() . '.' . $avatar->getClientOriginalExtension();
+                $avatar->move(public_path('uploads/profile'), $fileName);
+                $path = 'uploads/profile/' . $fileName;
+            endif;
+
 
             $user->name = $name;
             $user->email = $email;
@@ -86,6 +74,7 @@ class ProfileController extends Controller
                     $profileObj = new Profile();
 
                     $profileObj->user_id    = $user->id;
+                    $profileObj->avatar     = $path;
                     $profileObj->dob        = $dob;
                     $profileObj->phone      = $mobile_phone;
                     $profileObj->gender     = $gender;
@@ -96,6 +85,7 @@ class ProfileController extends Controller
                 }
 
                 if($profile){
+                    $profile->path       = $path;
                     $profile->dob        = $dob;
                     $profile->phone      = $mobile_phone;
                     $profile->gender     = $gender;
@@ -107,9 +97,7 @@ class ProfileController extends Controller
 
                 return $this->successResponse(true, 'Update your information successfully', $user, 200);
             }
-            
-            return $this->successResponse(true, 'Update your information successfully', $user, 200);
-
+            return $this->failedResponse('Update information failed', $user, 200);
         } catch (\Exception $e) {
             DB::rollback();
             info($e);

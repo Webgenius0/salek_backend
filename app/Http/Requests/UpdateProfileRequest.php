@@ -28,10 +28,11 @@ class UpdateProfileRequest extends FormRequest
             'name'         => ['required', 'string', 'min:2'],
             'dob'          => ['nullable'],
             'email'        => ['required', 'email', Rule::unique('users')->ignore($this->user()->id)],
-            'mobile_phone' => ['nullable', 'string', 'max:15'],
-            'gender'       => ['nullable', 'in:male,female,custom'],
+            'mobile_phone' => ['required', 'string', 'max:15'],
+            'gender'       => ['required', 'in:male,female,custom'],
             'class_no'     => ['nullable', 'integer'],
             'class_name'   => ['nullable', 'string'],
+            'avatar'       => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:5140']
         ];
     }
 

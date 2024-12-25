@@ -214,7 +214,6 @@ Route::middleware(['auth:api'])->group(function(){
     Route::controller(ProfileController::class)->group(function(){
         Route::prefix('profile')->name('profile.')->group(function(){
             Route::post('/update', 'update')->name('update');
-            Route::post('/photo', 'store')->name('photo');
         });
     });
 
