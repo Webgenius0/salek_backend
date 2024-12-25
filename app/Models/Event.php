@@ -32,4 +32,9 @@ class Event extends Model
     {
         return $this->belongsTo(User::class, 'created_by', 'id');
     }
+
+    public function eventBook()
+    {
+        return $this->hasMany(BookEvent::class)->with('user.profile');;
+    }
 }

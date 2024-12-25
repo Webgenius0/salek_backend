@@ -12,4 +12,10 @@ class BookEvent extends Model
         'seats',
         'status',
     ];
+
+    // Relation Start
+    public function user()
+    {
+        return $this->belongsTo(User::class)->with('profile');
+    }
 }

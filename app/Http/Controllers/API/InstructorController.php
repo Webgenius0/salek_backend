@@ -16,12 +16,13 @@ class InstructorController extends Controller
     public function index()
     {
 
-        $instructors = User::with(['courses'])->where('role', 'teacher')->latest()->get();
+        $instructors = User::with(['courses', 'profile'])->where('role', 'teacher')->latest()->get();
 
         $data = $instructors->map(function($instructor){
             return [
                 'id'            => $instructor->id,
                 'avatar'        => $instructor->avatar,
+                'subject'       => $instructor->profile->class_name ?? null,
                 'name'          => $instructor->name,
                 'total_courses' => $instructor->courses->count(),
             ];

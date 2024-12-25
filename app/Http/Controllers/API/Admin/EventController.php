@@ -9,6 +9,7 @@ use App\Services\EventService;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreBookEvent;
 use App\Http\Requests\EventStoreRequest;
+use Carbon\Carbon;
 
 class EventController extends Controller
 {
@@ -23,14 +24,33 @@ class EventController extends Controller
 
     public function index(string $type)
     {
-        $query = Event::with(['category:id,name'])
-            ->select('id', 'title', 'thumbnail', 'event_location', 'category_id', 'status');
+        $query = Event::with(['category:id,name', 'eventBook.user.profile'])->select('id', 'title', 'thumbnail','event_location','category_id', 'status');
         
-        if ($type !== 'all') {
+        if ($type !== 'all'):
             $query->where('status', $type);
-        }
+        endif;
 
         $events = $query->get();
+
+        $events = $events->map(function($event){
+            return [
+                'event_id' => $event->id,
+                'event_title' => $event->title,
+                'event_location' => $event->event_location,
+                'event_thumbnail' => $event->thumbnail,
+                'event_date' => Carbon::parse($event->event_date)->toDateTimeString(),
+                'category' => [
+                    'category_id' => $event->category->id,
+                    'category_name' => $event->category->name,
+                ],
+                'attendance' => $event->eventBook->map(function($book){
+                    return [
+                        'attendance_id' => $book->user_id,
+                        'avatar' => $book->user->profile->avatar ?? null
+                    ];
+                })
+            ];
+        });
 
         return $this->successResponse(true, ucfirst($type) . ' Event list', $events, 200);
     }
@@ -70,6 +90,7 @@ class EventController extends Controller
         $event_location = trim($request->input('event_location'));
         $price          = trim($request->input('price'));
         $total_seat     = trim($request->input('total_seat'));
+        $event_link     = trim($request->input('event_link'));
 
         $thumbnail      = null;
         if($request->hasFile('thumbnail')){
@@ -85,7 +106,8 @@ class EventController extends Controller
             (string) $event_location, 
             (int) $price, 
             $thumbnail,
-            (int) $total_seat
+            (int) $total_seat,
+            (string) $event_link
         );
     }
 

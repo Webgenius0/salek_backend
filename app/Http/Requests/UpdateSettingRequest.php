@@ -6,7 +6,7 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class EventStoreRequest extends FormRequest
+class UpdateSettingRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -20,19 +20,15 @@ class EventStoreRequest extends FormRequest
      * Get the validation rules that apply to the request.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
+    */
     public function rules(): array
     {
         return [
-            'title'          => ['required', 'string', 'min:2'],
-            'description'    => ['required', 'string', 'min:5'],
-            'category_id'    => ['required', 'exists:categories,id'],
-            'event_date'     => ['required', 'date'],
-            'event_location' => ['required'],
-            'price'          => ['required', 'integer'],
-            'total_seat'     => ['required', 'integer'],
-            'thumbnail'      => ['required'],
-            'event_link'     => ['nullable', 'string', 'url']
+            'project_name'     => ['required', 'string', 'min:2'],
+            'project_logo'     => ['nullable', 'string', 'mimes:png,jpg,jpeg,webp'],
+            'project_about'    => ['nullable', 'string', 'min:2'],
+            'subscription_fee' => ['nullable', 'integer'],
+            'project_switch'   => ['required', 'boolean'],
         ];
     }
 
@@ -41,7 +37,7 @@ class EventStoreRequest extends FormRequest
         throw new HttpResponseException(response()->json([
             'status' => false,
             'errors' => $validator->errors(),
-            'code' => 422,
+            'code'   => 422
         ], 422));
     }
 }

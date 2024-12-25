@@ -66,6 +66,21 @@ class EventService extends Service
         ]);
     }
 
+    /**
+     * Store a new event in the database.
+     *
+     * @param int $creatorId The ID of the user creating the event.
+     * @param string $title The title of the event.
+     * @param string $description A description of the event.
+     * @param int $category_id The ID of the category to which the event belongs.
+     * @param mixed $event_date The date and time of the event.
+     * @param string $event_location The location where the event will take place.
+     * @param int $price The price of the event.
+     * @param mixed $thumbnail The thumbnail image for the event.
+     * @param int $total_seat The total number of seats available for the event.
+     * @param string $link A link related to the event.
+     * @return \Illuminate\Http\JsonResponse A JSON response indicating success or failure.
+    */
     public function store(
 
         int $creatorId,
@@ -76,7 +91,8 @@ class EventService extends Service
         string $event_location,
         int $price,
         $thumbnail,
-        int $total_seat
+        int $total_seat,
+        string $link
     )
     {
         try {
@@ -95,6 +111,7 @@ class EventService extends Service
             $this->eventObj->event_date     = $event_date;
             $this->eventObj->event_location = $event_location;
             $this->eventObj->price          = $price;
+            $this->eventObj->event_link     = $link;
             $this->eventObj->total_seat     = $total_seat;
             $this->eventObj->created_by     = $creatorId;
             $this->eventObj->status         = 'upcoming';
@@ -145,7 +162,7 @@ class EventService extends Service
             return $this->failedResponse('You already booked this event.', 403);
         endif;
 
-        if ($event->available_seats < $seat):
+        if ($event->total_seat < $seat):
             return $this->failedResponse('Not enough seats available for this event.', 403);
         endif;
 
