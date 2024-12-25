@@ -79,8 +79,8 @@ class ProfileController extends Controller
                 'name'       => $user->name,
                 'avatar'     => $path,
                 'email'      => $user->email,
-                'mobile_no'  => $user->profile->phone,
-                'gender'     => $user->profile->gender,
+                'mobile_no'  => $user->profile->phone  ?? null,
+                'gender'     => $user->profile->gender ?? null,
                 'dob'        => $user->profile->dob ?? null,
                 'class_no'   => $user->profile->class_no ?? null,
                 'class_name' => $user->profile->class_name ?? null,
@@ -131,5 +131,39 @@ class ProfileController extends Controller
         ];
 
         return $this->successResponse(true, 'Student Course', $data, 200);
+    }
+
+    /**
+     * Display the specified user's profile.
+     *
+     * @param int $id The ID of the user to retrieve.
+     * @return \Illuminate\Http\JsonResponse The JSON response containing the user's profile data or an error message.
+     *
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException If the user with the specified ID is not found.
+     * @throws \Exception If an unexpected error occurs.
+    */
+    public function view($id)
+    {
+        try {
+            $user = User::with('profile')->findOrFail($id);
+
+            $data = [
+                'id'         => $user->id,
+                'name'       => $user->name,
+                'email'      => $user->email,
+                'avatar'     => $user->profile->avatar ?? null,
+                'mobile_no'  => $user->profile->phone ?? null,
+                'gender'     => $user->profile->gender ?? null,
+                'dob'        => $user->profile->dob ?? null,
+                'class_no'   => $user->profile->class_no ?? null,
+                'class_name' => $user->profile->class_name ?? null,
+            ];
+
+            return $this->successResponse(true, 'User Profile', $data, 200);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return $this->failedResponse('User not found', 404);
+        } catch (\Exception $e) {
+            return $this->failedResponse('An unexpected error occurred', 500);
+        }
     }
 }

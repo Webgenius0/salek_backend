@@ -47,7 +47,7 @@ class PaymentController extends Controller
         $subscriptionFee = $request->subscription_fee;
         
         $user = User::find(Auth::id());
-
+        
         // For Subscriptioin payment process
         if($paymentType === 'subscription'):
             $subscription = $user->hasActiveSubscription();
