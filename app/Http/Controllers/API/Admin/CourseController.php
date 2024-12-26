@@ -10,10 +10,15 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\CourseStoreRequest;
 use App\Http\Requests\LessonStoreRequest;
 use App\Http\Requests\ChapterStoreRequest;
+use App\Models\Chapter;
 use App\Models\User;
+use App\Services\HelperService;
+use App\Traits\ApiResponse;
 
 class CourseController extends Controller
 {
+    use ApiResponse;
+    
     public $courseServiceObj;
 
     public function __construct()
@@ -125,30 +130,34 @@ class CourseController extends Controller
     }
 
     /**
-     * Chapter Store method
+     * Store a new chapter for a course.
      *
-     * @param ChapterStoreRequest $request
-     * @return mixed
+     * @param ChapterStoreRequest $request The request object containing the chapter details.
+     * @return \Illuminate\Http\JsonResponse The response object containing the status and message.
     */
     public function chapterStore(ChapterStoreRequest $request)
     {
         $course_id     = $request->input('course_id');
         $name          = $request->input('name');
-        $level_label   = $request->input('level_label');
-        $chapter_order = $request->input('chapter_order');
 
         $user   = User::find(Auth::id());
         $course = Course::find($course_id);
 
         if($user->id != $course->created_by) {
-            return response()->json([
-                'status'  => false,
-                'message' => 'You have no permission to access this course',
-                'code'    => 403,
-            ], 403);
+            return $this->failedResponse('You have no permission to access this course', 403);
+        }
+
+        $prevoiusChapter = Chapter::where('course_id', $course_id)->get()->toArray();
+
+        if(empty($prevoiusChapter)){
+            return $this->courseServiceObj->chapterStore($course_id, $name, 'beginner', 1);
         }
         
-        return $this->courseServiceObj->chapterStore($course_id, $name, $level_label, $chapter_order);
+        $totalChapter = count($prevoiusChapter);
+        
+        $difficultyLevel = HelperService::getDifficultyLevel($totalChapter + 1);
+
+        return $this->courseServiceObj->chapterStore($course_id, $name, $difficultyLevel['level'], $difficultyLevel['order']);
     }
 
     /**
@@ -162,22 +171,23 @@ class CourseController extends Controller
         $course_id    = $request->input('course_id');
         $chapter_id   = $request->input('chapter_id');
         $name         = $request->input('name');
-        $lesson_order = $request->input('lesson_order');
         $video        = $request->file('video_url');
         $duration     = $request->input('duration');
 
-        $user = User::find(Auth::id());
+        $user   = User::find(Auth::id());
         $course = Course::find($course_id);
 
-        if($user->id != $course->created_by) {
-            return response()->json([
-                'status'  => false,
-                'message' => 'You have no permission to access this course',
-                'code'    => 403,
-            ], 403);
+        $checkItem = HelperService::checkItemByCourse($course_id, $chapter_id);
+
+        if(!$checkItem){
+            return $this->failedResponse('This chapter not exists in your selected course', 404);
         }
 
-        return $this->courseServiceObj->lessonStore($course_id, $chapter_id, $name, $lesson_order, $video, $duration);
+        if($user->id != $course->created_by) {
+            return $this->failedResponse('You have no permission to access this course', 403);
+        }
+
+        return $this->courseServiceObj->lessonStore($course_id, $chapter_id, $name, $video, $duration);
     }
 
     /**
@@ -229,11 +239,7 @@ class CourseController extends Controller
         $course = Course::with('chapters.lessons')->where('id',$id)->first();
 
         if(!$course) {
-            return response()->json([
-                'status'  => false,
-                'message' => 'Course not found',
-                'code'    => 404,
-            ], 404);
+            return $this->failedResponse('Course not found', 404);
         }
 
         $userCourse = $course->purchasers()->where('user_id', Auth::id())->first();
@@ -241,11 +247,7 @@ class CourseController extends Controller
         $isPermit = (bool) $userCourse->pivot->access_granted;
 
         if(!$isPermit) {
-            return response()->json([
-                'status'  => false,
-                'message' => 'You have no permission to access this course',
-                'code'    => 403,
-            ], 403);
+            return $this->failedResponse('You have no permission to access this course', 403);
         }
 
         $totalLessons = $course->chapters->flatMap->lessons->count();
@@ -275,12 +277,7 @@ class CourseController extends Controller
             'levels'        => $levels,
         ];
 
-        return response()->json([
-            'status'  => true,
-            'message' => 'Course Details',
-            'data'    => $data,
-            'code'    => 200,
-        ], 200);
+        return $this->successResponse(true, 'Course Details', $data, 200);
     }
 
     /**

@@ -24,10 +24,8 @@ class ChapterStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'course_id'     => ['required', 'integer', 'exists:courses,id'],
-            'name'          => ['required', 'string', 'min:2'],
-            'level_label'   => ['required', 'string', 'min:2'],
-            'chapter_order' => ['required', 'integer'],
+            'course_id' => ['required', 'integer', 'exists:courses,id'],
+            'name'      => ['required', 'string', 'min:2', 'unique:chapters,name'],
         ];
     }
 

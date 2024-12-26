@@ -162,7 +162,7 @@ class CourseService extends Service
      * @param integer $duration
      * @return mixed
     */
-    public function lessonStore($course_id, $chapter_id, string $name, $lesson_order, $video, $duration)
+    public function lessonStore($course_id, $chapter_id, string $name, $video, $duration)
     {
         try {
             DB::beginTransaction();
@@ -176,12 +176,15 @@ class CourseService extends Service
                 $video->move(public_path('uploads/course/lessons/videos'), $fileName);
             }
 
-            $lesson->chapter_id = $chapter_id;
-            $lesson->course_id  = $course_id;
-            $lesson->name       = $name;
-            $lesson->lesson_order = $lesson_order;
-            $lesson->video_url  = $videoPath;
-            $lesson->duration   = $duration;
+            $lastLessonOrder = Lesson::where('chapter_id', $chapter_id)
+                                ->max('lesson_order');
+
+            $lesson->chapter_id   = $chapter_id;
+            $lesson->course_id    = $course_id;
+            $lesson->name         = $name;
+            $lesson->lesson_order = $lastLessonOrder ? $lastLessonOrder + 1 : 1;
+            $lesson->video_url    = $videoPath;
+            $lesson->duration     = $duration;
 
             $res = $lesson->save();
             DB::commit();

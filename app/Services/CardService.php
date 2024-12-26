@@ -33,6 +33,7 @@ class CardService extends Service
         if(empty($cards)):
             return $this->failedResponse('You have no cards', 404);
         endif;
+        
         return $this->successResponse(true, 'Card List', $cards, 200);
     }
 

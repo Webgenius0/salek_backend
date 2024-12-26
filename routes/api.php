@@ -61,7 +61,6 @@ Route::middleware(['auth:api', 'onlyAdmin'])->group(function(){
             Route::post('/store', 'store')->name('store');
             Route::post('/chpater/store', 'chapterStore')->name('chapter');
             Route::post('/lesson/store', 'lessonStore')->name('lesson');
-
             Route::get('/list', 'courseList')->name('all');
             Route::get('/wise/chapter/{id}', 'courseWiseChapter')->name('wisechapter');
         });
@@ -84,12 +83,6 @@ Route::middleware(['auth:api', 'onlyAdmin'])->group(function(){
         Route::prefix('homework')->name('homework.')->group(function(){
             Route::post('/store', 'store')->name('store');
             Route::post('/update', 'update')->name('update');
-        });
-    });
-
-    Route::prefix('card')->name('card.')->group(function(){
-        Route::controller(CardController::class)->group(function(){
-            Route::post('/store', 'store')->name('store');
         });
     });
 
@@ -246,15 +239,20 @@ Route::middleware(['auth:api'])->group(function(){
         });
     });
 
+    //For Card Route
     Route::prefix('card')->name('card.')->group(function(){
         Route::controller(CardController::class)->group(function(){
             Route::get('/list', 'index')->name('list');
+            Route::post('/store', 'store')->name('store');
         });
     });
+    //For Card Route
 
+    //For Logout controller
     Route::controller(LogoutController::class)->group(function(){
         Route::post('/auth/logout', 'logout')->name('logout.us');
     });
+    //For Logout controller
 });
 //'END' :- For global route
 

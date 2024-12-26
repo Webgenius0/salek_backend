@@ -24,12 +24,11 @@ class LessonStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'course_id'    => ['required', 'integer', 'exists:courses,id'],
-            'chapter_id'   => ['required', 'integer', 'exists:chapters,id'],
-            'name'         => ['required', 'string', 'min:2'],
-            'lesson_order' => ['required', 'integer'],
-            'video_url'    => ['required', 'mimes:mp4,mov,ogg,qt', 'max:2048'],
-            'duration'     => ['required', 'integer'],
+            'course_id'  => ['required', 'integer', 'exists:courses,id'],
+            'chapter_id' => ['required', 'integer', 'exists:chapters,id'],
+            'name'       => ['required', 'string', 'min:2','unique:lessons,name'],
+            'video_url'  => ['required', 'mimes:mp4,mov,ogg,qt', 'max:2048'],
+            'duration'   => ['required', 'integer'],
         ];
     }
 

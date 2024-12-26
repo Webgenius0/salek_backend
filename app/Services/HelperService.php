@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Course;
 use App\Models\CourseUser;
 use Illuminate\Support\Facades\Auth;
 
@@ -54,6 +55,56 @@ class HelperService extends Service
             $checkCourseUser->access_granted = 0;
             $checkCourseUser->save();
         endif;
+    }
+
+    /**
+     * Check if a chapter exists in a course.
+     *
+     * This method checks whether a chapter with the specified ID exists within a course
+     * identified by the given course ID. It retrieves the course along with its chapters
+     * and verifies if the chapter is part of the course.
+     *
+     * @param int $courseId The ID of the course to check.
+     * @param int $chapterId The ID of the chapter to check for existence within the course.
+     * @return bool Returns true if the chapter exists in the course, false otherwise.
+    */
+    public static function checkItemByCourse($courseId, $chapterId) :bool
+    {
+        $course = Course::with('chapters')->findOrFail($courseId);
+
+        $isChapterExists = $course->chapters->contains('id', $chapterId);
+
+        return $isChapterExists;
+    }
+
+
+    /**
+     * Determine the difficulty level based on the chapter order.
+     *
+     * @param int $chapterNumber
+     * @return string
+    */
+    public static function getDifficultyLevel($chapterNumber)
+    {
+        if ($chapterNumber <= 2) {
+            $data = [
+                'level' => 'beginner',
+                'order' => 1,
+            ];
+            return $data;
+        } elseif ($chapterNumber <= 4) {
+            $data = [
+                'level' => 'intermediate',
+                'order' => 2,
+            ];
+            return $data;
+        } else {
+            $data = [
+                'level' => 'advanced',
+                'order' => 3,
+            ];
+            return $data;
+        }
     }
     
     /**
