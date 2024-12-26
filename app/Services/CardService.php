@@ -26,8 +26,13 @@ class CardService extends Service
     public function index()
     {
         $cards = Card::select('id', 'cardholder_name', 'card_number', 'expiry_date', 'cvv')
-                ->where('status', 'active')->get();
+                ->where('created_by', Auth::id())
+                ->where('status', 'active')->get()->toArray();
 
+        
+        if(empty($cards)):
+            return $this->failedResponse('You have no cards', 404);
+        endif;
         return $this->successResponse(true, 'Card List', $cards, 200);
     }
 

@@ -32,7 +32,7 @@ class CourseStoreRequest extends FormRequest
             'additional_charge'  => ['required', 'integer'],
             'introduction_title' => ['required', 'string', 'min:2'],
             'cover_photo'        => ['required', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
-            'class_video'        => ['required', 'file', 'mimes:mp4,mov,ogg,qt', 'max:2048'],
+            'class_video'        => ['required', 'mimes:mp4,mov,ogg,qt', 'max:10400'],
         ];
     }
 
@@ -53,9 +53,9 @@ class CourseStoreRequest extends FormRequest
             'price.required' => 'The course price is required. Please provide the course price.',
             'price.integer'  => 'The course price must be a valid integer.',
             
-            'introduction_title' => 'The introduction title is required. Please provide a title for the introduction.',
-            'cover_photo'        => 'The cover photo is required. Please upload a cover photo for the course.',
-            'class_video'        => 'The class video is required. Please upload a video for the course.',
+            'introduction_title'   => 'The introduction title is required. Please provide a title for the introduction.',
+            'cover_photo'          => 'The cover photo is required. Please upload a cover photo for the course.',
+            'class_video.required' => 'The class video is required. Please upload a video for the course.',
         ];
     }
 

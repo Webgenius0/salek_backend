@@ -108,6 +108,7 @@ Route::middleware(['auth:api', 'onlyParent'])->group(function(){
         Route::prefix('/parent')->name('parent.')->group(function(){
             Route::get('/dashboard', 'index')->name('dashboard');
             Route::get('/student/list', 'show')->name('student');
+            Route::get('all/student/list', 'allStudent')->name('all_student.list');
         });
     });
 

@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Models\Event;
 use App\Models\Payment;
-use App\Models\User;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 
 class InstructorController extends Controller
 {
@@ -21,7 +21,7 @@ class InstructorController extends Controller
         $data = $instructors->map(function($instructor){
             return [
                 'id'            => $instructor->id,
-                'avatar'        => $instructor->avatar,
+                'avatar'        => $instructor->profile->avatar ?? null,
                 'subject'       => $instructor->profile->class_name ?? null,
                 'name'          => $instructor->name,
                 'total_courses' => $instructor->courses->count(),
