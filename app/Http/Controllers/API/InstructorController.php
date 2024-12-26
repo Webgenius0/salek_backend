@@ -39,7 +39,8 @@ class InstructorController extends Controller
             return $student->created_at >= now()->subDays(7);
         });
 
-        $totalRevenue = Payment::sum('amount');
+        $totalStudentRevenue = Payment::where('status', 'succeeded')->where('purchase_type', 'course')->sum('amount');
+        $totalBookingRevenue = Payment::where('status', 'succeeded')->where('purchase_type', 'event')->sum('amount');
 
         $events = Event::where('status', 'complete')->orWhere('status', 'upcoming')->get();
 
@@ -53,19 +54,19 @@ class InstructorController extends Controller
         
         $data = [
             'student_overview' => [
-                'new_student' => count($newUsers),
+                'new_student'   => count($newUsers),
                 'total_student' => count($allStudents),
-                'total_revenue' => $totalRevenue,
+                'total_revenue' => $totalStudentRevenue,
             ],
 
             'event_overview' => [
-                'total_booking' => count($totalBooking),
+                'total_booking'  => count($totalBooking),
                 'upcoming_event' => count($upcomingEvents),
-                'total_revenue' => $totalRevenue,
+                'total_revenue'  => $totalBookingRevenue,
             ],
         ];
 
-        return $data;
+        return $this->successResponse(true, 'Teacher Dashboard', $data, 200);
     }
 
     public function show($id)

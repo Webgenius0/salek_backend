@@ -211,6 +211,12 @@ Route::middleware(['auth:api', 'onlyStudent'])->group(function(){
 //'BEGIN' :- For global route
 Route::middleware(['auth:api'])->group(function(){
 
+    Route::controller(StudentController::class)->group(function(){
+        Route::prefix('student')->name('student.')->group(function(){
+            Route::get('/dashboard', 'index')->name('dashboard');
+        });
+    });
+
     Route::controller(ProfileController::class)->group(function(){
         Route::prefix('profile')->name('profile.')->group(function(){
             Route::post('/update', 'update')->name('update');
