@@ -205,19 +205,20 @@ class CourseService extends Service
     */
     public function popularCourse()
     {
-        $popularCourses = Course::select('courses.*')
-                ->leftJoin('course_user', 'courses.id', '=', 'course_user.course_id')
-                ->leftJoin('reviews', 'courses.id', '=', 'reviews.reviewable_id')
-                ->selectRaw('
-                    COUNT(DISTINCT course_user.user_id) AS purchase_count,
-                    AVG(reviews.rating) AS avg_rating,
-                    COUNT(reviews.id) AS total_reviews,
-                    (COUNT(DISTINCT course_user.user_id) * 0.7 + AVG(reviews.rating) * 0.3) AS popularity_score
-                ')
-                ->groupBy('courses.id')
-                ->orderBy('popularity_score', 'desc')
-                ->take(10)
-                ->get();
+        $popularCourses = Course::select('courses.id', 'courses.name', 'courses.cover_photo', 'courses.price', 'courses.total_class')
+            ->leftJoin('course_user', 'courses.id', '=', 'course_user.course_id')
+            ->leftJoin('reviews', 'courses.id', '=', 'reviews.reviewable_id')
+            ->selectRaw('
+                COUNT(DISTINCT course_user.user_id) AS purchase_count,
+                AVG(reviews.rating) AS avg_rating,
+                COUNT(reviews.id) AS total_reviews,
+                (COUNT(DISTINCT course_user.user_id) * 0.7 + AVG(reviews.rating) * 0.3) AS popularity_score
+            ')
+            ->groupBy('courses.id', 'courses.name', 'courses.cover_photo', 'courses.price', 'courses.total_class')
+            ->orderBy('popularity_score', 'desc')
+            ->take(10)
+            ->get();
+
         
         
         $data = $popularCourses->map(function($course){

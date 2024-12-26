@@ -65,7 +65,7 @@ class PaymentController extends Controller
         
         // For monthly payment process
         if($paymentType === 'monthly'):
-            $item = HelperService::itemCheck($itemType, $itemId);
+            $item = Course::find($itemType, $itemId);
 
             if(!$item):
                 return response()->json(['status' => false, 'message' => 'Item not found', 404]);

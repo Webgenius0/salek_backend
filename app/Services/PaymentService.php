@@ -4,13 +4,14 @@ namespace App\Services;
 
 use Carbon\Carbon;
 use Stripe\Stripe;
+use App\Models\Course;
 use App\Models\Payment;
 use App\Models\Purchase;
 use Stripe\PaymentIntent;
 use App\Models\CourseUser;
-use App\Models\Subscription;
 use App\Traits\ApiResponse;
 use Illuminate\Support\Str;
+use App\Models\Subscription;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
@@ -44,7 +45,7 @@ class PaymentService extends Service
         try {
             DB::beginTransaction();
 
-            $item = HelperService::itemCheck($itemType, $itemId);
+            $item = Course::find($itemType, $itemId);
             if (!$item) {
                 return $this->failedResponse('Item not found', 404);
             }

@@ -29,24 +29,6 @@ class HelperService extends Service
     }
 
     /**
-     * Checks if an item of a given type and ID exists.
-     *
-     * @param string $itemType The type of the item (e.g., 'Course', 'User').
-     * @param int $itemId The ID of the item to check.
-     * @return mixed The item if found, or null if the item type does not exist or the item is not found.
-    */
-    public static function itemCheck($itemType, $itemId) :mixed
-    {
-        if (!class_exists($modelClass = "App\\Models\\$itemType")) {
-            return null;
-        }
-
-        $model = app($modelClass);
-        
-        return $model->find($itemId);
-    }
-
-    /**
      * Updates the course user record for the given course ID.
      * 
      * This method checks if a CourseUser record exists for the given course ID and the currently authenticated user.
