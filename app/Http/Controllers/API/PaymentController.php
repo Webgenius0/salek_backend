@@ -105,7 +105,7 @@ class PaymentController extends Controller
             $item = HelperService::itemCheck($itemType, $itemId);
 
             if(!$item):
-                return response()->json(['status' => false, 'message' => 'Item not found', 404]);
+                return response()->json(['status' => false, 'message' => 'Item not found not', 404]);
             endif;
             
             $previousPurchase = Purchase::where('course_id', $item->id)->where('user_id', $user->id)->first();
