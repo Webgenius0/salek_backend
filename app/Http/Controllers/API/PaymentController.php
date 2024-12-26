@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\StoreStripeRequest;
+use App\Models\Course;
 use App\Models\CourseUser;
 use App\Models\Subscription;
 use App\Services\HelperService;
@@ -102,7 +103,7 @@ class PaymentController extends Controller
 
         // For annual payment process
         if($paymentType === 'annual'):
-            $item = HelperService::itemCheck($itemType, $itemId);
+            $item = Course::find($itemId);
 
             if(!$item):
                 return response()->json(['status' => false, 'message' => 'Item not found not', 404]);
