@@ -13,23 +13,25 @@ class StudentController extends Controller
     use ApiResponse;
     
     /**
-     * this method use for displaying student dashboard
-     * course and event are displaying
-     * also displaying the course perfomance
+     * Display the welcome message for the authenticated user.
      *
-     * @return mixed
+     * This method retrieves the authenticated user's information and constructs
+     * a welcome message. It then returns a success response with the user's ID,
+     * a personalized greeting, and a welcome message.
+     *
+     * @return mixed The success response containing the welcome message data.
     */
-    public function index()
+    public function index() :mixed
     {
         $user = Auth::user();
         
         $data = [
             'id'          => $user->id,
             'name'        => 'Hey, ' . $user->name,
-            'welcome_msg' => 'Lets start learning',
+            'welcome_msg' => ($user->role === 'teacher' || $user->role === 'parent') ? 'Good morning' : 'Lets start learning',
         ];
 
-        return $this->successResponse(true, 'Welcome Msg', $data, 200);
+        return $this->successResponse(true, 'Welcome Message', $data, 200);
     }
 
     /**

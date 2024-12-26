@@ -131,7 +131,6 @@ Route::middleware(['auth:api', 'onlyStudent'])->group(function(){
     
     Route::controller(StudentController::class)->group(function(){
         Route::prefix('student')->name('student.')->group(function(){
-            Route::get('/dashboard', 'index')->name('dashboard');
             Route::get('/request', 'getRequest')->name('request');
             Route::get('/accept/request/{stdId}', 'acceptRequest')->name('accept');
             Route::get('/cancel/request/{stdId}', 'cancelRequest')->name('cancel');
