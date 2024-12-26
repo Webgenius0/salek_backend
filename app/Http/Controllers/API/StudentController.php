@@ -24,12 +24,12 @@ class StudentController extends Controller
         $user = Auth::user();
         
         $data = [
-            'id' => $user->id,
-            'name' =>'Hey, ' . $user->name,
+            'id'          => $user->id,
+            'name'        => 'Hey, ' . $user->name,
             'welcome_msg' => 'Lets start learning',
         ];
 
-        return $data;
+        return $this->successResponse(true, 'Welcome Msg', $data, 200);
     }
 
     /**
