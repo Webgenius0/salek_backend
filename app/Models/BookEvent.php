@@ -10,6 +10,7 @@ class BookEvent extends Model
         'event_id',
         'user_id',
         'seats',
+        'amount',
         'status',
     ];
 
