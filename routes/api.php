@@ -15,8 +15,10 @@ use App\Http\Controllers\API\InstructorController;
 use App\Http\Controllers\API\Admin\EventController;
 use App\Http\Controllers\API\Admin\CourseController;
 use App\Http\Controllers\API\Admin\CategoryController;
+use App\Http\Controllers\API\BookingController;
 use App\Http\Controllers\API\CardController;
 use App\Http\Controllers\API\HomeworkController;
+use App\Http\Controllers\API\MessageController;
 use App\Http\Controllers\API\ProgressController;
 use App\Http\Controllers\API\SettingController;
 use App\Http\Controllers\API\SubscriptionController;
@@ -238,6 +240,24 @@ Route::middleware(['auth:api'])->group(function(){
             Route::get('/popular', 'popularEvent')->name('popular');
         });
     });
+
+    // For Booking a Teacher route
+    Route::prefix('call')->name('call.')->group(function(){
+        Route::controller(BookingController::class)->group(function(){
+            Route::get('/list', 'index')->name('list');
+            Route::post('/teacher', 'store')->name('teacher');
+            Route::delete('/cancel/{id}', 'destroy')->name('cancel');
+        });
+    });
+    // For Booking a Teacher route
+
+    // For message route
+    Route::prefix('message')->name('message.')->group(function(){
+        Route::controller(MessageController::class)->group(function(){
+            Route::post('/send', 'store')->name('send');
+        });
+    });
+    // For message route
 
     //For Card Route
     Route::prefix('card')->name('card.')->group(function(){

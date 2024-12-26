@@ -20,7 +20,7 @@ return new class extends Migration
             $table->boolean('is_verified')->default(false);
             $table->string('otp', 10)->nullable();
             $table->timestamp('otp_expire_at')->nullable();
-            $table->enum('role', ['student', 'parent', 'teacher', 'admin'])->default('student');
+            $table->enum('role', ['student', 'parent', 'teacher', 'admin', 'customer_care'])->default('student');
             $table->rememberToken();
             $table->timestamps();
         });
