@@ -17,21 +17,33 @@ class ReviewController extends Controller
     use ApiResponse;
 
     /**
-     * Display a listing of the reviews for a specific course.
+     * Retrieves reviews for a specific course based on the type and ID provided.
      *
-     * @param  int  $id
-     * @return \Illuminate\Http\JsonResponse
+     * @param string $type The type of reviews to retrieve ('new', 'previous', or 'all').
+     * @param int $id The ID of the course for which to retrieve reviews.
+     * 
+     * @return \Illuminate\Http\JsonResponse A JSON response containing the reviews data or an error message.
+     * 
+     * @throws \Exception If there is an error during the database query.
     */
-    public function index($id)
+    public function index($type, $id)
     {
         try {
             $reviews = Review::with(['user.profile', 'reviewable', 'reactions'])
-                            ->where('reviewable_type', Course::class)
-                             ->where('reviewable_id', $id)
-                             ->get();
+                ->where('reviewable_type', Course::class)
+                ->where('reviewable_id', $id);
 
-            
-            $data = $reviews->map(function($review){
+            if ($type === 'new') {
+                $reviews->where('created_at', '>=', now()->subWeek());
+            } elseif ($type === 'previous') {
+                $reviews->where('created_at', '<', now()->subWeek());
+            } elseif ($type !== 'all') {
+                return $this->failedResponse('Invalid type specified', 400);
+            }
+
+            $reviews = $reviews->get();
+
+            $data = $reviews->map(function ($review) {
                 return [
                     'review_id'   => $review->id,
                     'user_id'     => $review->user->id,
@@ -45,7 +57,6 @@ class ReviewController extends Controller
             });
 
             return $this->successResponse(true, 'Reviews retrieved successfully', $data, 200);
-
         } catch (\Exception $e) {
             info($e);
             return $this->failedDBResponse('Database Error', $e->getMessage(), 422);

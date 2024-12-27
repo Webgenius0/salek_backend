@@ -41,7 +41,6 @@ Route::middleware('guest')->group(function () {
     });
 });
 
-
 Route::middleware(['auth:api'])->group(function(){
     Route::controller(LoginController::class)->group(function(){
         Route::post('/refresh/token', 'refresh')->name('refresh.token');
@@ -127,7 +126,7 @@ Route::middleware(['auth:api', 'check.parent.student'])->group(function(){
     //For Review Route
     Route::controller(ReviewController::class)->group(function(){
         Route::prefix('review')->name('review.')->group(function(){
-            Route::get('/list/{id}', 'index')->name('list');
+            Route::get('/list/{type}/{id}', 'index')->name('list');
             Route::post('/store', 'store')->name('store');
         });
 
@@ -136,6 +135,14 @@ Route::middleware(['auth:api', 'check.parent.student'])->group(function(){
         });
     });
     //For Review Route
+
+    // For Subscription Route
+    Route::controller(SubscriptionController::class)->group(function(){
+        Route::prefix('subscription')->name('subscription.')->group(function(){
+            Route::post('/store', 'store')->name('store');
+        });
+    });
+    // For Subscription Route
     
 });
 //'END' :- For student and parent route
@@ -192,12 +199,6 @@ Route::middleware(['auth:api', 'onlyStudent'])->group(function(){
     Route::controller(ProfileController::class)->group(function(){
         Route::prefix('profile')->name('profile.')->group(function(){
             Route::post('/show', 'show')->name('show');
-        });
-    });
-
-    Route::controller(SubscriptionController::class)->group(function(){
-        Route::prefix('subscription')->name('subscription.')->group(function(){
-            Route::post('/store', 'store')->name('store');
         });
     });
 
