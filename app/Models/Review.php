@@ -20,9 +20,18 @@ class Review extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function profile()
+    {
+        return $this->belongsTo(Profile::class, 'user_id', 'user_id');
+    }
+
     public function reviewable()
     {
         return $this->morphTo();
     }
 
+    public function reactions()
+    {
+        return $this->hasMany(ReviewReact::class);
+    }
 }

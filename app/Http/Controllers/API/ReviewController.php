@@ -10,11 +10,56 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\StoreReviewRequest;
+use Illuminate\Support\Facades\Validator;
 
 class ReviewController extends Controller
 {
     use ApiResponse;
+
+    /**
+     * Display a listing of the reviews for a specific course.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
+    */
+    public function index($id)
+    {
+        try {
+            $reviews = Review::with(['user.profile', 'reviewable', 'reactions'])
+                            ->where('reviewable_type', Course::class)
+                             ->where('reviewable_id', $id)
+                             ->get();
+
+            
+            $data = $reviews->map(function($review){
+                return [
+                    'review_id'   => $review->id,
+                    'user_id'     => $review->user->id,
+                    'user_name'   => $review->user->name,
+                    'user_avatar' => $review->user->profile->avatar ?? 'files/images/user.png',
+                    'rating'      => number_format($review->rating, 1),
+                    'comment'     => $review->comment,
+                    'react'       => $review->reactions->count() ?? 0,
+                    'review_date' => $review->created_at->diffForHumans(),
+                ];
+            });
+
+            return $this->successResponse(true, 'Reviews retrieved successfully', $data, 200);
+
+        } catch (\Exception $e) {
+            info($e);
+            return $this->failedDBResponse('Database Error', $e->getMessage(), 422);
+        }
+    }
     
+    /**
+     * Store a newly created review in the database.
+     *
+     * @param  \App\Http\Requests\StoreReviewRequest  $request
+     * @return \Illuminate\Http\JsonResponse
+     *
+     * @throws \Exception
+    */
     public function store(StoreReviewRequest $request)
     {
         try {
@@ -35,6 +80,72 @@ class ReviewController extends Controller
 
             DB::commit();
             return $this->successResponse(true, 'Review added successfully', $review, 201);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            info($e);
+            return response()->json([
+                'status'  => false,
+                'message' => 'Database Error',
+                'error'   => $e->getMessage(),
+                'code'    => 422
+            ], 422);
+        }
+    }
+
+    /**
+     * Store a reaction for a review.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     *
+     * @throws \Exception
+    */
+    public function reactStore(Request $request)
+    {
+        try {
+            DB::beginTransaction();
+
+            $validator = Validator::make($request->all(), [
+                'review_id' => 'required|exists:reviews,id',
+                'reaction'  => 'required|string|max:255',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => 'Validation Error',
+                    'errors'  => $validator->errors(),
+                    'code'    => 422
+                ], 422);
+            }
+
+            $user     = Auth::user();
+            $reviewId = $request->input('review_id');
+            $reaction = $request->input('reaction');
+
+            $review = Review::findOrFail($reviewId);
+
+            $existingReaction = $review->reactions()->where('user_id', $user->id)->first();
+
+            if ($existingReaction) {
+                $existingReaction->delete();
+                DB::commit();
+                return $this->successResponse(true, 'Reaction removed successfully', null, 200);
+            } else {
+                $review->reactions()->create([
+                    'user_id'  => $user->id,
+                    'total_count' => 1,
+                    'reaction' => $reaction,
+                ]);
+
+                DB::commit();
+                return $this->successResponse(true, 'Reaction added successfully', null, 201);
+            }
+            $review->reactions()->updateOrCreate(
+                ['user_id' => $user->id],
+                ['reaction' => $reaction]
+            );
 
         } catch (\Exception $e) {
             DB::rollback();

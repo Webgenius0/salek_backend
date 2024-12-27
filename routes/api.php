@@ -121,6 +121,25 @@ Route::middleware(['auth:api', 'onlyParent'])->group(function(){
 });
 //'END' :- For parent route
 
+//'BEGIN' :- For student and parent route
+Route::middleware(['auth:api', 'check.parent.student'])->group(function(){
+
+    //For Review Route
+    Route::controller(ReviewController::class)->group(function(){
+        Route::prefix('review')->name('review.')->group(function(){
+            Route::get('/list/{id}', 'index')->name('list');
+            Route::post('/store', 'store')->name('store');
+        });
+
+        Route::prefix('react')->name('react.')->group(function(){
+            Route::post('/store', 'reactStore')->name('store');
+        });
+    });
+    //For Review Route
+    
+});
+//'END' :- For student and parent route
+
 //'BEGIN' :- For student route
 Route::middleware(['auth:api', 'onlyStudent'])->group(function(){
     
@@ -132,14 +151,6 @@ Route::middleware(['auth:api', 'onlyStudent'])->group(function(){
             Route::get('/parent/list', 'show')->name('show');
         });
     });
-
-    //For Review Route
-    Route::controller(ReviewController::class)->group(function(){
-        Route::prefix('review')->name('review.')->group(function(){
-            Route::post('/store', 'store')->name('store');
-        });
-    });
-    //For Review Route
 
     //For Video Route
     Route::controller(VideoController::class)->group(function(){
