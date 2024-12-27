@@ -42,7 +42,6 @@ class SubscribeService extends Service
                     'paymentMethod' => 'stripe',
                     'purchase_type' => 'subscription',
                 ],
-                'payment_method' => 'stripe',
             ]);
 
             $paymentObj = new Payment();
