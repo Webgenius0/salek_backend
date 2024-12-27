@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Models\User;
 use App\Models\LinkRequest;
+use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Traits\ApiResponse;
 use Illuminate\Support\Facades\Auth;
 
 class StudentController extends Controller
@@ -129,5 +130,30 @@ class StudentController extends Controller
         ];
 
         return $this->successResponse(true, 'Request list', $data, 200);
+    }
+
+    /**
+     * Retrieve all verified students with their profiles.
+     *
+     * This method fetches all users with the role of 'student' who are verified,
+     * along with their associated profiles. It then maps the student data to include
+     * the student's ID, name, and avatar (or a default avatar if not available).
+     *
+     * @return \Illuminate\Http\JsonResponse A JSON response containing the success status,
+     *                                       message, student data, and HTTP status code.
+    */
+    public function allStudent()
+    {
+        $students = User::with(['profile'])->where('role', 'student')->where('is_verified', 1)->get();
+
+        $data = $students->map(function($student){
+            return [
+                'id'     => $student->id,
+                'name'   => $student->name,
+                'avatar' => $student->profile->avatar ?? 'files/images/user.png',
+            ];
+        });
+
+        return $this->successResponse(true, 'Student List', $data, 200);
     }
 }
