@@ -42,6 +42,7 @@ class SubscribeService extends Service
                     'paymentMethod' => 'stripe',
                     'purchase_type' => 'subscription',
                 ],
+                'payment_method' => 'stripe',
             ]);
 
             $paymentObj = new Payment();
@@ -53,6 +54,7 @@ class SubscribeService extends Service
             $paymentObj->currency         = 'USD';
             $paymentObj->metadata         = $paymentIntent['paymentIntent'];
             $paymentObj->transaction_date = now();
+            $paymentObj->payment_method   = 'stripe';
             $paymentObj->purchase_type    = 'subscription';
             $paymentObj->quantity         = 1;
             $paymentObj->status           = 'pending';
