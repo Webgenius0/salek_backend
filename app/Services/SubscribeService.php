@@ -53,7 +53,7 @@ class SubscribeService extends Service
             $paymentObj->currency         = 'USD';
             $paymentObj->metadata         = $paymentIntent['paymentIntent'];
             $paymentObj->transaction_date = now();
-            $paymentObj->payment_method   = 'stripe';
+            $paymentObj->payment_method   = 'card';
             $paymentObj->purchase_type    = 'subscription';
             $paymentObj->quantity         = 1;
             $paymentObj->status           = 'pending';
@@ -68,7 +68,6 @@ class SubscribeService extends Service
                         'status' => true,
                         'client_secret' => $paymentIntent->client_secret
                     ];
-
                     return $data;
                 }
                 return $data = [];
