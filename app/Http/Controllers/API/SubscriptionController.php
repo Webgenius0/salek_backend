@@ -35,13 +35,37 @@ class SubscriptionController extends Controller
     {
         try {
             DB::beginTransaction();
-
+            
             $user = User::find(Auth::id());
         
-            $type = $request->input('type');
+            $type     = $request->input('type');
+            $pay_type = $request->input('pay_type');
 
             $subscription = Subscription::where('user_id', $user->id)->first();
             
+            if(!$subscription):
+                $startDate = Carbon::now();
+                $endDate   = match ($type) {
+                    'monthly'   => $startDate->copy()->addDays(30),
+                    'quarterly' => $startDate->copy()->addDays(90),
+                    'annual'    => $startDate->copy()->addYear(),
+                };
+                $price = match ($type) {
+                    'monthly' => MONTHLY_SUBSCRIPTION,
+                    'quarterly' => MONTHLY_SUBSCRIPTION * 3 * (1 - QUARTERLY_DISCOUNT / 100),
+                    'annual' => MONTHLY_SUBSCRIPTION * 12 * (1 - ANNUAL_DISCOUNT / 100),
+                };
+                SubscribeService::createSubscription($price, $endDate, $type);
+
+                if($pay_type === 'stripe'){
+                    $res = SubscribeService::paymentService($user->id, $price);
+                    DB::commit();
+                    if(!empty($res)){
+                        return $this->successResponse(true, 'Payement create successfully', $res['client_secret'], 200);
+                    }
+                }
+            endif;
+
             $startDate = Carbon::now();
             $endDate   = match ($type) {
                 'monthly'   => $startDate->copy()->addDays(30),
@@ -58,10 +82,10 @@ class SubscriptionController extends Controller
             $this->subscriptionServiceObj->paymentService($user->id, $price);
             
             if($subscription){
-                $previousDate = Carbon::parse($subscription->ends_at);
+                $previousDate   = Carbon::parse($subscription->ends_at);
                 $daysDifference = $startDate->diffInDays($previousDate);
                 
-                $newEndDate = $daysDifference > 1 ? $previousDate->addDays($daysDifference) : $previousDate;
+                $newEndDate  = $daysDifference > 1 ? $previousDate->addDays($daysDifference) : $previousDate;
                 $daysFromNow = floor(Carbon::now()->diffInDays($newEndDate));
                 
                 $subscription->update([

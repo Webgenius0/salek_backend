@@ -24,19 +24,37 @@ class SubscriptionStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'type' => ['required', 'string', 'in:monthly,quarterly,annual'],
+            'type'     => ['required', 'string', 'in:monthly,quarterly,annual'],
+            'pay_type' => ['required', 'in:stripe,paypal']
         ];
     }
 
+    /**
+     * Get the error messages for the defined validation rules.
+     *
+     * @return array<string, string>
+    */
     public function messages()
     {
         return [
             'type.required' => 'Subscription type is required',
             'type.string'   => 'Subscription type must be a string',
             'type.in'       => 'Subscription type must be one of the following: monthly, quarterly, annual',
+            'pay_type.in'   => 'Payment type must be one of the following: stripe,paypal',
         ];
     }
 
+    /**
+     * Handle a failed validation attempt.
+     *
+     * This method is called when validation fails for the request. It throws an
+     * HttpResponseException with a JSON response containing the validation errors,
+     * a status flag set to false, and an HTTP status code of 422 (Unprocessable Entity).
+     *
+     * @param \Illuminate\Contracts\Validation\Validator $validator The validator instance containing the validation errors.
+     *
+     * @throws \Illuminate\Http\Exceptions\HttpResponseException
+    */
     protected function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json([

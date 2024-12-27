@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('payment_id', 250)->unique();
             $table->foreignId('user_id')->constrained('users')->onUpdate('cascade')->onDelete('cascade');
-            $table->unsignedBigInteger('item_id');
+            $table->unsignedBigInteger('item_id')->nullable();
             $table->decimal('amount', 10, 2);
             $table->string('currency', 3);
             $table->string('purchase_type', 50)->nullable();
