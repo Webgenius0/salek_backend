@@ -209,6 +209,13 @@ class PaymentController extends Controller
             $amount      = $metadata->amount;
             $paymentType = $metadata->purchase_type;
 
+            if($paymentType === 'subscription'):
+                $subscription = Subscription::where('user_id', $userId)->first();
+
+                $subscription->stripe_status = 'active';
+                $subscription->save();
+                return;
+            endif;
 
             if (!$userId || !$itemId) {
                 Log::warning('Missing metadata in payment intent', ['metadata' => $metadata]);
