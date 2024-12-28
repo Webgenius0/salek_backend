@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\API;
 
 use Illuminate\Http\Request;
+use App\Services\MessageService;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreMessageRequest;
-use App\Services\MessageService;
+use App\Http\Requests\ReceivedMessageRequest;
+use Illuminate\Support\Facades\Auth;
 
 class MessageController extends Controller
 {
@@ -14,6 +16,20 @@ class MessageController extends Controller
     public function __construct()
     {
         $this->messageServiceObj = new MessageService();
+    }
+
+    /**
+     * Handle the incoming request to retrieve messages.
+     *
+     * @param \App\Http\Requests\ReceivedMessageRequest $request The incoming request instance.
+     * @return \Illuminate\Http\Response The response containing the retrieved messages.
+    */
+    public function index(ReceivedMessageRequest $request)
+    {
+        $senderId   = Auth::id();
+        $receivedId = $request->input('received_id');
+
+        return $this->messageServiceObj->get($senderId, $receivedId);
     }
 
     /**

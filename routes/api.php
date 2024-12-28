@@ -267,6 +267,7 @@ Route::middleware(['auth:api'])->group(function(){
     Route::prefix('message')->name('message.')->group(function(){
         Route::controller(MessageController::class)->group(function(){
             Route::post('/send', 'store')->name('send');
+            Route::post('/received', 'index')->name('received');
         });
     });
     // For message route
