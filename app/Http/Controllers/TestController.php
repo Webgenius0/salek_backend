@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Course;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -10,6 +11,13 @@ use Illuminate\Support\Facades\Validator;
 
 class TestController extends Controller
 {
+    public function welcome()
+    {
+        $courses = Course::latest()->take(3)->get()->toArray();
+        
+        return view('welcome', compact('courses'));
+    }
+    
     public function create()
     {
         return view('test.auth.login');
@@ -66,7 +74,6 @@ class TestController extends Controller
         }
 
         $user = User::where('email', $request->input('email'))->where('is_verified', 1)->first();
-
         if(!$user):
             return redirect()->back()->with('message', 'User not found');
         endif;
@@ -88,8 +95,8 @@ class TestController extends Controller
         $user = User::find(Auth::id());
         $userId = $user->id;
         
-        if(!$user->role !== 'admin'):
-            return redirect()->with('message', 'You are not authorized');
+        if($user->role !== 'admin'):
+            return redirect()->back()->with('message', 'You are not authorized');
         endif;
         
         return view('test.dashboard', compact('userId'));
@@ -98,7 +105,9 @@ class TestController extends Controller
     public function logout()
     {
         Auth::logout();
+        request()->session()->invalidate();
+        request()->session()->regenerateToken();
 
-        return redirect()->to('/');
+        return redirect()->route('welcome');
     }
 }

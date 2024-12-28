@@ -4,11 +4,9 @@ use App\Http\Controllers\TestController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
 
 Route::middleware('guest')->group(function(){
+    Route::get('/', [TestController::class, 'welcome'])->name('welcome');
     Route::get('/create/login', [TestController::class, 'create'])->name('login');
     Route::post('/login', [TestController::class, 'login'])->name('login.store');
     Route::get('/register', [TestController::class, 'register'])->name('register');
