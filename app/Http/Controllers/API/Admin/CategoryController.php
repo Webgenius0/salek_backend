@@ -20,7 +20,7 @@ class CategoryController extends Controller
 
     public function index()
     {
-        $categories = Category::select('id', 'name')->where('status', 'active')->get()->toArray();
+        $categories = Category::select('id', 'name','status')->where('status', 'active')->get()->toArray();
 
         if(!empty($categories)){
             return $this->categoryServiceObj->index($categories);

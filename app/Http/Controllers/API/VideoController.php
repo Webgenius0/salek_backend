@@ -79,11 +79,11 @@ class VideoController extends Controller
         endif;
         
         $data = [
-            'name'      => $video->name,
-            'video_url' => $video->video_url,
-            'duration'  => $video->duration,
-            'last_seen' => $lessonUser->watched_time ?? 0,
-            'score' => $lessonUser->score ?? 0,
+            'name'        => $video->name,
+            'video_url'   => $video->video_url,
+            'duration'    => $video->duration,
+            'last_seen'   => $lessonUser->watched_time ?? 0,
+            'score'       => $lessonUser->score ?? 0,
             'is_complete' => (bool) $lessonUser->completed,
         ];
 
