@@ -70,8 +70,7 @@ class CategoryController extends Controller
         $id        = $request->input('id');
         $name      = $request->input('name');
         $status    = $request->input('status');
-        $updatedBy = request()->user()->id;
         
-        return $this->categoryServiceObj->update($id,$name, $status, $updatedBy);
+        return $this->categoryServiceObj->update($id,$name, $status);
     }
 }

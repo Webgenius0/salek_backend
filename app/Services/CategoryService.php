@@ -65,7 +65,7 @@ class CategoryService extends Service
         return $this->successResponse(true, 'Category Details', $data, 200);
     }
 
-    public function update($id,$name, $status, $updatedBy)
+    public function update($id,$name, $status)
     {
         try {
             DB::beginTransaction();
@@ -78,7 +78,6 @@ class CategoryService extends Service
 
             $category->name       = Str::title($name);
             $category->slug       = Str::slug($name, '-');
-            $category->updated_by = $updatedBy;
             $category->status     = $status;
             $category->updated_at = Carbon::now();
 
