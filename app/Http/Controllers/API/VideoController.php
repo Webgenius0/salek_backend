@@ -11,6 +11,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\ShowVideoRequest;
 use App\Models\Homework;
+use App\Models\Lesson;
 use App\Models\LessonUser;
 use App\Models\StudentHomework;
 use App\Models\StudentProgress;
@@ -97,21 +98,38 @@ class VideoController extends Controller
     */
     public function update(ShowVideoRequest $request) : mixed
     {
-        $watchedTime = $request->input('watched_time');
-
-        if(!$watchedTime){
-            return response()->json(['message' => 'Watched time is required.!']);
-        }
-        
         $user = User::find(Auth::id());
         
         if(!$user || $user->role !== 'student') {
             return response()->json(['message' => 'User not found or You are not permitted.'], 404);
         }
+        
+        $watchedTime = $request->input('watched_time');
+        $courseId    = $request->input('course_id');
+        $chapterId   = $request->input('chapter_id');
+        $lessonId    = $request->input('lesson_id');
 
-        $courseId  = $request->input('course_id');
-        $chapterId = $request->input('chapter_id');
-        $lessonId  = $request->input('lesson_id');
+        $lesson     = Lesson::find($lessonId);
+        $lessonUser = LessonUser::where('user_id', $user->id)->where('lesson_id', $lessonId)->first();
+
+        // if($lesson && $lessonUser){
+        //     $duration = $lesson->duration * 60;
+        //     $lastWatch = $lessonUser->watched_time;
+
+        //     $newWatch = $lastWatch + $watchedTime;
+
+        //     if($newWatch > $duration):
+        //         return 'wrong input';
+        //     endif;
+        // }
+
+        
+        
+        // if($duration === $lessonUser->watched_time){
+        //     return 'saman';
+        // }
+
+        // return $lessonUser->watched_time;
 
         $course = Course::with(['chapters.lessons', 'homework'])->where('id',$courseId)->first();
         

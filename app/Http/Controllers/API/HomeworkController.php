@@ -93,12 +93,20 @@ class HomeworkController extends Controller
         return 'This is waiting for development';
     }
 
+    /**
+     * Checks the homework based on the provided request data.
+     *
+     * @param CheckHomeworkRequest $request The request object containing homework details.
+     * @return mixed The result of the homework check operation.
+    */
     public function check(CheckHomeworkRequest $request)
     {
         $homeworkId = $request->input('homework_id');
-        $studentId = $request->input('student_id');
+        $studentId  = $request->input('student_id');
+        $score      = $request->input('score');
+        $comment    = $request->input('comment');
 
-        return $this->homeworkServiceObj->checkHomework($homeworkId, $studentId);
+        return $this->homeworkServiceObj->checkHomework($homeworkId, $studentId, $score, $comment);
     }
 
     /**

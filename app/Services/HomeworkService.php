@@ -8,6 +8,7 @@ use App\Models\Homework;
 use App\Models\CourseUser;
 use App\Traits\ApiResponse;
 use App\Models\StudentHomework;
+use App\Models\StudentProgress;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
@@ -96,7 +97,19 @@ class HomeworkService extends Service
         }
     }
 
-    public function checkHomework($homeworkId, $studentId)
+    /**
+     * Check and update the homework score and comment for a student.
+     *
+     * This function performs several checks to ensure the validity of the homework, course, and student.
+     * It updates the score and comment for the student's homework and also updates the student's progress in the course.
+     *
+     * @param int $homeworkId The ID of the homework to be checked.
+     * @param int $studentId The ID of the student whose homework is being checked.
+     * @param int $score The score to be assigned to the student's homework.
+     * @param string $comment The comment to be added to the student's homework.
+     * @return \Illuminate\Http\JsonResponse A JSON response indicating the result of the operation.
+     */
+    public function checkHomework($homeworkId, $studentId, $score, $comment)
     {
         $homework = Homework::find($homeworkId);
         if(!$homework):
@@ -108,8 +121,33 @@ class HomeworkService extends Service
             return $this->failedResponse('Course not found', 404);
         endif;
 
-        if($course && $course->created_by !== Auth::id()):
+        if(!CourseUser::where('course_id', $course->id)->where('user_id', $studentId)->exists()):
+            return $this->failedResponse('This student is authorized for this course', 403);
+        endif;
+
+        if($course->created_by !== Auth::id()):
             return $this->failedResponse('You are not authorized for this course', 403);
         endif;
+
+        $studentHomework = StudentHomework::where('user_id', $studentId)->where('homework_id', $homeworkId)->first();
+        if(!$studentHomework):
+            return $this->failedResponse('Homework not found', 404);
+        endif;
+
+        $studentHomework->score      = $score;
+        $studentHomework->comment    = $comment;
+        $studentHomework->updated_at = now();
+
+        $res = $studentHomework->save();
+
+        if($res){
+            $studentProgress = StudentProgress::where('user_id', $studentId)->where('course_id', $course->id)->first();
+            if ($studentProgress) {
+                $studentProgress->homework_progress = ($studentHomework->score !== null) ? $score : $studentProgress->homework_progress + $score;
+                $studentProgress->save();
+            }
+
+            return $this->successResponse(true, 'Mark added to the homework.', $studentHomework, 200);
+        }
     }
 }

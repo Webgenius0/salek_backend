@@ -24,9 +24,10 @@ class ShowVideoRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'course_id'  => ['required', 'integer'],
-            'chapter_id' => ['required', 'integer', 'exists:chapters,id'],
-            'lesson_id'  => ['required', 'integer', 'exists:lessons,id'],
+            'watched_time' => ['required', 'integer'],
+            'course_id'    => ['required', 'integer'],
+            'chapter_id'   => ['required', 'integer', 'exists:chapters,id'],
+            'lesson_id'    => ['required', 'integer', 'exists:lessons,id'],
         ];
     }
 

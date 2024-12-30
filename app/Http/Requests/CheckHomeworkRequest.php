@@ -26,6 +26,8 @@ class CheckHomeworkRequest extends FormRequest
         return [
             'student_id'  => ['required', 'exists:users,id'],
             'homework_id' => ['required', 'exists:student_homework,id'],
+            'score'       => ['required', 'integer', 'min:1','max:20'],
+            'comment'     => ['nullable', 'string']
         ];
     }
 
