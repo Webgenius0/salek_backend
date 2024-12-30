@@ -48,6 +48,23 @@ class CategoryService extends Service
         }
     }
 
+    public function show($id)
+    {
+        $category = Category::find($id);
+
+        if(!$category):
+            return $this->failedResponse('Category not found', 404);
+        endif;
+
+        $data = [
+            'category_id'   => $category->id,
+            'category_name' => $category->name,
+            'status'        => $category->status,
+        ];
+
+        return $this->successResponse(true, 'Category Details', $data, 200);
+    }
+
     public function update($id,$name, $status, $updatedBy)
     {
         try {

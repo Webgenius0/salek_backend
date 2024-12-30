@@ -28,7 +28,7 @@ class StudentNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['database'];
     }
 
     /**
@@ -50,7 +50,10 @@ class StudentNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            //
+            'post_id'    => $this->data->id,
+            'title'      => $this->data->title,
+            'image_url'  => isset($this->data->image_url) ? $this->data->image_url : null,
+            'created_at' => $this->data->created_at->toDateTimeString(),
         ];
     }
 }

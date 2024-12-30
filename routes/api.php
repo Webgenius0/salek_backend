@@ -53,6 +53,7 @@ Route::middleware(['auth:api', 'onlyAdmin'])->group(function(){
         Route::controller(CategoryController::class)->group(function(){
             Route::get('/list', 'index')->name('list');
             Route::post('/store', 'store')->name('store');
+            Route::get('/show/{id}', 'show')->name('show');
             Route::post('/update', 'update')->name('update');
         });
     });
