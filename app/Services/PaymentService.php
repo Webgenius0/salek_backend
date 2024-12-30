@@ -20,6 +20,40 @@ class PaymentService extends Service
     use ApiResponse;
 
     /**
+     * Display a listing of the user's payments.
+     *
+     * @param  \App\Models\User  $user
+     * @return \Illuminate\Http\JsonResponse
+     *
+     * This method retrieves all payments associated with the given user,
+     * maps the payment data to a specific format, and returns a JSON response
+     * with the payment list.
+     *
+     * The returned data includes:
+     * - payment_id: The ID of the payment.
+     * - amount: The amount of the payment.
+     * - currency: The currency of the payment.
+     * - status: The status of the payment.
+     * - transaction_date: The transaction date formatted as 'H:i:s A'.
+    */
+    public function index($user)
+    {
+        $payments = Payment::where('user_id', $user->id)->get();
+
+        $data = $payments->map(function($payment){
+            return [
+                'payment_id'       => $payment->id,
+                'amount'           => $payment->amount,
+                'currency'         => $payment->currency,
+                'status'           => $payment->status,
+                'transaction_date' => $payment->created_at->format('H:i:s A'),
+            ];
+        });
+
+        return $this->successResponse(true, 'Your Payment history', $data, 200);
+    }
+
+    /**
      * Updates the payment and subscription details for a user.
      *
      * This function handles the update process for a user's payment and subscription details

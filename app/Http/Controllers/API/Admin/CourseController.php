@@ -228,64 +228,10 @@ class CourseController extends Controller
     }
 
     /**
-     * Course with level
-     * Get all levels of a course
+     * Retrieves a course with its associated chapters and lessons by the given course ID.
      *
-     * @param [string] $id
-     * @return mixed
-    */
-    public function courseWithLevel($id)
-    {
-        $course = Course::with('chapters.lessons')->where('id',$id)->first();
-
-        if(!$course) {
-            return $this->failedResponse('Course not found', 404);
-        }
-
-        $userCourse = $course->purchasers()->where('user_id', Auth::id())->first();
-
-        $isPermit = (bool) $userCourse->pivot->access_granted;
-
-        if(!$isPermit) {
-            return $this->failedResponse('You have no permission to access this course', 403);
-        }
-
-        $totalLessons = $course->chapters->flatMap->lessons->count();
-        
-        $levels = $course->chapters->groupBy('chapter_order')->map(function ($chapters, $level) use ($totalLessons) {
-            $levelLessons     = $chapters->flatMap->lessons->count();
-            $completedLessons = $chapters->flatMap->lessons->where('is_completed', true)->count();
-            $progress         = $totalLessons > 0 ? round(($completedLessons / $levelLessons) * 100, 2) : 0;
-
-            return [
-                'level'               => $level,
-                'difficulty'          => $chapters->first()->level_label,
-                'progress_percentage' => $progress,
-            ];
-        })->values();
-
-
-        $data = [
-            'course_id'     => $course->id,
-            'course_title'  => $course->name,
-            'price'         => $course->price,
-            'review'        => 4.9 . (232 . ' Reviews'),
-            'total_chapter' => $course->chapters->count(),
-            'total_level'   => $course->chapters->max('chapter_order'),
-            'total_class'   => $course->total_class,
-            'students'      => $course->purchasers->count(),
-            'levels'        => $levels,
-        ];
-
-        return $this->successResponse(true, 'Course Details', $data, 200);
-    }
-
-    /**
-     * Course with class
-     * Get all classes of a course
-     *
-     * @param [string] $id
-     * @return mixed
+     * @param int $id The ID of the course to retrieve.
+     * @return mixed The course with its associated chapters and lessons.
     */
     public function courseWithClass($id)
     {
@@ -331,6 +277,17 @@ class CourseController extends Controller
     }
 
     /**
+     * Retrieve the level of a course based on the provided ID.
+     *
+     * @param int $id The ID of the course.
+     * @return mixed The level of the course.
+    */
+    public function level($id)
+    {
+        return $this->courseServiceObj->level($id);
+    }
+
+    /**
      * All Achievement
      * Get all achievements of a course
      *
@@ -338,7 +295,7 @@ class CourseController extends Controller
     */
     public function allAchievement()
     {
-        return 'Course Achievement';
+        return response()->json(['message' => 'This is Course Achievement panel.This is now under working..']);
     }
 
     /**
@@ -350,6 +307,6 @@ class CourseController extends Controller
     */
     public function showProgress($id)
     {
-        return 'Course Progress';
+        return $this->courseServiceObj->showProgress($id);
     }
 }

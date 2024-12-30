@@ -13,7 +13,7 @@ class TestController extends Controller
 {
     public function welcome()
     {
-        $courses = Course::latest()->take(3)->get()->toArray();
+        $courses = Course::latest()->take(3)->get();
         
         return view('welcome', compact('courses'));
     }

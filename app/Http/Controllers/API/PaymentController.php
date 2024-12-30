@@ -30,6 +30,22 @@ class PaymentController extends Controller
         $this->stripeServiceObj = new StripeService();
         $this->paymentServiceObj = new PaymentService();
     }
+
+    /**
+     * Display a listing of the resource.
+     *
+     * This method retrieves the authenticated user from the request and
+     * passes it to the payment service's index method to get a list of
+     * resources related to the user.
+     *
+     * @return \Illuminate\Http\Response
+    */
+    public function index()
+    {
+        $user = request()->user();
+        
+        return $this->paymentServiceObj->index($user);
+    }
     
     /**
      * Store a new payment or update an existing subscription.

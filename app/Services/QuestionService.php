@@ -64,7 +64,17 @@ class QuestionService extends Service
 
             DB::commit();
             if($res){
-                return $this->successResponse(true, 'Homework created successfully', $this->homeworkObj, 201);
+                $data = [
+                    'homework_id'          => $this->homeworkObj->id,
+                    'homework_title'       => $this->homeworkObj->title,
+                    'homework_slug'        => $this->homeworkObj->slug,
+                    'homework_instruction' => $this->homeworkObj->instruction,
+                    'homework_deadline'    => $this->homeworkObj->deadline,
+                    'homework_type'        => $this->homeworkObj->type,
+                    'homework_status'      => $this->homeworkObj->status,
+                ];
+                
+                return $this->successResponse(true, 'Homework created successfully', $data, 201);
             }
 
         } catch (\Exception $e) {

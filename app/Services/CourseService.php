@@ -5,10 +5,16 @@ namespace App\Services;
 use App\Models\Course;
 use App\Models\Lesson;
 use App\Models\Chapter;
+use App\Models\CourseUser;
+use App\Models\LessonUser;
+use App\Models\StudentProgress;
+use App\Models\User;
 use App\Traits\ApiResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+
+use function PHPUnit\Framework\returnSelf;
 
 class CourseService extends Service
 {
@@ -96,7 +102,19 @@ class CourseService extends Service
 
             DB::commit();
             if($res){
-                return $this->successResponse(true, 'Course created successfully.', $this->courseObj, 201);
+                $data = [
+                    'course_id'          => $this->courseObj->id,
+                    'course_name'        => $this->courseObj->name,
+                    'course_slug'        => $this->courseObj->slug,
+                    'total_class'        => $this->courseObj->total_class,
+                    'course_price'       => $this->courseObj->price,
+                    'introduction_title' => $this->courseObj->introduction_title,
+                    'status'             => $this->courseObj->status,
+                    'cover_photo'        => asset($this->courseObj->cover_photo),
+                    'class_video'        => asset($this->courseObj->class_video),
+                    'created_at'         => $this->courseObj->created_at->format('H:i:s A'),
+                ];
+                return $this->successResponse(true, 'Course created successfully.', $data, 201);
             }
         }catch(\Illuminate\Database\QueryException $e){
             DB::rollback();
@@ -302,21 +320,15 @@ class CourseService extends Service
     {
         $courses = $user->purchasedCourses->map(function($course) use ($user){
 
-            $totalLessons = $course->lessons->count();
-
-            $completedLessons = $course->lessons->filter(function($lesson) use ($user) {
-                $userLesson = $lesson->users->where('user_id', $user->id)->first();
-                return $userLesson && $userLesson->pivot->completed;
-            })->count();
-
-            $completionRate = $totalLessons > 0 ? round(($completedLessons / $totalLessons) * 100) : 0;
-
+            $courseProgress = StudentProgress::where('user_id', $user->id)->where('course_id', $course->id)->first();
+            $totalProgress  = $courseProgress->course_progress + $courseProgress->homework_progress;
+            
             $courseAvatar = $course->cover_photo ?? null;
             return [
                 'course_id'       => $course->id,
                 'course_title'    => $course->name,
                 'course_avatar'   => $courseAvatar,
-                'completion_rate' => $completionRate . '%',
+                'completion_rate' => round($totalProgress) . '%',
                 'total_class'     => $course->total_class,
                 'total_course'    => $course->count(),
                 'achievements'    => 0,
@@ -355,11 +367,14 @@ class CourseService extends Service
     }
 
     /**
-     * Course With Class method
-     * Service Helper method
+     * Retrieves the course details along with its chapters and lessons.
      *
-     * @param [string] $course
-     * @return mixed
+     * This method takes a course object and maps its chapters and lessons into a structured array.
+     * Each chapter includes its ID, name, and a list of lessons. Each lesson includes its ID, name,
+     * video URL, and duration.
+     *
+     * @param \App\Models\Course $course The course object containing chapters and lessons.
+     * @return \Illuminate\Http\JsonResponse A JSON response containing the structured course data.
     */
     public function courseWithClass($course)
     {
@@ -367,8 +382,6 @@ class CourseService extends Service
             return [
                 'chapter_id'   => $chapter->id,
                 'chapter_name' => $chapter->name,
-                'level'        => $chapter->level_label,
-                'total_lesson' => $chapter->lessons->count(),
                 'lessons' => $chapter->lessons->map(function($lesson){
                     return [
                         'lesson_id'   => $lesson->id,
@@ -398,28 +411,207 @@ class CourseService extends Service
     }
 
     /**
-     * Ongoing Course method
-     * Service Helper method
+     * Retrieve the level progress of a course for the authenticated user.
      *
-     * @return mixed
+     * This method fetches a course along with its chapters and lessons, and calculates the progress
+     * percentage for each level based on the number of completed lessons. It returns the progress
+     * information for each level in the course.
+     *
+     * @param int $id The ID of the course.
+     * @return \Illuminate\Http\JsonResponse The response containing the level progress information or an error message.
     */
-    public function ongoingCourse()
+    public function level($id)
     {
-        $data = 'This module is under development';
+        $course = Course::with(['chapters.lessons', 'homework'])->find($id);
 
-        return $this->successResponse(true, 'Ongoing Courses', $data, 200);
+        if(!CourseUser::where('course_id', $course->id)->where('user_id', Auth::id())->exists()):
+            return $this->failedResponse('You have no validity for this user.', 403);
+        endif;
+
+        if(!$course):
+            return $this->failedResponse('Course not found.', 404);
+        endif;   
+
+        $chapterLevels = $course->chapters->groupBy('chapter_order')->map(function ($chapters, $order) {
+            $totalLessonsInLevel = $chapters->sum(fn($chapter) => $chapter->lessons->count());
+            $completedLessonsInLevel = $chapters->sum(fn($chapter) => $chapter->lessons->filter(fn($lesson) => $lesson->lessonUser->contains('completed', true))->count());
+            
+            $progressPercentage = $totalLessonsInLevel > 0 ? round(($completedLessonsInLevel / $totalLessonsInLevel) * 100, 2) : 0;
+
+            return [
+                'level' => "Level $order",
+                'progress' => $progressPercentage,
+                'level_label' => $chapters->first()->level_label,
+            ];
+        });
+
+        $totalLevels = $chapterLevels->count();
+        $totalStudents = CourseUser::where('course_id', $course->id)->count();
+
+        $courseInfo = [
+            'course_name' => $course->name,
+            'total_levels' => $totalLevels,
+            'total_students' => $totalStudents,
+            'levels' => $chapterLevels,
+        ];
+
+        return $this->successResponse(true, 'Course with level', $courseInfo, 200);
     }
 
     /**
-     * Complete Course method
-     * Service Helper method
+    * Retrieve the ongoing courses for the authenticated user.
+    *
+    * This method fetches the courses purchased by the authenticated user and determines
+    * the ongoing courses based on the lessons that have not been completed yet.
+    *
+    * @return \Illuminate\Http\JsonResponse
+    * A JSON response containing the ongoing courses with the following structure:
+    * - course_id: The ID of the course.
+    * - course_name: The name of the course.
+    * - incomplete_lessons: The count of incomplete lessons in the course.
+    * - total_lessons: The total number of lessons in the course.
+    * - lessons: A collection of incomplete lessons.
+    */
+    public function ongoingCourse()
+    {
+        $user = User::find(Auth::id());
+
+        $userCourses = $user->purchasedCourses;
+
+        $courseIds = $userCourses->pluck('id');
+
+        $courses = Course::with(['chapters.lessons.lessonUser' => function($query) use ($user) {
+            $query->where('user_id', $user->id);
+        }])->whereIn('id', $courseIds)->get();
+
+        $ongoingCourses = $courses->map(function($course) {
+            $courseLessons = $course->chapters->flatMap(function($chapter) {
+                return $chapter->lessons;
+            });
+
+            $incompleteLessons = $courseLessons->filter(function($lesson) {
+                return !$lesson->lessonUser->first()->completed;
+            });
+
+            if ($incompleteLessons->isNotEmpty()) {
+                return [
+                    'course_id'          => $course->id,
+                    'course_name'        => $course->name,
+                    'incomplete_lessons' => $incompleteLessons->count(),
+                    'total_lessons'      => $courseLessons->count(),
+                    'lessons'            => $incompleteLessons,
+                ];
+            }
+
+            return null;
+        })->filter();
+
+        return $this->successResponse(true, 'Ongoing Courses', $ongoingCourses, 200);
+    }
+
+    /**
+     * Complete the course for the authenticated user.
      *
-     * @return mixed
+     * This method retrieves the authenticated user and their purchased courses.
+     * It then fetches the courses along with their chapters and lessons, including
+     * the lesson completion status for the user.
+     *
+     * The method maps the courses to include the completion status of each lesson
+     * and returns a response with the completed courses and their details.
+     *
+     * @return \Illuminate\Http\JsonResponse
     */
     public function completeCourse()
     {
-        $data = 'This module is under development';
+        $user = User::find(Auth::id());
 
-        return $this->successResponse(true, 'Completed Courses', $data, 200);
+        $userCourses = $user->purchasedCourses;
+
+        $courseIds = $userCourses->pluck('id');
+
+
+        $courses = Course::with(['chapters.lessons.lessonUser' => function($query) use ($user) {
+            $query->where('user_id', $user->id);
+        }])->whereIn('id', $courseIds)->get();
+        
+        $coursesWithCompletionStatus = $courses->map(function($course) use ($user) {
+            $courseLessons = $course->chapters->flatMap(function($chapter) {
+                return $chapter->lessons;
+            });
+
+            $completedLessons = $courseLessons->map(function($lesson) use ($user) {
+                $lessonUser = $lesson->lessonUser->first();
+
+                return [
+                    'lesson_id'    => $lesson->id,
+                    'lesson_name'  => $lesson->name,
+                    'completed'    => $lessonUser ? $lessonUser->completed : false,
+                    'completed_at' => $lessonUser ? $lessonUser->completed_at : null,
+                ];
+            });
+
+            return [
+                'course_id'         => $course->id,
+                'course_name'       => $course->name,
+                'completed_lessons' => $completedLessons->where('completed', true)->count(),
+                'total_lessons'     => $completedLessons->count(),
+                'lessons'           => $completedLessons,
+            ];
+        });
+
+        return $this->successResponse(true, 'Completed Courses', $coursesWithCompletionStatus, 200);
+    }
+
+    /**
+     * Display the progress of a course for the authenticated user.
+     *
+     * This method retrieves the course with its chapters and lessons by the given course ID.
+     * It then calculates the weekly progress of the user based on the lessons they have completed.
+     *
+     * @param int $id The ID of the course.
+     * @return \Illuminate\Http\JsonResponse The response containing the weekly progress data.
+    */
+    public function showProgress($id)
+    {
+        $course = Course::with(['chapters.lessons'])->find($id);
+
+        if(!$course):
+            return $this->failedResponse('Course not found', 404);
+        endif;
+
+
+        $lessons = $course->chapters->map(function($chapter){
+            return [
+                'lessons' => $chapter->lessons
+            ];
+        });
+
+        $lessonIds = $lessons->flatten()->map(function ($lesson) {
+            return $lesson->id;
+        });
+
+        $lessonUserRecords = LessonUser::whereIn('lesson_id', $lessonIds)
+            ->where('user_id', Auth::id())
+            ->get();
+
+        $weekProgress = $lessonUserRecords->groupBy(function ($record) {
+            return \Carbon\Carbon::parse($record->completed_at)->format('Y-W');
+        });
+
+        $progressData = $weekProgress->map(function ($weekRecords, $week) {
+            $totalLessonsInWeek = $weekRecords->count();
+            $completedLessonsInWeek = $weekRecords->where('completed', 1)->count();
+            
+            $progressPercentage = $totalLessonsInWeek > 0 ? round(($completedLessonsInWeek / $totalLessonsInWeek) * 100, 2) : 0;
+            
+            return [
+                'week' => $week,
+                'progress' => $progressPercentage,
+                'total_lessons' => $totalLessonsInWeek,
+                'completed_lessons' => $completedLessonsInWeek,
+            ];
+        });
+
+        return $this->successResponse(true, 'Weekly Progress', $progressData, 200);
     }
 }

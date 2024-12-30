@@ -196,21 +196,29 @@ Route::middleware(['auth:api', 'onlyStudent'])->group(function(){
         });
     });
 
+    Route::controller(PaymentController::class)->group(function(){
+        Route::prefix('payment')->name('payment.')->group(function(){
+            Route::post('/list', 'index')->name('list');
+        });
+    });
+
     Route::controller(ProfileController::class)->group(function(){
         Route::prefix('profile')->name('profile.')->group(function(){
             Route::post('/show', 'show')->name('show');
         });
     });
 
+    Route::controller(CourseController::class)->group(function(){
+        Route::get('/current/courses', 'currentCourse')->name('current.course');
+        Route::get('/course/all/classess/{id}', 'courseWithClass')->name('course.class');
+        Route::get('/course/achievement/{id}', 'courseAchievement')->name('achievement');
+        Route::get('/course/complete', 'completeCourse')->name('complete');
+        Route::get('/course/ongoing', 'ongoingCourse')->name('ongoing');
+        Route::get('/course/achieve/all', 'allAchievement')->name('course.achievement');
+        Route::get('/course/progress/{id}', 'showProgress')->name('course.progress');
+    });
+
     Route::get('/upcoming/event', [EventController::class, 'upcomingEvent'])->name('upcomig.event');
-    Route::get('/current/courses', [CourseController::class, 'currentCourse'])->name('current.course');
-    Route::get('/course/with/level/{id}', [CourseController::class, 'courseWithLevel'])->name('course.level');
-    Route::get('/course/all/classess/{id}', [CourseController::class, 'courseWithClass'])->name('course.class');
-    Route::get('/course/achievement/{id}', [CourseController::class, 'courseAchievement'])->name('achievement');
-    Route::get('/course/complete', [CourseController::class, 'completeCourse'])->name('complete');
-    Route::get('/course/ongoing', [CourseController::class, 'ongoingCourse'])->name('ongoing');
-    Route::get('/course/achieve/all', [CourseController::class, 'allAchievement'])->name('course.achievement');
-    Route::get('/course/progress/{id}', [CourseController::class, 'showProgress'])->name('course.progress');
 });
 //'END' :- For student route
 
@@ -238,13 +246,16 @@ Route::middleware(['auth:api'])->group(function(){
         });
     });
 
+    // For Course Route
     Route::controller(CourseController::class)->group(function(){
         Route::prefix('course')->name('course.')->group(function(){
             Route::get('/all', 'index')->name('list');
             Route::post('/details/{id}', 'show')->name('details');
+            Route::get('/level/{id}', 'level')->name('level');
             Route::get('/popular', 'popularCourse')->name('popular');
         });
     });
+    //For Course Route
 
     Route::prefix('events')->name('event.')->group(function(){
         Route::controller(EventController::class)->group(function(){

@@ -70,4 +70,8 @@ class Course extends Model
         return $this->hasMany(Lesson::class);
     }
 
+    public function homework()
+    {
+        return $this->hasOne(Homework::class);
+    }
 }
