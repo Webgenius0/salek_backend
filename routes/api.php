@@ -84,6 +84,7 @@ Route::middleware(['auth:api', 'onlyAdmin'])->group(function(){
         Route::prefix('homework')->name('homework.')->group(function(){
             Route::post('/store', 'store')->name('store');
             Route::post('/update', 'update')->name('update');
+            Route::post('/check', 'check')->name('check');
         });
     });
 

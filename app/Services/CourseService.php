@@ -112,7 +112,7 @@ class CourseService extends Service
                     'status'             => $this->courseObj->status,
                     'cover_photo'        => asset($this->courseObj->cover_photo),
                     'class_video'        => asset($this->courseObj->class_video),
-                    'created_at'         => $this->courseObj->created_at->format('H:i:s A'),
+                    'created_at'         => $this->courseObj->created_at,
                 ];
                 return $this->successResponse(true, 'Course created successfully.', $data, 201);
             }

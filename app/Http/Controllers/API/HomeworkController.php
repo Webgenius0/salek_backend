@@ -6,12 +6,13 @@ use App\Models\User;
 use App\Models\Course;
 use App\Models\Homework;
 use Illuminate\Http\Request;
+use App\Services\HomeworkService;
 use App\Services\QuestionService;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\StoreWorkRequest;
+use App\Http\Requests\CheckHomeworkRequest;
 use App\Http\Requests\StoreHomeworkRequest;
-use App\Services\HomeworkService;
 
 class HomeworkController extends Controller
 {
@@ -85,6 +86,19 @@ class HomeworkController extends Controller
         endif;
 
         return $this->questionServiceObj->store($course_id, $chapter_id, $lesson_id, $title, $instruction, $file, $link, $deadline, $type,$question_type);
+    }
+
+    public function update(Request $request)
+    {
+        return 'This is waiting for development';
+    }
+
+    public function check(CheckHomeworkRequest $request)
+    {
+        $homeworkId = $request->input('homework_id');
+        $studentId = $request->input('student_id');
+
+        return $this->homeworkServiceObj->checkHomework($homeworkId, $studentId);
     }
 
     /**

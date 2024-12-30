@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Course;
 use App\Models\User;
 use App\Models\Homework;
 use App\Models\CourseUser;
@@ -44,24 +45,42 @@ class HomeworkService extends Service
 
             $studentHomework = StudentHomework::where('user_id', $user->id)->where('homework_id', $homeworkId)->first();
 
-            if($studentHomework): 
-                return $this->failedResponse('You already submit the work.', 422);
-            endif;
+            $homeworkStatus = now()->greaterThan($homework->deadline) ? 'late' : 'in_time';
 
-            $studentHomeworkObj = new StudentHomework();
-
+            $filePath = null;
+            
             if($file != null){
                 $filename = time() . '_' . $file->getClientOriginalName();
                 $filePath = 'uploads/homework/submit/' . $filename;
                 $file->move(public_path('uploads/homework/submit'), $filename);
-                $studentHomeworkObj->answer_script = $filePath;
+
+                if($studentHomework && $studentHomework->answer_script != null){
+                    $previousFilePath = public_path($studentHomework->answer_script);
+                    
+                    if (file_exists($previousFilePath)) {
+                        unlink($previousFilePath);
+                    }
+                }
             }
 
-            $homeworkStatus = now()->greaterThan($homework->deadline) ? 'late' : 'in_time';
+            if($studentHomework): 
+                $studentHomework->answer_script = $filePath;
+                $studentHomework->submission_at = now();
+                $studentHomework->status = $homeworkStatus;
+
+                $res = $studentHomework->save();
+                DB::commit();
+                if($res){
+                    return $this->successResponse(true, 'Homework submit successfully', $studentHomework, 201);
+                }
+            endif;
+
+            $studentHomeworkObj = new StudentHomework();
 
             $studentHomeworkObj->user_id       = $user->id;
             $studentHomeworkObj->homework_id   = $homeworkId;
             $studentHomeworkObj->submission_at = now();
+            $studentHomeworkObj->answer_script = $filePath;
             $studentHomeworkObj->status        = $homeworkStatus;
             
             $res = $studentHomeworkObj->save();
@@ -75,5 +94,22 @@ class HomeworkService extends Service
             info($e);
             return $this->failedDBResponse('Database error', $e->getMessage(), 422);
         }
+    }
+
+    public function checkHomework($homeworkId, $studentId)
+    {
+        $homework = Homework::find($homeworkId);
+        if(!$homework):
+            return $this->failedResponse('Homework not found', 404);
+        endif;
+
+        $course = Course::find($homework->course_id);
+        if(!$course):
+            return $this->failedResponse('Course not found', 404);
+        endif;
+
+        if($course && $course->created_by !== Auth::id()):
+            return $this->failedResponse('You are not authorized for this course', 403);
+        endif;
     }
 }
