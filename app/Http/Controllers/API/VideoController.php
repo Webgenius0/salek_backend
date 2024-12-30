@@ -109,27 +109,6 @@ class VideoController extends Controller
         $chapterId   = $request->input('chapter_id');
         $lessonId    = $request->input('lesson_id');
 
-        $lesson     = Lesson::find($lessonId);
-        $lessonUser = LessonUser::where('user_id', $user->id)->where('lesson_id', $lessonId)->first();
-
-        // if($lesson && $lessonUser){
-        //     $duration = $lesson->duration * 60;
-        //     $lastWatch = $lessonUser->watched_time;
-
-        //     $newWatch = $lastWatch + $watchedTime;
-
-        //     if($newWatch > $duration):
-        //         return 'wrong input';
-        //     endif;
-        // }
-
-        
-        
-        // if($duration === $lessonUser->watched_time){
-        //     return 'saman';
-        // }
-
-        // return $lessonUser->watched_time;
 
         $course = Course::with(['chapters.lessons', 'homework'])->where('id',$courseId)->first();
         
@@ -164,7 +143,6 @@ class VideoController extends Controller
                 'code'    => 422
             ]);
         }
-
 
         $totalCourseNumber     = ($totalHomework > 0) ? 80 : 100;
         $totalDuration         = $video->duration * 60;
