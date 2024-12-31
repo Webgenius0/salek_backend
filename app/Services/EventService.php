@@ -121,6 +121,16 @@ class EventService extends Service
             
             DB::commit();
             if($res){
+                
+                $data = [
+                    'course_id'   => $this->eventObj->id,
+                    'course_name' => $this->eventObj->title,
+                    'cover_photo' => $this->eventObj->thumbnail,
+                    'created_at'  => $this->eventObj->created_at,
+                ];
+
+                $this->notifyUsers($data);
+                
                 return $this->successResponse(true, 'Event created successfully', $this->eventObj, 201);
             }
 

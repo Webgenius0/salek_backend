@@ -15,6 +15,7 @@ use App\Models\StudentProgress;
 use Illuminate\Support\Facades\DB;
 
 use Illuminate\Support\Facades\Auth;
+use App\Notifications\StudentNotification;
 use function PHPUnit\Framework\returnSelf;
 
 class CourseService extends Service
@@ -115,6 +116,9 @@ class CourseService extends Service
                     'class_video'        => asset($this->courseObj->class_video),
                     'created_at'         => $this->courseObj->created_at,
                 ];
+
+                $this->notifyUsers($data);
+
                 return $this->successResponse(true, 'Course created successfully.', $data, 201);
             }
         }catch(\Illuminate\Database\QueryException $e){

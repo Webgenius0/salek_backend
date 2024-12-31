@@ -50,10 +50,10 @@ class StudentNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'post_id'    => $this->data->id,
-            'title'      => $this->data->title,
-            'image_url'  => isset($this->data->image_url) ? $this->data->image_url : null,
-            'created_at' => $this->data->created_at->toDateTimeString(),
+            'item_id'   => $this->data['course_id'],
+            'course_name' => $this->data['course_name'],
+            'cover_photo' => $this->data['cover_photo'] ?? null,
+            'created_at'  => $this->data['created_at'],
         ];
     }
 }

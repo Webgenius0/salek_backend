@@ -3,10 +3,12 @@
 namespace App\Services;
 
 use Carbon\Carbon;
+use App\Models\User;
 use App\Mail\OtpMail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use App\Notifications\StudentNotification;
 
 class Service
 {
@@ -46,6 +48,24 @@ class Service
             Log::error('Failed to send OTP email: '.$e->getMessage());
             
             throw $e;
+        }
+    }
+
+    /**
+     * Notify all users with the role of 'student' with the given data.
+     *
+     * This function retrieves all users with the role of 'student' from the database
+     * and sends them a notification using the StudentNotification class.
+     *
+     * @param mixed $data The data to be sent in the notification.
+     * @return void
+    */
+    protected function notifyUsers($data) :void
+    {
+        $users = User::where('role', 'student')->get();
+
+        foreach ($users as $user) {
+            $user->notify(new StudentNotification($data));
         }
     }
 }
