@@ -19,6 +19,7 @@ use App\Http\Controllers\API\BookingController;
 use App\Http\Controllers\API\CardController;
 use App\Http\Controllers\API\HomeworkController;
 use App\Http\Controllers\API\MessageController;
+use App\Http\Controllers\API\NotificationController;
 use App\Http\Controllers\API\ProgressController;
 use App\Http\Controllers\API\SettingController;
 use App\Http\Controllers\API\SubscriptionController;
@@ -65,6 +66,7 @@ Route::middleware(['auth:api', 'onlyAdmin'])->group(function(){
             Route::post('/lesson/store', 'lessonStore')->name('lesson');
             Route::get('/list', 'courseList')->name('all');
             Route::get('/wise/chapter/{id}', 'courseWiseChapter')->name('wisechapter');
+            Route::post('/publish', 'publish')->name('publish');
         });
     });
 
@@ -130,7 +132,6 @@ Route::middleware(['auth:api', 'check.parent.student'])->group(function(){
     //For Review Route
     Route::controller(ReviewController::class)->group(function(){
         Route::prefix('review')->name('review.')->group(function(){
-            Route::get('/list/{type}/{id}', 'index')->name('list');
             Route::post('/store', 'store')->name('store');
         });
 
@@ -276,6 +277,14 @@ Route::middleware(['auth:api'])->group(function(){
     });
     // For Booking a Teacher route
 
+    //For Review Route
+    Route::controller(ReviewController::class)->group(function(){
+        Route::prefix('review')->name('review.')->group(function(){
+            Route::get('/list/{type}/{courseId}', 'index')->name('list');
+        });
+    });
+    //For Review Route
+
     // For message route
     Route::prefix('message')->name('message.')->group(function(){
         Route::controller(MessageController::class)->group(function(){
@@ -293,6 +302,14 @@ Route::middleware(['auth:api'])->group(function(){
         });
     });
     //For Card Route
+
+    //For Notification Route
+    Route::controller(NotificationController::class)->group(function(){
+        Route::prefix('notification')->name('notification.')->group(function(){
+            Route::get('/list', 'index')->name('list');
+        });
+    });
+    //For Notification Route
 
     //For Logout controller
     Route::controller(LogoutController::class)->group(function(){

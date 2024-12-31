@@ -29,16 +29,36 @@ class CourseService extends Service
         $this->courseObj = new Course();
     }
 
+    /**
+     * Retrieves a list of courses created by the authenticated user along with associated students and reviews.
+     *
+     * This method fetches courses created by the currently authenticated user, including related students and reviews.
+     * It then maps the course data to include additional information such as the number of students, total classes,
+     * and average rating.
+     *
+     * @return \Illuminate\Http\JsonResponse A JSON response containing the success status, message, course data, and HTTP status code.
+    */
     public function courseList()
     {
-        $courses = Course::where('created_by', Auth::id())
+        $courses = Course::with(['students', 'reviews'])->where('created_by', Auth::id())
             ->latest()
             ->get();
 
         $data = $courses->map(function($course){
+            $ratingCount   = $course->reviews->count();
+            $ratingSum     = $course->reviews->sum('rating');
+            $averageRating = $ratingCount > 0 ? number_format($ratingSum / $ratingCount, 1) : null;
             return [
-                'course_id'    => $course->id,
-                'course_title' => $course->name,
+                'course_id'      => $course->id,
+                'course_title'   => $course->introduction_title,
+                'cover_photo'    => $course->cover_photo,
+                'tag'            => 'Online Course',
+                'price'          => $course->price,
+                'total_class'    => $course->total_class ?? 0,
+                'students'       => $course->students->count() ?? 0,
+                'rating_count'   => $ratingCount,
+                'rating_sum'     => $ratingSum,
+                'average_rating' => $averageRating ?? 0,
             ];
         });
 
@@ -565,6 +585,28 @@ class CourseService extends Service
         });
 
         return $this->successResponse(true, 'Completed Courses', $coursesWithCompletionStatus, 200);
+    }
+
+    /**
+     * Publish or unpublish a course based on the given status.
+     *
+     * @param int $courseId The ID of the course to be published or unpublished.
+     * @param int $status The status to set for the course (0 for published, 1 for unpublished).
+     * @return \Illuminate\Http\JsonResponse A JSON response indicating success or failure.
+    */
+    public function publish($courseId, $status)
+    {
+        $course = Course::find($courseId);
+        if($course && $course->created_by == Auth::id()): 
+            $videoStatus = $status == 1 ? 'publish' : 'unpublish';
+            
+            $course->status     = $videoStatus;
+            $course->updated_at = now();
+            $course->save();
+            
+            return $this->successResponse(true, "Video $videoStatus successfully.", $course, 200);
+        endif;
+        return $this->failedResponse('Sorry: you are not creator of this course', 403);
     }
 
     /**

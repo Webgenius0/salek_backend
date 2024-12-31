@@ -74,4 +74,9 @@ class Course extends Model
     {
         return $this->hasOne(Homework::class);
     }
+
+    public function students()
+    {
+        return $this->hasMany(CourseUser::class, 'course_id', 'id');
+    }
 }

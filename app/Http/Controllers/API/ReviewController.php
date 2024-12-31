@@ -26,12 +26,12 @@ class ReviewController extends Controller
      * 
      * @throws \Exception If there is an error during the database query.
     */
-    public function index($type, $id)
+    public function index($type, $courseId)
     {
         try {
             $reviews = Review::with(['user.profile', 'reviewable', 'reactions'])
                 ->where('reviewable_type', Course::class)
-                ->where('reviewable_id', $id);
+                ->where('reviewable_id', $courseId);
 
             if ($type === 'new') {
                 $reviews->where('created_at', '>=', now()->subWeek());

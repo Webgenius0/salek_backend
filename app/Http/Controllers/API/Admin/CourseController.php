@@ -2,19 +2,20 @@
 
 namespace App\Http\Controllers\API\Admin;
 
+use App\Models\User;
 use App\Models\Course;
+use App\Models\Chapter;
+use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use App\Services\CourseService;
+use App\Services\HelperService;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\CourseStoreRequest;
 use App\Http\Requests\LessonStoreRequest;
-use App\Http\Requests\ChapterStoreRequest;
-use App\Models\Chapter;
-use App\Models\User;
-use App\Services\HelperService;
-use App\Traits\ApiResponse;
+use Illuminate\Support\Facades\Validator;
 
+use App\Http\Requests\ChapterStoreRequest;
 use function PHPUnit\Framework\returnSelf;
 
 class CourseController extends Controller
@@ -305,6 +306,37 @@ class CourseController extends Controller
         endif;
         
         return $this->successResponse(true, 'This id is the student id.This is Course Achievement panel.This is now under working..', $user, 200);
+    }
+
+    /**
+     * Publish a course.
+     *
+     * This method validates the incoming request to ensure that the 'course_id' is provided,
+     * is an integer, and exists in the 'courses' table. If validation fails, it returns a 
+     * JSON response with the validation errors and a 422 status code. If validation passes,
+     * it calls the publish method on the course service object with the provided 'course_id'.
+     *
+     * @param \Illuminate\Http\Request $request The incoming request instance.
+     * 
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\Response
+    */
+    public function publish(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'course_id' => 'required|integer|exists:courses,id',
+            'status' => ['required', 'boolean'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Validation errors',
+                'errors'  => $validator->errors(),
+                'code'    => 422,
+            ], 422);
+        }
+
+        return $this->courseServiceObj->publish($request->input('course_id'), $request->input('status'));
     }
 
     /**
