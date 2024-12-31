@@ -52,9 +52,10 @@ class StudentController extends Controller
         }
         
         $data = [
-            'id'     => $request->parent->id,
-            'avatar' => $request->parent->avatar,
-            'name'   => $request->parent->name,
+            'request_id'  => $request->id,
+            'parent_id'   => $request->parent->id,
+            'parent_name' => $request->parent->name,
+            'avatar'      => $request->parent->avatar ?? asset('files/images/user.png'),
         ];
         
         return $this->successResponse(true, 'Request list', $data, 200);
@@ -68,18 +69,26 @@ class StudentController extends Controller
      * @param [string] $stdId
      * @return mixed
     */
-    public function acceptRequest($parentId)
+    public function acceptRequest($rqstId)
     {
-        $request = LinkRequest::where('parent_id', $parentId)->where('status', 'request')->first();
+        $request = LinkRequest::with(['parent'])->where('id', $rqstId)->where('status', 'request')->first();
 
         if(!$request){
             return $this->failedResponse('Request not found', 404);
         }
 
-        $request->status = 'accept';
+        $request->updated_at = now();
+        $request->status     = 'accept';
         $request->save();
 
-        return $this->successResponse(true, 'Request accepted', $request, 200);
+        $data = [
+            'request_id'    => $request->id,
+            'parent_id'     => $request->parent->id,
+            'status'        => $request->status,
+            'accepted_date' => $request->updated_at,
+        ];
+
+        return $this->successResponse(true, 'Request accepted', $data, 200);
     }
 
     /**
@@ -90,9 +99,9 @@ class StudentController extends Controller
      * @param [string] $parentId
      * @return mixed
     */
-    public function cancelRequest($parentId)
+    public function cancelRequest($rqstId)
     {
-        $request = LinkRequest::where('parent_id', $parentId)->where('status', 'request')->first();
+        $request = LinkRequest::where('id', $rqstId)->where('status', 'request')->first();
 
         if(!$request){
             return $this->failedResponse('Request not found', 404);

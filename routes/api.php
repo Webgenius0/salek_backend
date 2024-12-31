@@ -114,6 +114,7 @@ Route::middleware(['auth:api', 'onlyParent'])->group(function(){
     Route::controller(RequestController::class)->group(function(){
         Route::prefix('request')->name('request.')->group(function(){
             Route::post('/link/{id}', 'store')->name('link');
+            Route::post('/sent', 'sentRequest')->name('sent');
             Route::post('/cancel/{id}', 'cancelRequest')->name('cancel');
         });
     });
@@ -158,8 +159,8 @@ Route::middleware(['auth:api', 'onlyStudent'])->group(function(){
     Route::controller(StudentController::class)->group(function(){
         Route::prefix('student')->name('student.')->group(function(){
             Route::get('/request', 'getRequest')->name('request');
-            Route::get('/accept/request/{stdId}', 'acceptRequest')->name('accept');
-            Route::get('/cancel/request/{stdId}', 'cancelRequest')->name('cancel');
+            Route::get('/accept/request/{rqstId}', 'acceptRequest')->name('accept');
+            Route::get('/cancel/request/{rqstId}', 'cancelRequest')->name('cancel');
             Route::get('/parent/list', 'show')->name('show');
         });
     });
