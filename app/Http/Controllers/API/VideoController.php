@@ -65,6 +65,7 @@ class VideoController extends Controller
 
         $lessonUser = LessonUser::updateOrCreate(
             ['user_id' => $user->id, 'lesson_id' => $lessonId],
+            ['updated_at' => now()]
         );
 
         StudentProgress::updateOrCreate(
@@ -161,6 +162,7 @@ class VideoController extends Controller
                 $lessonUser->completed     = 1;
                 $lessonUser->completed_at  = now();
                 $lessonUser->watched_time  = $totalDuration;
+                $lessonUser->updated_at    = now();
 
                 $lessonUser->save();
 
@@ -179,6 +181,7 @@ class VideoController extends Controller
             $lessonUser->completed     = 1;
             $lessonUser->completed_at  = now();
             $lessonUser->watched_time  = $totalDuration;
+            $lessonUser->updated_at    = now();
             
             $lessonUser->save();
 
@@ -191,8 +194,9 @@ class VideoController extends Controller
 
         $earnpoint = $watchedTime * $persecondLessonNumber;
 
-        $lessonUser->watched_time = $watchedTime;
-        $lessonUser->score += $earnpoint;
+        $lessonUser->watched_time  = $watchedTime;
+        $lessonUser->score        += $earnpoint;
+        $lessonUser->updated_at    = now();
         
         $res = $lessonUser->save();
         

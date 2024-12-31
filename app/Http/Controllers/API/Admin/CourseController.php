@@ -15,6 +15,8 @@ use App\Models\User;
 use App\Services\HelperService;
 use App\Traits\ApiResponse;
 
+use function PHPUnit\Framework\returnSelf;
+
 class CourseController extends Controller
 {
     use ApiResponse;
@@ -40,19 +42,20 @@ class CourseController extends Controller
             ->whereDoesntHave('purchasers', function ($query) use ($userId) {
                 $query->where('user_id', $userId);
             })
+            ->where('status', 'publish')
             ->latest()
             ->get();
 
         $data = $courses->map(function($course){
             return [
-                'course_id'    => $course->id,
-                'course_title' => $course->name,
-                'price'        => $course->price,
-                'review'       => 4.9 . (232 . ' Reviews'),
-                'total_chapter'  => $course->chapters->count(),
-                'total_level' => $course->chapters->max('chapter_order'),
-                'total_class'  => $course->total_class,
-                'students'     => $course->purchasers->count(),
+                'course_id'     => $course->id,
+                'course_title'  => $course->name,
+                'price'         => $course->price,
+                'review'        => 4.9 . (232 . ' Reviews'),
+                'total_chapter' => $course->chapters->count(),
+                'total_level'   => $course->chapters->max('chapter_order'),
+                'total_class'   => $course->total_class,
+                'students'      => $course->purchasers->count(),
             ];
         });
 
@@ -293,16 +296,24 @@ class CourseController extends Controller
      *
      * @return mixed
     */
-    public function allAchievement()
+    public function allAchievement($id)
     {
-        return response()->json(['message' => 'This is Course Achievement panel.This is now under working..']);
+        $user = User::where('role', 'student')->find($id);
+
+        if(!$user):
+            return $this->failedResponse('User not found', 404);
+        endif;
+        
+        return $this->successResponse(true, 'This id is the student id.This is Course Achievement panel.This is now under working..', $user, 200);
     }
 
     /**
      * Show Progress
-     * Get the progress of a course
+     * Get the progress of course
      *
      * @param [string] $id
+     * 
+     * user id
      * @return mixed
     */
     public function showProgress($id)

@@ -2,18 +2,19 @@
 
 namespace App\Services;
 
+use Carbon\Carbon;
+use App\Models\User;
 use App\Models\Course;
 use App\Models\Lesson;
 use App\Models\Chapter;
 use App\Models\CourseUser;
 use App\Models\LessonUser;
-use App\Models\StudentProgress;
-use App\Models\User;
 use App\Traits\ApiResponse;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use App\Models\StudentProgress;
 use Illuminate\Support\Facades\DB;
 
+use Illuminate\Support\Facades\Auth;
 use function PHPUnit\Framework\returnSelf;
 
 class CourseService extends Service
@@ -568,46 +569,27 @@ class CourseService extends Service
      * This method retrieves the course with its chapters and lessons by the given course ID.
      * It then calculates the weekly progress of the user based on the lessons they have completed.
      *
-     * @param int $id The ID of the course.
+     * @param int $id The ID of the user.
      * @return \Illuminate\Http\JsonResponse The response containing the weekly progress data.
     */
     public function showProgress($id)
     {
-        $course = Course::with(['chapters.lessons'])->find($id);
-
-        if(!$course):
-            return $this->failedResponse('Course not found', 404);
-        endif;
-
-
-        $lessons = $course->chapters->map(function($chapter){
-            return [
-                'lessons' => $chapter->lessons
-            ];
-        });
-
-        $lessonIds = $lessons->flatten()->map(function ($lesson) {
-            return $lesson->id;
-        });
-
-        $lessonUserRecords = LessonUser::whereIn('lesson_id', $lessonIds)
-            ->where('user_id', Auth::id())
-            ->get();
+        $lessonUserRecords = LessonUser::where('user_id', $id)->get();
 
         $weekProgress = $lessonUserRecords->groupBy(function ($record) {
-            return \Carbon\Carbon::parse($record->completed_at)->format('Y-W');
+            return Carbon::parse($record->updated_at)->format('Y-W');
         });
 
         $progressData = $weekProgress->map(function ($weekRecords, $week) {
-            $totalLessonsInWeek = $weekRecords->count();
+            $totalLessonsInWeek     = $weekRecords->count();
             $completedLessonsInWeek = $weekRecords->where('completed', 1)->count();
             
             $progressPercentage = $totalLessonsInWeek > 0 ? round(($completedLessonsInWeek / $totalLessonsInWeek) * 100, 2) : 0;
             
             return [
-                'week' => $week,
-                'progress' => $progressPercentage,
-                'total_lessons' => $totalLessonsInWeek,
+                'week'              => $week,
+                'progress'          => $progressPercentage,
+                'total_lessons'     => $totalLessonsInWeek,
                 'completed_lessons' => $completedLessonsInWeek,
             ];
         });

@@ -71,6 +71,8 @@ Route::middleware(['auth:api', 'onlyAdmin'])->group(function(){
     Route::controller(InstructorController::class)->group(function(){
         Route::prefix('instructor')->name('instructor.')->group(function(){
             Route::get('/dashboard', 'dashboard')->name('dashboard');
+            Route::get('/student/profile/{id}', 'studentProfile')->name('student_profile');
+            Route::get('/student/courses/{id}', 'studentCourses')->name('student_courses');
         });
     });
 
@@ -216,8 +218,6 @@ Route::middleware(['auth:api', 'onlyStudent'])->group(function(){
         Route::get('/course/achievement/{id}', 'courseAchievement')->name('achievement');
         Route::get('/course/complete', 'completeCourse')->name('complete');
         Route::get('/course/ongoing', 'ongoingCourse')->name('ongoing');
-        Route::get('/course/achieve/all', 'allAchievement')->name('course.achievement');
-        Route::get('/course/progress/{id}', 'showProgress')->name('course.progress');
     });
 
     Route::get('/upcoming/event', [EventController::class, 'upcomingEvent'])->name('upcomig.event');
@@ -299,6 +299,11 @@ Route::middleware(['auth:api'])->group(function(){
         Route::post('/auth/logout', 'logout')->name('logout.us');
     });
     //For Logout controller
+
+    Route::controller(CourseController::class)->group(function(){
+        Route::get('/course/achieve/{id}', 'allAchievement')->name('course.achievement');
+        Route::get('/course/progress/{id}', 'showProgress')->name('course.progress');
+    });
 });
 //'END' :- For global route
 
