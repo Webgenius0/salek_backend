@@ -120,7 +120,7 @@ class StudentController extends Controller
     public function show()
     {
         $user = Auth::user();
-        $requests = LinkRequest::with(['student'])->where('student_id', $user->id)->where('status', 'accept')->get();
+        $requests = LinkRequest::with(['student', 'parent'])->where('student_id', $user->id)->where('status', 'accept')->get();
 
         if($requests->isEmpty()){
             return $this->failedResponse('Request not found', 404);
@@ -134,7 +134,7 @@ class StudentController extends Controller
             'parent' => [
                 'id'     => $requests->first()->parent->id,
                 'name'   => $requests->first()->parent->name,
-                'avatar' => $requests->first()->parent->avatar,
+                'avatar' => $requests->first()->parent->avatar ?? asset('files/images/user.png'),
             ],
         ];
 
