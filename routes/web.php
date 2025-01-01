@@ -37,12 +37,6 @@ Route::get('/run-migrate-fresh', function () {
     }
 });
 
-
-
-
-
-
-
 // Route::get('/clear', function(){
 //     Artisan::call('optimize:clear');
 //     return response()->json(['message' => 'Optimize clear successfully']);

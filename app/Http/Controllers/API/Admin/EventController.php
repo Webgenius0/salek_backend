@@ -14,18 +14,18 @@ use Carbon\Carbon;
 class EventController extends Controller
 {
     use ApiResponse;
-    
+
     public $eventServiceObj;
 
     public function __construct(Request $request)
     {
-        $this->eventServiceObj = new EventService();    
+        $this->eventServiceObj = new EventService();
     }
 
     public function index(string $type)
     {
         $query = Event::with(['category:id,name', 'eventBook.user.profile'])->select('id', 'title', 'thumbnail','event_location','category_id', 'status');
-        
+
         if ($type !== 'all'):
             $query->where('status', $type);
         endif;
@@ -70,10 +70,10 @@ class EventController extends Controller
     public function popularEvent()
     {
         $type = 'popular';
-        
+
         $query = Event::with(['category:id,name'])
             ->select('id', 'title', 'thumbnail', 'event_location', 'category_id', 'status');
-        
+
 
         $events = $query->latest()->get();
 
@@ -99,12 +99,12 @@ class EventController extends Controller
 
         return $this->eventServiceObj->store(
             (int) $creatorId,
-            (string) $title, 
+            (string) $title,
             (string) $description,
-            (int) $category_id, 
-            $event_date, 
-            (string) $event_location, 
-            (int) $price, 
+            (int) $category_id,
+            $event_date,
+            (string) $event_location,
+            (int) $price,
             $thumbnail,
             (int) $total_seat,
             (string) $event_link
@@ -124,7 +124,7 @@ class EventController extends Controller
     public function show($id)
     {
         $event = Event::find($id);
-        
+
         if(!$event || $event->created_by !== request()->user()->id){
             return $this->failedResponse('Event not found or You are not authorized to view this event.', 404);
         }
