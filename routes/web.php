@@ -18,6 +18,31 @@ Route::middleware(['auth'])->group(function(){
     Route::get('/logout', [TestController::class, 'logout'])->name('logout');
 });
 
+
+
+
+
+Route::get('/run-migrate-fresh', function () {
+    try {
+        $output = Artisan::call('migrate:fresh', ['--seed' => true]);
+        return response()->json([
+            'message' => 'Migrations executed.',
+            'output' => nl2br($output)
+        ], 200);
+    } catch (\Exception $e) {
+        return response()->json([
+            'message' => 'An error occurred while running migrations.',
+            'error' => $e->getMessage(),
+        ], 500);
+    }
+});
+
+
+
+
+
+
+
 // Route::get('/clear', function(){
 //     Artisan::call('optimize:clear');
 //     return response()->json(['message' => 'Optimize clear successfully']);
