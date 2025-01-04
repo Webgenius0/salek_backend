@@ -51,10 +51,11 @@ class LoginController extends Controller
         }        
 
         return response()->json([
-            'status'  => true,
-            'message' => $response['message'],
-            'token'   => $response['token'],
-            'user'    => $response['user'],
+            'status'       => true,
+            'message'      => $response['message'],
+            'token'        => $response['token'],
+            'user'         => $response['user'],
+            'is_subscribe' => (bool) $user->hasActiveSubscription(),
         ]);
     }
 

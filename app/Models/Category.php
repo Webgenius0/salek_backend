@@ -10,7 +10,11 @@ class Category extends Model
         'name',
         'slug',
         'created_by',
-        'updated_by',
         'status',
+    ];
+
+    protected $hidden = [
+        'created_at',
+        'updated_at',
     ];
 }

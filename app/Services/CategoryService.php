@@ -19,6 +19,11 @@ class CategoryService extends Service
         $this->categoryObj = new Category();
     }
 
+    public function index(array $categories)
+    {
+        return $this->successResponse(true, 'Category List', $categories, 200);
+    }
+
     public function store($name, $createdBy)
     {
         try {
@@ -43,7 +48,24 @@ class CategoryService extends Service
         }
     }
 
-    public function update($id,$name, $status, $updatedBy)
+    public function show($id)
+    {
+        $category = Category::find($id);
+
+        if(!$category):
+            return $this->failedResponse('Category not found', 404);
+        endif;
+
+        $data = [
+            'category_id'   => $category->id,
+            'category_name' => $category->name,
+            'status'        => $category->status,
+        ];
+
+        return $this->successResponse(true, 'Category Details', $data, 200);
+    }
+
+    public function update($id,$name, $status)
     {
         try {
             DB::beginTransaction();
@@ -56,7 +78,6 @@ class CategoryService extends Service
 
             $category->name       = Str::title($name);
             $category->slug       = Str::slug($name, '-');
-            $category->updated_by = $updatedBy;
             $category->status     = $status;
             $category->updated_at = Carbon::now();
 
