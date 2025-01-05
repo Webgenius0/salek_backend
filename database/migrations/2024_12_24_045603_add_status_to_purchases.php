@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('categories', function (Blueprint $table) {
-            $table->foreignId('updated_by')->nullable()->constrained('categories')->onUpdate('cascade')->onDelete('cascade')->after('created_by');
+        Schema::table('purchases', function (Blueprint $table) {
+            $table->enum('status', ['pending', 'complete', 'cancel'])->default('pending')->after('next_payment_date');
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('categories', function (Blueprint $table) {
-            $table->dropColumn('updated_by');
+        Schema::table('purchases', function (Blueprint $table) {
+            $table->dropColumn('status');
         });
     }
 };
