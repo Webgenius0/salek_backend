@@ -21,9 +21,9 @@ class ReviewController extends Controller
      *
      * @param string $type The type of reviews to retrieve ('new', 'previous', or 'all').
      * @param int $id The ID of the course for which to retrieve reviews.
-     * 
+     *
      * @return \Illuminate\Http\JsonResponse A JSON response containing the reviews data or an error message.
-     * 
+     *
      * @throws \Exception If there is an error during the database query.
     */
     public function index($type, $courseId)
@@ -62,7 +62,7 @@ class ReviewController extends Controller
             return $this->failedDBResponse('Database Error', $e->getMessage(), 422);
         }
     }
-    
+
     /**
      * Store a newly created review in the database.
      *
@@ -80,7 +80,7 @@ class ReviewController extends Controller
             $reviewId = $request->input('reviewable_id');
             $rating   = $request->input('rating');
             $comment  = $request->input('comment');
-            
+
             $review = Review::create([
                 'user_id'         => $user->id,
                 'reviewable_type' => Course::class,

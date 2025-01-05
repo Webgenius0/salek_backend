@@ -14,51 +14,43 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        $now      = Carbon::now();
-        $password = Hash::make('12345678');
+        $now = Carbon::now();
+        $password = Hash::make(config('seeder.default_password', '12345678')); // Use config or env for default password
 
-        $students = [];
-        for ($i = 1; $i <= 10; $i++) {
-            $students[] = [
-                'id'          => $i,
-                'name'        => 'Student ' . $i,
-                'email'       => 'student' . $i . '@gmail.com',
+        // Reusable function to create user data
+        $createUsers = function ($role, $startId, $count) use ($password, $now) {
+            $users = [];
+            for ($i = 1; $i <= $count; $i++) {
+                $users[] = [
+                    'name'        => ucfirst($role) . ' ' . $i,
+                    'email'       => $role . $i . '@gmail.com',
+                    'password'    => $password,
+                    'is_verified' => true,
+                    'role'        => $role,
+                    'created_at'  => $now,
+                    'updated_at'  => $now,
+                ];
+            }
+            return $users;
+        };
+
+        // Generate users
+        $students = $createUsers('student', 1, 10);
+        $parents = $createUsers('parent', 11, 10);
+        $teachers = $createUsers('teacher', 21, 10);
+        $admin = [
+            [
+                'name'        => 'Admin',
+                'email'       => 'admin@gmail.com',
                 'password'    => $password,
                 'is_verified' => true,
-                'role'        => 'student',
+                'role'        => 'admin',
                 'created_at'  => $now,
                 'updated_at'  => $now,
-            ];
-        }
+            ]
+        ];
 
-        $parents = [];
-        for ($i = 1; $i <= 10; $i++) {
-            $parents[] = [
-                'id'          => 10 + $i,
-                'name'        => 'Parent ' . $i,
-                'email'       => 'parent' . $i . '@gmail.com',
-                'password'    => $password,
-                'is_verified' => true,
-                'role'        => 'parent',
-                'created_at'  => $now,
-                'updated_at'  => $now,
-            ];
-        }
-
-        $teachers = [];
-        for ($i = 1; $i <= 10; $i++) {
-            $teachers[] = [
-                'id'          => 20 + $i,
-                'name'        => 'Teacher ' . $i,
-                'email'       => 'teacher' . $i . '@gmail.com',
-                'password'    => $password,
-                'is_verified' => true,
-                'role'        => 'teacher',
-                'created_at'  => $now,
-                'updated_at'  => $now,
-            ];
-        }
-
-        User::insert(array_merge($students, $parents, $teachers));
+        // Insert all users into the database
+        User::insert(array_merge($students, $parents, $teachers, $admin));
     }
 }

@@ -25,11 +25,11 @@ class RegistrationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'          => ['required', 'string', 'min:2'],
-            'email'         => ['required', 'email', 'unique:users,email'],
-            'confirm_email' => ['required', 'email', 'same:email'],
-            'role'          => ['required', 'in:student,teacher,parent'],
-            'password'      => ['required', 'string', Password::min(8)->mixedCase()->numbers()->symbols()->uncompromised()]
+            'name'              => ['required', 'string', 'min:2'],
+            'email'             => ['required', 'email', 'unique:users,email'],
+            'role'              => ['required', 'in:student,teacher,parent'],
+            'password'          => ['required', 'string', Password::min(8)->mixedCase()->numbers()->symbols()->uncompromised()],
+            'confirm_password'  => ['required', 'same:password']
         ];
     }
 
