@@ -66,7 +66,11 @@ class AuthService extends Service
         } catch (\Exception $e) {
             DB::rollback();
             info($e);
-            $this->failedAuthResponse('User create failed', 400);
+            return response()->json([
+                'success' => false,
+                'error' => 'Database Error',
+                'message' => $e->getMessage(),
+            ], 500);
         }
     }
 
