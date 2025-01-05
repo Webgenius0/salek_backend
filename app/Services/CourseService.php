@@ -21,7 +21,7 @@ use function PHPUnit\Framework\returnSelf;
 class CourseService extends Service
 {
     use ApiResponse;
-    
+
     public $courseObj;
 
     public function __construct()
@@ -148,7 +148,7 @@ class CourseService extends Service
                 'error' => 'Database Error',
                 'message' => $e->getMessage(),
             ], 500);
-        } 
+        }
         catch (\Exception $e) {
             DB::rollback();
             info($e);
@@ -265,8 +265,8 @@ class CourseService extends Service
             ->take(10)
             ->get();
 
-        
-        
+
+
         $data = $popularCourses->map(function($course){
             return [
                 'course_id'    => $course->id,
@@ -292,7 +292,7 @@ class CourseService extends Service
     public function show($id)
     {
         $course = Course::with(['chapters.lessons', 'category', 'creator'])->find($id);
-        
+
         if (!$course) {
             return $this->failedResponse('Course not found', 404);
         }
@@ -343,11 +343,10 @@ class CourseService extends Service
     */
     public function currentCourse($user)
     {
-        $courses = $user->purchasedCourses->map(function($course) use ($user){
-
+        $courses = $user->purchasedCourses->map(function($course) use ($user) {
             $courseProgress = StudentProgress::where('user_id', $user->id)->where('course_id', $course->id)->first();
-            $totalProgress  = $courseProgress->course_progress + $courseProgress->homework_progress;
-            
+            $totalProgress = $courseProgress ? ($courseProgress->course_progress + $courseProgress->homework_progress) : 0;
+
             $courseAvatar = $course->cover_photo ?? null;
             return [
                 'course_id'       => $course->id,
@@ -355,7 +354,7 @@ class CourseService extends Service
                 'course_avatar'   => $courseAvatar,
                 'completion_rate' => round($totalProgress) . '%',
                 'total_class'     => $course->total_class,
-                'total_course'    => $course->count(),
+                'total_course'    => $user->purchasedCourses->count(),
                 'achievements'    => 0,
                 'students'        => $course->purchasers->count(),
             ];
@@ -374,7 +373,7 @@ class CourseService extends Service
     public function courseWiseChapter($id)
     {
         $course = Course::with('chapters')->find($id);
-        
+
         if (!$course) {
             return $this->failedResponse('Course not found', 404);
         }
@@ -417,7 +416,7 @@ class CourseService extends Service
                 }),
             ];
         });
-        
+
         return $this->successResponse(true, 'All Classes', $data, 200);
     }
 
@@ -455,12 +454,12 @@ class CourseService extends Service
 
         if(!$course):
             return $this->failedResponse('Course not found.', 404);
-        endif;   
+        endif;
 
         $chapterLevels = $course->chapters->groupBy('chapter_order')->map(function ($chapters, $order) {
             $totalLessonsInLevel = $chapters->sum(fn($chapter) => $chapter->lessons->count());
             $completedLessonsInLevel = $chapters->sum(fn($chapter) => $chapter->lessons->filter(fn($lesson) => $lesson->lessonUser->contains('completed', true))->count());
-            
+
             $progressPercentage = $totalLessonsInLevel > 0 ? round(($completedLessonsInLevel / $totalLessonsInLevel) * 100, 2) : 0;
 
             return [
@@ -558,7 +557,7 @@ class CourseService extends Service
         $courses = Course::with(['chapters.lessons.lessonUser' => function($query) use ($user) {
             $query->where('user_id', $user->id);
         }])->whereIn('id', $courseIds)->get();
-        
+
         $coursesWithCompletionStatus = $courses->map(function($course) use ($user) {
             $courseLessons = $course->chapters->flatMap(function($chapter) {
                 return $chapter->lessons;
@@ -597,13 +596,13 @@ class CourseService extends Service
     public function publish($courseId, $status)
     {
         $course = Course::find($courseId);
-        if($course && $course->created_by == Auth::id()): 
+        if($course && $course->created_by == Auth::id()):
             $videoStatus = $status == 1 ? 'publish' : 'unpublish';
-            
+
             $course->status     = $videoStatus;
             $course->updated_at = now();
             $course->save();
-            
+
             return $this->successResponse(true, "Video $videoStatus successfully.", $course, 200);
         endif;
         return $this->failedResponse('Sorry: you are not creator of this course', 403);
@@ -629,9 +628,9 @@ class CourseService extends Service
         $progressData = $weekProgress->map(function ($weekRecords, $week) {
             $totalLessonsInWeek     = $weekRecords->count();
             $completedLessonsInWeek = $weekRecords->where('completed', 1)->count();
-            
+
             $progressPercentage = $totalLessonsInWeek > 0 ? round(($completedLessonsInWeek / $totalLessonsInWeek) * 100, 2) : 0;
-            
+
             return [
                 'week'              => $week,
                 'progress'          => $progressPercentage,
