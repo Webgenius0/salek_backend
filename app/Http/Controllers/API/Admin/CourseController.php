@@ -21,7 +21,7 @@ use function PHPUnit\Framework\returnSelf;
 class CourseController extends Controller
 {
     use ApiResponse;
-    
+
     public $courseServiceObj;
 
     public function __construct()
@@ -38,7 +38,7 @@ class CourseController extends Controller
     public function index()
     {
         $userId = Auth::id();
-        
+
         $courses = Course::with(['chapters.lessons', 'category', 'creator'])
             ->whereDoesntHave('purchasers', function ($query) use ($userId) {
                 $query->where('user_id', $userId);
@@ -51,6 +51,7 @@ class CourseController extends Controller
             return [
                 'course_id'     => $course->id,
                 'course_title'  => $course->name,
+                'thumbnail'    => $course->cover_photo,
                 'price'         => $course->price,
                 'review'        => 4.9 . (232 . ' Reviews'),
                 'total_chapter' => $course->chapters->count(),
@@ -156,9 +157,9 @@ class CourseController extends Controller
         if(empty($prevoiusChapter)){
             return $this->courseServiceObj->chapterStore($course_id, $name, 'beginner', 1);
         }
-        
+
         $totalChapter = count($prevoiusChapter);
-        
+
         $difficultyLevel = HelperService::getDifficultyLevel($totalChapter + 1);
 
         return $this->courseServiceObj->chapterStore($course_id, $name, $difficultyLevel['level'], $difficultyLevel['order']);
@@ -205,7 +206,7 @@ class CourseController extends Controller
     {
         return $this->courseServiceObj->show($id);
     }
-    
+
     /**
      * Current Course
      * Get the current course of a user
@@ -304,7 +305,7 @@ class CourseController extends Controller
         if(!$user):
             return $this->failedResponse('User not found', 404);
         endif;
-        
+
         return $this->successResponse(true, 'This id is the student id.This is Course Achievement panel.This is now under working..', $user, 200);
     }
 
@@ -312,12 +313,12 @@ class CourseController extends Controller
      * Publish a course.
      *
      * This method validates the incoming request to ensure that the 'course_id' is provided,
-     * is an integer, and exists in the 'courses' table. If validation fails, it returns a 
+     * is an integer, and exists in the 'courses' table. If validation fails, it returns a
      * JSON response with the validation errors and a 422 status code. If validation passes,
      * it calls the publish method on the course service object with the provided 'course_id'.
      *
      * @param \Illuminate\Http\Request $request The incoming request instance.
-     * 
+     *
      * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\Response
     */
     public function publish(Request $request)
@@ -344,7 +345,7 @@ class CourseController extends Controller
      * Get the progress of course
      *
      * @param [string] $id
-     * 
+     *
      * user id
      * @return mixed
     */
