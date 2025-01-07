@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -25,7 +26,14 @@ class ChapterStoreRequest extends FormRequest
     {
         return [
             'course_id' => ['required', 'integer', 'exists:courses,id'],
-            'name'      => ['required', 'string', 'min:2', 'unique:chapters,name'],
+            'name'      => [
+            'required',
+            'string',
+            'min:2',
+            Rule::unique('chapters', 'name')->where(function ($query) {
+                return $query->where('course_id', $this->course_id);
+            }),
+            ],
         ];
     }
 

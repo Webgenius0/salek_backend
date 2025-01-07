@@ -27,7 +27,7 @@ class LessonStoreRequest extends FormRequest
             'course_id'  => ['required', 'integer', 'exists:courses,id'],
             'chapter_id' => ['required', 'integer', 'exists:chapters,id'],
             'name'       => ['required', 'string', 'min:2','unique:lessons,name'],
-            'video_url'  => ['required', 'mimes:mp4,mov,ogg,qt', 'max:2048'],
+            'video_url'  => ['required', 'mimes:mp4,mov,ogg,qt', 'max:6000'],
             'duration'   => ['required', 'integer'],
         ];
     }
