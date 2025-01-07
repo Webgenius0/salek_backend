@@ -38,7 +38,8 @@ class EventController extends Controller
                 'event_title' => $event->title,
                 'event_location' => $event->event_location,
                 'event_thumbnail' => $event->thumbnail,
-                'event_date' => Carbon::parse($event->event_date)->toDateTimeString(),
+                /* 'event_date' => Carbon::parse($event->event_date)->toDateTimeString(), */
+                'event_date' => $event->event_date,
                 'event_status' => $event->status,
                 'category' => [
                     'category_id' => $event->category->id,
