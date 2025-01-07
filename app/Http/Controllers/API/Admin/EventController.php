@@ -142,7 +142,7 @@ class EventController extends Controller
             'thumbnail'      => $event->thumbnail,
             'created_by'     => $event->creator->name,
             'status'         => $event->status,
-            'event_date'     => $event->created_at,
+            'event_date'     => $event->event_date,
         ];
 
         return $this->successResponse(true, 'Event details', $data, 200);
