@@ -24,33 +24,30 @@ class EventController extends Controller
 
     public function index(string $type)
     {
-        $query = Event::with(['category:id,name', 'eventBook.user.profile'])->select('id', 'title', 'thumbnail','event_location','category_id', 'status');
+        $query = Event::with(['category:id,name', 'eventBook.user.profile'])->select('id', 'title', 'thumbnail', 'event_location', 'category_id', 'status');
 
-        if ($type !== 'all'):
+        if ($type !== 'all') {
             $query->where('status', $type);
-        endif;
+        }
 
-        $events = $query->get();
-
-        $events = $events->map(function($event){
+        $events = $query->get()->map(function ($event) {
             return [
                 'event_id' => $event->id,
                 'event_title' => $event->title,
                 'event_location' => $event->event_location,
                 'event_thumbnail' => $event->thumbnail,
-                /* 'event_date' => Carbon::parse($event->event_date)->toDateTimeString(), */
                 'event_date' => $event->event_date,
                 'event_status' => $event->status,
                 'category' => [
                     'category_id' => $event->category->id,
                     'category_name' => $event->category->name,
                 ],
-                'attendance' => $event->eventBook->map(function($book){
+                'attendance' => $event->eventBook->map(function ($book) {
                     return [
                         'attendance_id' => $book->user_id,
-                        'avatar' => $book->user->profile->avatar ?? null
+                        'avatar' => $book->user->profile->avatar ?? null,
                     ];
-                })
+                }),
             ];
         });
 
