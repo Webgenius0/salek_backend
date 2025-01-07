@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rule;
 
 class LessonStoreRequest extends FormRequest
 {
@@ -26,7 +27,15 @@ class LessonStoreRequest extends FormRequest
         return [
             'course_id'  => ['required', 'integer', 'exists:courses,id'],
             'chapter_id' => ['required', 'integer', 'exists:chapters,id'],
-            'name'       => ['required', 'string', 'min:2','unique:lessons,name'],
+            'name'       => [
+                'required',
+                'string',
+                'min:2',
+                Rule::unique('lessons')->where(function ($query) {
+                    return $query->where('course_id', $this->input('course_id'))
+                    ->where('chapter_id', $this->input('chapter_id'));
+                }),
+            ],
             'video_url'  => ['required', 'mimes:mp4,mov,ogg,qt', 'max:6000'],
             'duration'   => ['required', 'integer'],
         ];
