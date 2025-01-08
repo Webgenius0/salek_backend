@@ -13,7 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
         channels: __DIR__ . '/../routes/channels.php',
         health: '/up',
         then: function () {
-            Route::middleware(['api'])->prefix('api')->name('api.')->group(base_path('routes/admin.php'));
+            Route::middleware(['web'])->prefix('admin')->group(base_path('routes/admin.php'));
             Route::middleware(['api'])->prefix('api')->name('api.')->group(base_path('routes/api/teacher.php'));
             Route::middleware(['api'])->prefix('api')->name('api.')->group(base_path('routes/api/student.php'));
             Route::middleware(['api'])->prefix('api')->name('api.')->group(base_path('routes/api/parent.php'));
@@ -22,10 +22,12 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
+            'onlyTeacher' => \App\Http\Middleware\CheckTeacher::class,
             'onlyAdmin' => \App\Http\Middleware\CheckAdmin::class,
             'onlyStudent' => \App\Http\Middleware\CheckStudent::class,
             'onlyParent' => \App\Http\Middleware\CheckParent::class,
-            'check.parent.student' => \App\Http\Middleware\CheckParentOrStudentRole::class
+            'check.parent.student' => \App\Http\Middleware\CheckParentOrStudentRole::class,
+            'authCheck' => App\Http\Middleware\AuthCheckMiddleware::class
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

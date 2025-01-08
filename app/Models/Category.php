@@ -10,6 +10,7 @@ class Category extends Model
         'name',
         'slug',
         'created_by',
+        'image',
         'status',
     ];
 

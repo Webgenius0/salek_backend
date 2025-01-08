@@ -2,10 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\Setting;
-use Carbon\Carbon;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB as FacadesDB;
 
 class SettingSeeder extends Seeder
 {
@@ -14,18 +13,18 @@ class SettingSeeder extends Seeder
      */
     public function run(): void
     {
-        $now = Carbon::now();
-
-        Setting::insert([
-            [
-                'id'               => 100,
-                'project_name'     => 'Salek',
-                'project_about'    => 'This is educational site',
-                'subscription_fee' => 50,
-                'project_switch'   => 0,
-                'created_at'       => $now,
-                'updated_at'       => $now,
-            ]
+        DB::table('settings')->insert([
+            'title'         => 'Laravel',
+            'phone'         => '123456789',
+            'email'         => 'admin@admin.com',
+            'name'          => 'Admin',
+            'copyright'     => 'Copyright © 2022 Laravel. All rights reserved.',
+            'description'   => "Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience",
+            'address'       => 'Cairo, Egypt',
+            'keywords'      => 'Laravel, Framework, PHP',
+            'author'        => 'Laravel',
+            'created_at'    => FacadesDB::raw('CURRENT_TIMESTAMP'),
+            'updated_at'    => FacadesDB::raw('CURRENT_TIMESTAMP'),
         ]);
     }
 }

@@ -9,7 +9,7 @@ use App\Http\Controllers\API\SettingController;
 use Illuminate\Support\Facades\Route;
 
 //'BEGIN' :- For admin route
-Route::middleware(['auth:api', 'onlyAdmin'])->group(function () {
+Route::middleware(['auth:api', 'onlyTeacher'])->group(function () {
     Route::prefix('category')->name('category.')->group(function () {
         Route::controller(CategoryController::class)->group(function () {
             Route::get('/list', 'index')->name('list');
@@ -38,7 +38,7 @@ Route::middleware(['auth:api', 'onlyAdmin'])->group(function () {
         });
     });
 
-    Route::controller(EventController::class)->prefix('events')->name('event.')->group(function (){
+    Route::controller(EventController::class)->prefix('events')->name('event.')->group(function () {
         Route::post('/store', 'store')->name('store');
     });
 

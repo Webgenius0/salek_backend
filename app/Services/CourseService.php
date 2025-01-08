@@ -58,6 +58,7 @@ class CourseService extends Service
                 'students'       => $course->students->count() ?? 0,
                 'rating_count'   => $ratingCount,
                 'rating_sum'     => $ratingSum,
+                'course_status'  => $course->status,
                 'average_rating' => $averageRating ?? 0,
             ];
         });
