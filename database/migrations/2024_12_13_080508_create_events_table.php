@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string('thumbnail', 250)->nullable();
             $table->decimal('latitude', 10, 8)->nullable();
             $table->decimal('longitude', 11, 8)->nullable();
+            $table->longText('address')->nullable();
             $table->foreignId('created_by')->constrained('users')->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onUpdate('cascade')->onDelete('cascade');
             $table->enum('status', ['on_going', 'upcoming', 'complete'])->default('upcoming');
