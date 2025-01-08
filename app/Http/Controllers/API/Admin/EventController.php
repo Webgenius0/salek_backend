@@ -126,10 +126,6 @@ class EventController extends Controller
     {
         $event = Event::with(['eventBook.user.profile'])->find($id);
 
-        if (!$event || $event->created_by !== request()->user()->id) {
-            return $this->failedResponse('Event not found or You are not authorized to view this event.', 404);
-        }
-
         $data = [
             'event_id'       => $event->id,
             'event_title'    => $event->title,
