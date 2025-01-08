@@ -8,15 +8,16 @@ use Illuminate\Support\Facades\Route;
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__ . '/../routes/web.php',
-        api: __DIR__ . '/../routes/api.php',
+        api: __DIR__ . '/../routes/api/api.php',
         commands: __DIR__ . '/../routes/console.php',
         channels: __DIR__ . '/../routes/channels.php',
         health: '/up',
         then: function () {
             Route::middleware(['api'])->prefix('api')->name('api.')->group(base_path('routes/admin.php'));
-            Route::middleware(['api'])->prefix('api')->name('api.')->group(base_path('routes/teacher.php'));
-            Route::middleware(['api'])->prefix('api')->name('api.')->group(base_path('routes/student.php'));
-            Route::middleware(['api'])->prefix('api')->name('api.')->group(base_path('routes/parent.php'));
+            Route::middleware(['api'])->prefix('api')->name('api.')->group(base_path('routes/api/teacher.php'));
+            Route::middleware(['api'])->prefix('api')->name('api.')->group(base_path('routes/api/student.php'));
+            Route::middleware(['api'])->prefix('api')->name('api.')->group(base_path('routes/api/parent.php'));
+            Route::middleware(['api'])->prefix('api')->name('api.')->group(base_path('routes/api/global.php'));
         }
     )
     ->withMiddleware(function (Middleware $middleware) {
@@ -24,7 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'onlyAdmin' => \App\Http\Middleware\CheckAdmin::class,
             'onlyStudent' => \App\Http\Middleware\CheckStudent::class,
             'onlyParent' => \App\Http\Middleware\CheckParent::class,
-            'check.parent.student' => \App\Http\Middleware\CheckParentOrStudentRole::class,
+            'check.parent.student' => \App\Http\Middleware\CheckParentOrStudentRole::class
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

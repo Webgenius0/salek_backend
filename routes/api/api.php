@@ -115,13 +115,6 @@ Route::middleware(['auth:api'])->group(function () {
     });
     //For Course Route
 
-    Route::prefix('events')->name('event.')->group(function () {
-        Route::controller(EventController::class)->group(function () {
-            Route::get('/list/{type}', 'index')->name('list');
-            Route::get('/popular', 'popularEvent')->name('popular');
-        });
-    });
-
     // For Booking a Teacher route
     Route::prefix('call')->name('call.')->group(function () {
         Route::controller(BookingController::class)->group(function () {
