@@ -1,9 +1,7 @@
 <?php
 
 use App\Http\Controllers\Web\Backend\CategoryController;
-use App\Http\Controllers\Web\Backend\ChatController;
 use App\Http\Controllers\Web\Backend\CMS\AuthPageController;
-use App\Http\Controllers\Web\Backend\InfoController;
 use App\Http\Controllers\Web\Backend\NotificationController;
 use App\Http\Controllers\Web\Backend\Settings\FirebaseController;
 use App\Http\Controllers\Web\Backend\Settings\ProfileController;
@@ -12,21 +10,10 @@ use App\Http\Controllers\Web\Backend\Settings\SettingController;
 use App\Http\Controllers\Web\Backend\Settings\SocialController;
 use App\Http\Controllers\Web\Backend\Settings\StripeController;
 use App\Http\Controllers\Web\Backend\Settings\GoogleMapController;
-use App\Http\Controllers\Web\Backend\Settings\ReSchedulePriceController;
 use App\Http\Controllers\Web\Backend\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::controller(CategoryController::class)->prefix('category')->name('category.')->group(function () {
-    Route::get('/', 'index')->name('index');
-    Route::get('/create', 'create')->name('create');
-    Route::post('/store', 'store')->name('store');
-    Route::get('/edit/{id}', 'edit')->name('edit');
-    Route::post('/update/{id}', 'update')->name('update');
-    Route::delete('/delete/{id}', 'destroy')->name('destroy');
-    Route::get('/status/{id}', 'status')->name('status');
-});
-
-Route::controller(InfoController::class)->prefix('info')->name('info.')->group(function () {
     Route::get('/', 'index')->name('index');
     Route::get('/create', 'create')->name('create');
     Route::post('/store', 'store')->name('store');
@@ -84,12 +71,6 @@ Route::controller(GoogleMapController::class)->group(function () {
     Route::patch('setting/google/map', 'update')->name('setting.google.map.update');
 });
 
-//! reschedule price
-Route::controller(ReSchedulePriceController::class)->group(function () {
-    Route::get('setting/reschedule/price', 'index')->name('setting.reschedule.price.index');
-    Route::patch('setting/reschedule/price', 'update')->name('setting.reschedule.price.update');
-});
-
 //CMS
 Route::controller(AuthPageController::class)->prefix('cms')->name('cms.')->group(function () {
     Route::get('page/auth/section/bg', 'index')->name('page.auth.section.bg.index');
@@ -115,11 +96,3 @@ Route::controller(NotificationController::class)->prefix('notification')->name('
     Route::POST('read/all', 'readAll')->name('read.all');
 });
 
-
-//chat
-Route::controller(ChatController::class)->prefix('chat')->name('chat.')->group(function () {
-    Route::get('/', 'index')->name('index');
-    Route::get('/search', 'search')->name('search');
-    Route::Post('/send/{id}', 'sendMessage')->name('send');
-    Route::get('/response/{id}', 'getMessages')->name('response');
-});
