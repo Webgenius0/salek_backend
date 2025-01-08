@@ -13,11 +13,17 @@ return new class extends Migration
     {
         Schema::create('settings', function (Blueprint $table) {
             $table->id();
-            $table->string('project_name', 250)->nullable();
-            $table->string('project_logo', 250)->nullable();
-            $table->string('project_about', 1000)->nullable();
-            $table->unsignedInteger('subscription_fee')->nullable();
-            $table->boolean('project_switch')->default(false);
+            $table->string('name')->nullable();
+            $table->string('title')->nullable();
+            $table->longText('description')->nullable();
+            $table->longText('keywords')->nullable();
+            $table->string('author')->nullable();
+            $table->string('phone')->nullable();
+            $table->string('email')->nullable();
+            $table->string('address')->nullable();
+            $table->string('copyright')->nullable();
+            $table->string('logo')->nullable();
+            $table->string('favicon')->nullable();
             $table->timestamps();
         });
     }
