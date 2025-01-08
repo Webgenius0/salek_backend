@@ -23,7 +23,7 @@ return new class extends Migration
             $table->integer('total_seat')->nullable();
             $table->string('thumbnail', 250)->nullable();
             $table->decimal('latitude', 10, 8)->nullable();
-            $table->decimal('longitude', 11, 8)->nullable();
+            $table->decimal('longitude', 10, 8)->nullable();
             $table->longText('address')->nullable();
             $table->foreignId('created_by')->constrained('users')->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onUpdate('cascade')->onDelete('cascade');
