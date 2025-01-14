@@ -16,6 +16,8 @@ use App\Http\Requests\LessonStoreRequest;
 use Illuminate\Support\Facades\Validator;
 
 use App\Http\Requests\ChapterStoreRequest;
+use App\Models\Lesson;
+
 use function PHPUnit\Framework\returnSelf;
 
 class CourseController extends Controller
@@ -352,5 +354,10 @@ class CourseController extends Controller
     public function showProgress($id)
     {
         return $this->courseServiceObj->showProgress($id);
+    }
+
+    public function courseChapterWiseLession($course_id, $chapter_id){
+        $lession = Lesson::where('course_id', $course_id)->where('chapter_id', $chapter_id)->get();
+        return $this->successResponse(true, 'All Courses', $lession, 200);
     }
 }

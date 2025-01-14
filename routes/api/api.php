@@ -5,25 +5,17 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\LoginController;
 use App\Http\Controllers\API\LogoutController;
-use App\Http\Controllers\API\ParentController;
 use App\Http\Controllers\API\ReviewController;
 use App\Http\Controllers\API\PaymentController;
 use App\Http\Controllers\API\ProfileController;
-use App\Http\Controllers\API\RequestController;
 use App\Http\Controllers\API\StudentController;
 use App\Http\Controllers\API\InstructorController;
-use App\Http\Controllers\API\Admin\EventController;
 use App\Http\Controllers\API\Admin\CourseController;
-use App\Http\Controllers\API\Admin\CategoryController;
 use App\Http\Controllers\API\BookingController;
 use App\Http\Controllers\API\CardController;
-use App\Http\Controllers\API\HomeworkController;
 use App\Http\Controllers\API\MessageController;
 use App\Http\Controllers\API\NotificationController;
-use App\Http\Controllers\API\ProgressController;
-use App\Http\Controllers\API\SettingController;
 use App\Http\Controllers\API\SubscriptionController;
-use App\Http\Controllers\API\VideoController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();

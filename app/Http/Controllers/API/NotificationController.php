@@ -32,15 +32,13 @@ class NotificationController extends Controller
             return $this->failedResponse('User not found', 404);
         endif;
 
-        if($user->role === 'teacher' || $user->role === 'admin'){
-            $notifications = DB::table('notifications')
-                ->latest()
-                ->pluck('data');
-
-            return $notifications->map(function ($item) {
-                return json_decode($item, true);
+        if ($user->role === 'teacher' || $user->role === 'admin') {
+            $notifications = DB::table('notifications')->latest()->get()->map(function($notification) {
+                return json_decode($notification->data);
             });
+            return $this->successResponse(true, 'Your action was successful!', $notifications, 200);
         }
+
 
         $notifications = $user->notifications->map(function ($notification) {
             return $notification->data;
