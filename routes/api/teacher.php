@@ -26,6 +26,7 @@ Route::middleware(['auth:api', 'onlyTeacher'])->group(function () {
             Route::post('/lesson/store', 'lessonStore')->name('lesson');
             Route::get('/list', 'courseList')->name('all');
             Route::get('/wise/chapter/{id}', 'courseWiseChapter')->name('wisechapter');
+            Route::get('chapter/wise/lesson/{course_id}/{chapter_id}', 'courseChapterWiseLession')->name('wiselession');
             Route::post('/publish', 'publish')->name('publish');
         });
     });
