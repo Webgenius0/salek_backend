@@ -162,4 +162,21 @@ class EventController extends Controller
 
         return $this->eventServiceObj->bookEvent($eventId, $seat);
     }
+
+    public function markAsCompleted($id)
+    {
+        // Find the event by ID
+        $event = Event::with(['category:id,name', 'eventBook.user.profile'])->find($id);
+
+        // Check if event exists
+        if (!$event) {
+            return $this->error('Event not found', 404);
+        }
+
+        // Toggle the status between "completed" and "upcoming"
+        $event->status = $event->status === 'complete' ? 'upcoming' : 'complete';
+        $event->save();
+
+        return $this->success($event, 'Event marked as completed successfully.', 200);
+    }
 }

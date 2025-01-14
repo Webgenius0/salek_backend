@@ -41,6 +41,7 @@ Route::middleware(['auth:api', 'onlyTeacher'])->group(function () {
 
     Route::controller(EventController::class)->prefix('events')->name('event.')->group(function () {
         Route::post('/store', 'store')->name('store');
+        Route::post('/events/{id}/mark-completed', 'markAsCompleted');
     });
 
     Route::controller(HomeworkController::class)->group(function () {
