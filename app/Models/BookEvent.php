@@ -9,6 +9,7 @@ class BookEvent extends Model
     protected $fillable = [
         'event_id',
         'user_id',
+        'booking_code',
         'seats',
         'amount',
         'status',

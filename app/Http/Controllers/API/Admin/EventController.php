@@ -2,14 +2,17 @@
 
 namespace App\Http\Controllers\API\Admin;
 
+use Carbon\Carbon;
+use App\Models\User;
 use App\Models\Event;
+use App\Models\BookEvent;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use App\Services\EventService;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreBookEvent;
 use App\Http\Requests\EventStoreRequest;
-use Carbon\Carbon;
 
 class EventController extends Controller
 {
@@ -178,5 +181,38 @@ class EventController extends Controller
         $event->save();
 
         return $this->success($event, 'Event marked as completed successfully.', 200);
+    }
+
+    public function bookingOverview()
+    {
+        $data = DB::table('book_events')
+            ->selectRaw('COUNT(book_events.id) as totalBooking,
+                        COUNT(CASE WHEN book_events.status = "pending" THEN 1 END) as newBooking,
+                        SUM(book_events.amount) as totalRevenue')
+            ->first();
+
+        $guests = User::where('role', 'student')->pluck('id');
+        // dd($guests);
+
+        $eventGuest = BookEvent::with('user')->whereIn('user_id', $guests)->get()->map(function($guest){
+            return [
+                'avatar'    => $guest->user->profile->avatar,
+                'name'      => $guest->user->name,
+                'bookId'    => $guest->booking_code,
+                'date_book' => Carbon::parse($guest->created_at)->format('dM,Y')
+            ];
+        });
+
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'Data found',
+            'data'    => [
+                'totalBooking' => $data->totalBooking,
+                'newBooking'   => $data->newBooking,
+                'totalRevenue' => $data->totalRevenue,
+                'guests'       => $eventGuest
+            ]
+        ]);
     }
 }
