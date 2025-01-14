@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Auth;
 class EventService extends Service
 {
     use ApiResponse;
-    
+
     public $eventObj, $fileServiceObj;
 
     public function __construct()
@@ -34,7 +34,7 @@ class EventService extends Service
     public static function upcomingEvent()
     {
         $upcomingEvents = Event::with(['category', 'creator'])->where('status', 'upcoming')->latest()->get();
-        
+
         if($upcomingEvents->isEmpty()){
             return response()->json([
                 'status' => false,
@@ -57,7 +57,7 @@ class EventService extends Service
                 'status'            => $event->status,
             ];
         });
-        
+
         return response()->json([
             'status'  => true,
             'message' => 'Upcoming Event',
@@ -118,10 +118,10 @@ class EventService extends Service
             $this->eventObj->created_at     = Carbon::now();
 
             $res = $this->eventObj->save();
-            
+
             DB::commit();
             if($res){
-                
+
                 $data = [
                     'course_id'   => $this->eventObj->id,
                     'course_name' => $this->eventObj->title,
@@ -130,7 +130,7 @@ class EventService extends Service
                 ];
 
                 $this->notifyUsers($data);
-                
+
                 return $this->successResponse(true, 'Event created successfully', $this->eventObj, 201);
             }
 
@@ -182,10 +182,11 @@ class EventService extends Service
             $bookEventObj = new BookEvent([
                 'user_id' => $user->id,
                 'event_id' => $event->id,
+                'booking_code'  => generateRandomString(),
                 'seats' => $seat,
                 'status' => 'accept',
             ]);
-            
+
             $bookEventObj->save();
 
             $event->decrement('total_seat', $seat);
