@@ -71,17 +71,44 @@ class EventController extends Controller
         return EventService::upcomingEvent();
     }
 
+    // public function popularEvent()
+    // {
+    //     $type = 'popular';
+
+    //     $query = Event::with(['category:id,name'])
+    //         ->select('id', 'title', 'thumbnail', 'event_location', 'category_id', 'status');
+
+
+    //     $events = $query->latest()->get();
+
+    //     return $this->successResponse(true, ucfirst($type) . ' Event list', $events, 200);
+    // }
     public function popularEvent()
     {
-        $type = 'popular';
+        // Get the authenticated user
+        $user = auth('api')->user();
 
-        $query = Event::with(['category:id,name'])
-            ->select('id', 'title', 'thumbnail', 'event_location', 'category_id', 'status');
+        // Check if the user is authenticated and has the 'teacher' role
+        if (!$user || $user->role !== 'teacher') {
+            return $this->error('Unauthorized', 403);
+        }
 
+        // Fetch popular events created by the authenticated teacher
+        $events = Event::with(['category:id,name'])
+            ->where('events.created_by', $user->id) // Filter events by the authenticated teacher
+            ->select('events.id', 'events.title', 'events.thumbnail', 'events.event_location', 'events.category_id', 'events.status')
+            ->leftJoin('book_events', 'events.id', '=', 'book_events.event_id') // Join with book_events to calculate popularity
+            ->selectRaw('COUNT(book_events.id) as bookings_count')
+            ->groupBy('events.id', 'events.title', 'events.thumbnail', 'events.event_location', 'events.category_id', 'events.status')
+            ->orderByDesc('bookings_count') // Order by popularity
+            ->limit(10) // Limit to top 10 events
+            ->get();
 
-        $events = $query->latest()->get();
+        if ($events->isEmpty()) {
+            return $this->success([], 'No popular events found.', 200);
+        }
 
-        return $this->successResponse(true, ucfirst($type) . ' Event list', $events, 200);
+        return $this->success($events, 'Popular Event list', 200);
     }
 
     public function store(EventStoreRequest $request)
