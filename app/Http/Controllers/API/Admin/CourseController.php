@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API\Admin;
 
 use App\Models\User;
 use App\Models\Course;
+use App\Models\Lesson;
 use App\Models\Chapter;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
@@ -13,12 +14,12 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\CourseStoreRequest;
 use App\Http\Requests\LessonStoreRequest;
-use Illuminate\Support\Facades\Validator;
 
+use Illuminate\Support\Facades\Validator;
 use App\Http\Requests\ChapterStoreRequest;
-use App\Models\Lesson;
 
 use function PHPUnit\Framework\returnSelf;
+use App\Http\Requests\LessonStoreRequestTwo;
 
 class CourseController extends Controller
 {
@@ -200,7 +201,7 @@ class CourseController extends Controller
 
         return $this->courseServiceObj->lessonStore($course_id, $chapter_id, $name, $video, $duration);
     }
-    public function lessonStoreTwo(LessonStoreRequest $request)
+    public function lessonStoreTwo(LessonStoreRequestTwo $request)
     {
         $course_id    = $request->input('course_id');
         $chapter_id   = $request->input('chapter_id');
