@@ -28,7 +28,7 @@ class LessonStoreRequest extends FormRequest
             'course_id'  => ['required', 'integer', 'exists:courses,id'],
             'chapter_id' => ['required', 'integer', 'exists:chapters,id'],
             'name'       => [
-                'required',
+                'nullable',
                 'string',
                 'min:2',
                 Rule::unique('lessons')->where(function ($query) {

@@ -204,7 +204,7 @@ class CourseService extends Service
      * @param integer $duration
      * @return mixed
      */
-    public function lessonStore($course_id, $chapter_id, string $name, $video, $duration)
+    public function lessonStore($course_id, $chapter_id, $video, $duration)
     {
         try {
             DB::beginTransaction();
@@ -223,10 +223,11 @@ class CourseService extends Service
 
             $lesson->chapter_id   = $chapter_id;
             $lesson->course_id    = $course_id;
-            $lesson->name         = $name;
             $lesson->lesson_order = $lastLessonOrder ? $lastLessonOrder + 1 : 1;
             $lesson->video_url    = $videoPath;
             $lesson->duration     = $duration;
+
+            $lesson['lession_id'] = $lesson->id;
 
             $res = $lesson->save();
             DB::commit();

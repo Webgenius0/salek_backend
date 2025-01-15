@@ -182,7 +182,6 @@ class CourseController extends Controller
     {
         $course_id    = $request->input('course_id');
         $chapter_id   = $request->input('chapter_id');
-        $name         = $request->input('name');
         $video        = $request->file('video_url');
         $duration     = $request->input('duration');
 
@@ -199,7 +198,7 @@ class CourseController extends Controller
             return $this->failedResponse('You have no permission to access this course', 403);
         }
 
-        return $this->courseServiceObj->lessonStore($course_id, $chapter_id, $name, $video, $duration);
+        return $this->courseServiceObj->lessonStore($course_id, $chapter_id, $video, $duration);
     }
     public function lessonStoreTwo(LessonStoreRequestTwo $request)
     {
