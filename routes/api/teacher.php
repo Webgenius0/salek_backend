@@ -23,6 +23,7 @@ Route::middleware(['auth:api', 'onlyTeacher'])->group(function () {
     Route::controller(CourseController::class)->group(function () {
         Route::prefix('course')->name('course.')->group(function () {
             Route::post('/store', 'store')->name('store');
+            Route::get('/details/{id}', 'show')->name('details');
             Route::post('/chpater/store', 'chapterStore')->name('chapter');
             Route::post('/lesson/store', 'lessonStore')->name('lesson');
             Route::get('/list', 'courseList')->name('all');
@@ -73,5 +74,7 @@ Route::middleware(['auth:api', 'onlyTeacher'])->group(function () {
             Route::get('teacher/popular', 'popularCourse');
         });
     });
+
+
 });
 //'END' :- For admin route
