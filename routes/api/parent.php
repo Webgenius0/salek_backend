@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\API\Admin\CourseController;
 use App\Http\Controllers\API\ParentController;
 use App\Http\Controllers\API\RequestController;
 use App\Http\Controllers\API\SubscriptionController;
@@ -26,6 +27,12 @@ Route::middleware(['auth:api', 'onlyParent'])->group(function () {
     Route::controller(SubscriptionController::class)->group(function () {
         Route::prefix('subscription')->name('subscription.')->group(function () {
             Route::post('/parent', 'parentSubscribe')->name('parentsubscribe');
+        });
+    });
+
+    Route::controller(CourseController::class)->group(function () {
+        Route::prefix('course')->name('course.')->group(function () {
+            Route::get('/popular', 'parentPopularCourse');
         });
     });
 });

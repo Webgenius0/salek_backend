@@ -102,7 +102,7 @@ Route::middleware(['auth:api'])->group(function () {
             Route::get('/all', 'index')->name('list');
             Route::post('/details/{id}', 'show')->name('details');
             Route::get('/level/{id}', 'level')->name('level');
-            Route::get('/popular', 'popularCourse')->name('popular');
+            // Route::get('/popular', 'popularCourse')->name('popular');
         });
     });
     //For Course Route

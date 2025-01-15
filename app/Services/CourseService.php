@@ -37,14 +37,14 @@ class CourseService extends Service
      * and average rating.
      *
      * @return \Illuminate\Http\JsonResponse A JSON response containing the success status, message, course data, and HTTP status code.
-    */
+     */
     public function courseList()
     {
         $courses = Course::with(['students', 'reviews'])->where('created_by', Auth::id())
             ->latest()
             ->get();
 
-        $data = $courses->map(function($course){
+        $data = $courses->map(function ($course) {
             $ratingCount   = $course->reviews->count();
             $ratingSum     = $course->reviews->sum('rating');
             $averageRating = $ratingCount > 0 ? number_format($ratingSum / $ratingCount, 1) : null;
@@ -79,7 +79,7 @@ class CourseService extends Service
      * @param int $total_month
      * @param int $additional_charge
      * @return mixed
-    */
+     */
     public function store(
         int $creatorId,
         string $name,
@@ -92,18 +92,17 @@ class CourseService extends Service
         string $introduction_title,
         $cover_photo,
         $class_video
-    )
-    {
+    ) {
         try {
             DB::beginTransaction();
 
-            if($cover_photo != null){
+            if ($cover_photo != null) {
                 $cover_photo_name = time() . '.' . $cover_photo->getClientOriginalExtension();
                 $cover_photo->move(public_path('uploads/course/introduction/cover_photo'), $cover_photo_name);
                 $this->courseObj->cover_photo = 'uploads/course/introduction/cover_photo/' . $cover_photo_name;
             }
 
-            if($class_video != null){
+            if ($class_video != null) {
                 $class_video_name = time() . '.' . $class_video->getClientOriginalExtension();
                 $class_video->move(public_path('uploads/course/introduction/class_video'), $class_video_name);
                 $this->courseObj->class_video = 'uploads/course/introduction/class_video/' . $class_video_name;
@@ -124,7 +123,7 @@ class CourseService extends Service
             $res = $this->courseObj->save();
 
             DB::commit();
-            if($res){
+            if ($res) {
                 $data = [
                     'course_id'          => $this->courseObj->id,
                     'course_name'        => $this->courseObj->name,
@@ -142,15 +141,14 @@ class CourseService extends Service
 
                 return $this->successResponse(true, 'Course created successfully.', $data, 201);
             }
-        }catch(\Illuminate\Database\QueryException $e){
+        } catch (\Illuminate\Database\QueryException $e) {
             DB::rollback();
             return response()->json([
                 'success' => false,
                 'error' => 'Database Error',
                 'message' => $e->getMessage(),
             ], 500);
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollback();
             info($e);
             return response()->json([
@@ -169,7 +167,7 @@ class CourseService extends Service
      * @param string $level_label
      * @param integer $chapter_order
      * @return mixed
-    */
+     */
     public function chapterStore($course_id, string $name, string $level_label, $chapter_order)
     {
         try {
@@ -185,7 +183,7 @@ class CourseService extends Service
 
             $res = $chapter->save();
             DB::commit();
-            if($res){
+            if ($res) {
                 return $this->successResponse(true, 'Chapter created successfully.', $chapter, 201);
             }
         } catch (\Exception $e) {
@@ -205,7 +203,7 @@ class CourseService extends Service
      * @param $video
      * @param integer $duration
      * @return mixed
-    */
+     */
     public function lessonStore($course_id, $chapter_id, string $name, $video, $duration)
     {
         try {
@@ -214,14 +212,14 @@ class CourseService extends Service
             $lesson = new Lesson();
 
             $videoPath = null;
-            if($video != null){
+            if ($video != null) {
                 $fileName  = time() . '.' . $video->getClientOriginalExtension();
                 $videoPath = 'uploads/course/lessons/videos/' . $fileName;
                 $video->move(public_path('uploads/course/lessons/videos'), $fileName);
             }
 
             $lastLessonOrder = Lesson::where('chapter_id', $chapter_id)
-                                ->max('lesson_order');
+                ->max('lesson_order');
 
             $lesson->chapter_id   = $chapter_id;
             $lesson->course_id    = $course_id;
@@ -232,7 +230,7 @@ class CourseService extends Service
 
             $res = $lesson->save();
             DB::commit();
-            if($res){
+            if ($res) {
                 return $this->successResponse(true, 'Lesson created successfully.', $lesson, 201);
             }
         } catch (\Exception $e) {
@@ -243,24 +241,32 @@ class CourseService extends Service
     }
 
     /**
-    * Course Service class
-    * return popular class
-    * father controller name coursecontroller
-    *
-    * @param [string] $id
-    * @return mixed
-    */
+     * Course Service class
+     * return popular class
+     * father controller name coursecontroller
+     *
+     * @param [string] $id
+     * @return mixed
+     */
     public function popularCourse()
     {
-        $popularCourses = Course::select('courses.id', 'courses.name', 'courses.cover_photo', 'courses.price', 'courses.total_class')
+        // Fetch popular courses for the authenticated teacher
+        $popularCourses = Course::select(
+            'courses.id',
+            'courses.name',
+            'courses.cover_photo',
+            'courses.price',
+            'courses.total_class'
+        )
+            ->where('courses.created_by', Auth::id()) // Only courses created by the authenticated teacher
             ->leftJoin('course_user', 'courses.id', '=', 'course_user.course_id')
             ->leftJoin('reviews', 'courses.id', '=', 'reviews.reviewable_id')
             ->selectRaw('
-                COUNT(DISTINCT course_user.user_id) AS purchase_count,
-                AVG(reviews.rating) AS avg_rating,
-                COUNT(reviews.id) AS total_reviews,
-                (COUNT(DISTINCT course_user.user_id) * 0.7 + AVG(reviews.rating) * 0.3) AS popularity_score
-            ')
+            COUNT(DISTINCT course_user.user_id) AS purchase_count,
+            AVG(reviews.rating) AS avg_rating,
+            COUNT(reviews.id) AS total_reviews,
+            (COUNT(DISTINCT course_user.user_id) * 0.7 + AVG(reviews.rating) * 0.3) AS popularity_score
+        ')
             ->groupBy('courses.id', 'courses.name', 'courses.cover_photo', 'courses.price', 'courses.total_class')
             ->orderBy('popularity_score', 'desc')
             ->take(10)
@@ -268,7 +274,46 @@ class CourseService extends Service
 
 
 
-        $data = $popularCourses->map(function($course){
+        $data = $popularCourses->map(function ($course) {
+            return [
+                'course_id'    => $course->id,
+                'course_title' => $course->name,
+                'thumbnail'    => $course->cover_photo,
+                'price'        => $course->price,
+                'review'       => number_format($course->avg_rating, 1) . ' (' . $course->total_reviews . ' Reviews)',
+                'total_class'  => $course->total_class,
+                'students'     => 1234,
+            ];
+        });
+
+        return $this->successResponse(true, 'Popular Courses', $data, 200);
+    }
+    public function parentPopularCourse()
+    {
+        // Fetch popular courses from all teachers
+    $popularCourses = Course::select(
+        'courses.id',
+        'courses.name',
+        'courses.cover_photo',
+        'courses.price',
+        'courses.total_class'
+    )
+        ->leftJoin('course_user', 'courses.id', '=', 'course_user.course_id')
+        ->leftJoin('reviews', 'courses.id', '=', 'reviews.reviewable_id')
+        ->selectRaw('
+            COUNT(DISTINCT course_user.user_id) AS purchase_count,
+            AVG(reviews.rating) AS avg_rating,
+            COUNT(reviews.id) AS total_reviews,
+            (COUNT(DISTINCT course_user.user_id) * 0.7 + AVG(reviews.rating) * 0.3) AS popularity_score
+        ')
+        ->groupBy('courses.id', 'courses.name', 'courses.cover_photo', 'courses.price', 'courses.total_class')
+        ->orderBy('popularity_score', 'desc')
+        ->take(10) // Adjust this number to control how many courses are fetched
+        ->get();
+
+
+
+        $data = $popularCourses->map(function ($course) {
             return [
                 'course_id'    => $course->id,
                 'course_title' => $course->name,
@@ -289,7 +334,7 @@ class CourseService extends Service
      *
      * @param [string] $id
      * @return mixed
-    */
+     */
     public function show($id)
     {
         $course = Course::with(['chapters.lessons', 'category', 'creator'])->find($id);
@@ -341,10 +386,10 @@ class CourseService extends Service
      *
      * @param [string] $user
      * @return mixed
-    */
+     */
     public function currentCourse($user)
     {
-        $courses = $user->purchasedCourses->map(function($course) use ($user) {
+        $courses = $user->purchasedCourses->map(function ($course) use ($user) {
             $courseProgress = StudentProgress::where('user_id', $user->id)->where('course_id', $course->id)->first();
             $totalProgress = $courseProgress ? ($courseProgress->course_progress + $courseProgress->homework_progress) : 0;
 
@@ -370,7 +415,7 @@ class CourseService extends Service
      *
      * @param [string] $id
      * @return mixed
-    */
+     */
     public function courseWiseChapter($id)
     {
         $course = Course::with('chapters')->find($id);
@@ -400,14 +445,14 @@ class CourseService extends Service
      *
      * @param \App\Models\Course $course The course object containing chapters and lessons.
      * @return \Illuminate\Http\JsonResponse A JSON response containing the structured course data.
-    */
+     */
     public function courseWithClass($course)
     {
-        $data = $course->chapters->map(function($chapter){
+        $data = $course->chapters->map(function ($chapter) {
             return [
                 'chapter_id'   => $chapter->id,
                 'chapter_name' => $chapter->name,
-                'lessons' => $chapter->lessons->map(function($lesson){
+                'lessons' => $chapter->lessons->map(function ($lesson) {
                     return [
                         'lesson_id'   => $lesson->id,
                         'lesson_name' => $lesson->name,
@@ -427,7 +472,7 @@ class CourseService extends Service
      *
      * @param [string] $course
      * @return mixed
-    */
+     */
     public function courseAchievement($course)
     {
         $data = "This module is under development";
@@ -444,16 +489,16 @@ class CourseService extends Service
      *
      * @param int $id The ID of the course.
      * @return \Illuminate\Http\JsonResponse The response containing the level progress information or an error message.
-    */
+     */
     public function level($id)
     {
         $course = Course::with(['chapters.lessons', 'homework'])->find($id);
 
-        if(!CourseUser::where('course_id', $course->id)->where('user_id', Auth::id())->exists()):
+        if (!CourseUser::where('course_id', $course->id)->where('user_id', Auth::id())->exists()):
             return $this->failedResponse('You have no validity for this user.', 403);
         endif;
 
-        if(!$course):
+        if (!$course):
             return $this->failedResponse('Course not found.', 404);
         endif;
 
@@ -484,19 +529,19 @@ class CourseService extends Service
     }
 
     /**
-    * Retrieve the ongoing courses for the authenticated user.
-    *
-    * This method fetches the courses purchased by the authenticated user and determines
-    * the ongoing courses based on the lessons that have not been completed yet.
-    *
-    * @return \Illuminate\Http\JsonResponse
-    * A JSON response containing the ongoing courses with the following structure:
-    * - course_id: The ID of the course.
-    * - course_name: The name of the course.
-    * - incomplete_lessons: The count of incomplete lessons in the course.
-    * - total_lessons: The total number of lessons in the course.
-    * - lessons: A collection of incomplete lessons.
-    */
+     * Retrieve the ongoing courses for the authenticated user.
+     *
+     * This method fetches the courses purchased by the authenticated user and determines
+     * the ongoing courses based on the lessons that have not been completed yet.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     * A JSON response containing the ongoing courses with the following structure:
+     * - course_id: The ID of the course.
+     * - course_name: The name of the course.
+     * - incomplete_lessons: The count of incomplete lessons in the course.
+     * - total_lessons: The total number of lessons in the course.
+     * - lessons: A collection of incomplete lessons.
+     */
     public function ongoingCourse()
     {
         $user = User::find(Auth::id());
@@ -505,16 +550,16 @@ class CourseService extends Service
 
         $courseIds = $userCourses->pluck('id');
 
-        $courses = Course::with(['chapters.lessons.lessonUser' => function($query) use ($user) {
+        $courses = Course::with(['chapters.lessons.lessonUser' => function ($query) use ($user) {
             $query->where('user_id', $user->id);
         }])->whereIn('id', $courseIds)->get();
 
-        $ongoingCourses = $courses->map(function($course) {
-            $courseLessons = $course->chapters->flatMap(function($chapter) {
+        $ongoingCourses = $courses->map(function ($course) {
+            $courseLessons = $course->chapters->flatMap(function ($chapter) {
                 return $chapter->lessons;
             });
 
-            $incompleteLessons = $courseLessons->filter(function($lesson) {
+            $incompleteLessons = $courseLessons->filter(function ($lesson) {
                 return !$lesson->lessonUser->first()->completed;
             });
 
@@ -545,7 +590,7 @@ class CourseService extends Service
      * and returns a response with the completed courses and their details.
      *
      * @return \Illuminate\Http\JsonResponse
-    */
+     */
     public function completeCourse()
     {
         $user = User::find(Auth::id());
@@ -555,16 +600,16 @@ class CourseService extends Service
         $courseIds = $userCourses->pluck('id');
 
 
-        $courses = Course::with(['chapters.lessons.lessonUser' => function($query) use ($user) {
+        $courses = Course::with(['chapters.lessons.lessonUser' => function ($query) use ($user) {
             $query->where('user_id', $user->id);
         }])->whereIn('id', $courseIds)->get();
 
-        $coursesWithCompletionStatus = $courses->map(function($course) use ($user) {
-            $courseLessons = $course->chapters->flatMap(function($chapter) {
+        $coursesWithCompletionStatus = $courses->map(function ($course) use ($user) {
+            $courseLessons = $course->chapters->flatMap(function ($chapter) {
                 return $chapter->lessons;
             });
 
-            $completedLessons = $courseLessons->map(function($lesson) use ($user) {
+            $completedLessons = $courseLessons->map(function ($lesson) use ($user) {
                 $lessonUser = $lesson->lessonUser->first();
 
                 return [
@@ -593,11 +638,11 @@ class CourseService extends Service
      * @param int $courseId The ID of the course to be published or unpublished.
      * @param int $status The status to set for the course (0 for published, 1 for unpublished).
      * @return \Illuminate\Http\JsonResponse A JSON response indicating success or failure.
-    */
+     */
     public function publish($courseId, $status)
     {
         $course = Course::find($courseId);
-        if($course && $course->created_by == Auth::id()):
+        if ($course && $course->created_by == Auth::id()):
             $videoStatus = $status == 1 ? 'publish' : 'unpublish';
 
             $course->status     = $videoStatus;
@@ -617,7 +662,7 @@ class CourseService extends Service
      *
      * @param int $id The ID of the user.
      * @return \Illuminate\Http\JsonResponse The response containing the weekly progress data.
-    */
+     */
     public function showProgress($id)
     {
         $lessonUserRecords = LessonUser::where('user_id', $id)->get();

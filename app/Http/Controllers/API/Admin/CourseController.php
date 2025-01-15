@@ -36,7 +36,7 @@ class CourseController extends Controller
      * Get all courses
      * here this method is used to get all courses witrhout purchased courses
      * @return mixed
-    */
+     */
     public function index()
     {
         $userId = Auth::id();
@@ -49,7 +49,7 @@ class CourseController extends Controller
             ->latest()
             ->get();
 
-        $data = $courses->map(function($course){
+        $data = $courses->map(function ($course) {
             return [
                 'course_id'     => $course->id,
                 'course_title'  => $course->name,
@@ -76,7 +76,7 @@ class CourseController extends Controller
      * Get all courses
      *
      * @return mixed
-    */
+     */
     public function courseList()
     {
         return $this->courseServiceObj->courseList();
@@ -87,10 +87,14 @@ class CourseController extends Controller
      * Calculate popularity based on reviews,ratings,purchase history
      *
      * @return mixed
-    */
+     */
     public function popularCourse()
     {
         return $this->courseServiceObj->popularCourse();
+    }
+    public function parentPopularCourse()
+    {
+        return $this->courseServiceObj->parentPopularCourse();
     }
 
     /**
@@ -98,7 +102,7 @@ class CourseController extends Controller
      *
      * @param CourseStoreRequest $request
      * @return mixed
-    */
+     */
     public function store(CourseStoreRequest $request)
     {
         $creatorId          = request()->user()->id;
@@ -112,12 +116,12 @@ class CourseController extends Controller
         $introduction_title = $request->input('introduction_title');
 
         $cover_photo = null;
-        if($request->hasFile('cover_photo')) {
+        if ($request->hasFile('cover_photo')) {
             $cover_photo = $request->file('cover_photo');
         }
 
         $class_video = null;
-        if($request->hasFile('class_video')) {
+        if ($request->hasFile('class_video')) {
             $class_video = $request->file('class_video');
         }
 
@@ -141,7 +145,7 @@ class CourseController extends Controller
      *
      * @param ChapterStoreRequest $request The request object containing the chapter details.
      * @return \Illuminate\Http\JsonResponse The response object containing the status and message.
-    */
+     */
     public function chapterStore(ChapterStoreRequest $request)
     {
         $course_id     = $request->input('course_id');
@@ -150,13 +154,13 @@ class CourseController extends Controller
         $user   = User::find(Auth::id());
         $course = Course::find($course_id);
 
-        if($user->id != $course->created_by) {
+        if ($user->id != $course->created_by) {
             return $this->failedResponse('You have no permission to access this course', 403);
         }
 
         $prevoiusChapter = Chapter::where('course_id', $course_id)->get()->toArray();
 
-        if(empty($prevoiusChapter)){
+        if (empty($prevoiusChapter)) {
             return $this->courseServiceObj->chapterStore($course_id, $name, 'beginner', 1);
         }
 
@@ -172,7 +176,7 @@ class CourseController extends Controller
      *
      * @param LessonStoreRequest $request
      * @return mixed
-    */
+     */
     public function lessonStore(LessonStoreRequest $request)
     {
         $course_id    = $request->input('course_id');
@@ -186,11 +190,11 @@ class CourseController extends Controller
 
         $checkItem = HelperService::checkItemByCourse($course_id, $chapter_id);
 
-        if(!$checkItem){
+        if (!$checkItem) {
             return $this->failedResponse('This chapter not exists in your selected course', 404);
         }
 
-        if($user->id != $course->created_by) {
+        if ($user->id != $course->created_by) {
             return $this->failedResponse('You have no permission to access this course', 403);
         }
 
@@ -203,7 +207,7 @@ class CourseController extends Controller
      *
      * @param [string] $id
      * @return mixed
-    */
+     */
     public function show($id)
     {
         return $this->courseServiceObj->show($id);
@@ -214,7 +218,7 @@ class CourseController extends Controller
      * Get the current course of a user
      *
      * @return mixed
-    */
+     */
     public function currentCourse()
     {
         $user = request()->user();
@@ -228,7 +232,7 @@ class CourseController extends Controller
      *
      * @param [string] $id
      * @return mixed
-    */
+     */
     public function courseWiseChapter($id)
     {
         return $this->courseServiceObj->courseWiseChapter($id);
@@ -239,7 +243,7 @@ class CourseController extends Controller
      *
      * @param int $id The ID of the course to retrieve.
      * @return mixed The course with its associated chapters and lessons.
-    */
+     */
     public function courseWithClass($id)
     {
         $course = Course::with('chapters.lessons')->where('id', $id)->first();
@@ -253,7 +257,7 @@ class CourseController extends Controller
      *
      * @param [string] $id
      * @return mixed
-    */
+     */
     public function courseAchievement($id)
     {
         $course = Course::with('chapters.lessons')->where('id', $id)->first();
@@ -266,7 +270,7 @@ class CourseController extends Controller
      * Get all ongoing courses
      *
      * @return mixed
-    */
+     */
     public function ongoingCourse()
     {
         return $this->courseServiceObj->ongoingCourse();
@@ -277,7 +281,7 @@ class CourseController extends Controller
      * Get all completed courses
      *
      * @return mixed
-    */
+     */
     public function completeCourse()
     {
         return $this->courseServiceObj->completeCourse();
@@ -288,7 +292,7 @@ class CourseController extends Controller
      *
      * @param int $id The ID of the course.
      * @return mixed The level of the course.
-    */
+     */
     public function level($id)
     {
         return $this->courseServiceObj->level($id);
@@ -299,12 +303,12 @@ class CourseController extends Controller
      * Get all achievements of a course
      *
      * @return mixed
-    */
+     */
     public function allAchievement($id)
     {
         $user = User::where('role', 'student')->find($id);
 
-        if(!$user):
+        if (!$user):
             return $this->failedResponse('User not found', 404);
         endif;
 
@@ -322,7 +326,7 @@ class CourseController extends Controller
      * @param \Illuminate\Http\Request $request The incoming request instance.
      *
      * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\Response
-    */
+     */
     public function publish(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -350,14 +354,49 @@ class CourseController extends Controller
      *
      * user id
      * @return mixed
-    */
+     */
     public function showProgress($id)
     {
         return $this->courseServiceObj->showProgress($id);
     }
 
-    public function courseChapterWiseLession($course_id, $chapter_id){
+    public function courseChapterWiseLession($course_id, $chapter_id)
+    {
         $lession = Lesson::where('course_id', $course_id)->where('chapter_id', $chapter_id)->get();
         return $this->successResponse(true, 'All Courses', $lession, 200);
     }
+
+    // public function popularCourse()
+    // {
+    //     // Fetch courses with relationships and calculate ratings
+    //     $courses = Course::with(['students', 'reviews'])
+    //         ->where('created_by', Auth::id()) // Get courses created by the authenticated teacher
+    //         ->get();
+
+    //     // Map and calculate the required data
+    //     $data = $courses->map(function ($course) {
+    //         $ratingCount   = $course->reviews->count();
+    //         $ratingSum     = $course->reviews->sum('rating');
+    //         $averageRating = $ratingCount > 0 ? number_format($ratingSum / $ratingCount, 1) : 0;
+
+    //         return [
+    //             'course_id'      => $course->id,
+    //             'course_title'   => $course->introduction_title,
+    //             'cover_photo'    => $course->cover_photo,
+    //             'tag'            => 'Online Course',
+    //             'price'          => $course->price,
+    //             'total_class'    => $course->total_class ?? 0,
+    //             'students'       => $course->students->count() ?? 0,
+    //             'rating_count'   => $ratingCount,
+    //             'rating_sum'     => $ratingSum,
+    //             'course_status'  => $course->status,
+    //             'average_rating' => $averageRating,
+    //         ];
+    //     });
+
+    //     // Sort courses by highest average rating
+    //     $sortedData = $data->sortByDesc('average_rating')->values();
+
+    //     return $this->successResponse(true, 'Popular Courses', $sortedData, 200);
+    // }
 }

@@ -6,6 +6,7 @@ use App\Http\Controllers\API\Admin\EventController;
 use App\Http\Controllers\API\HomeworkController;
 use App\Http\Controllers\API\InstructorController;
 use App\Http\Controllers\API\SettingController;
+use App\Models\Event;
 use Illuminate\Support\Facades\Route;
 
 //'BEGIN' :- For admin route
@@ -59,6 +60,17 @@ Route::middleware(['auth:api', 'onlyTeacher'])->group(function () {
     Route::controller(SettingController::class)->group(function () {
         Route::prefix('setting')->name('setting.')->group(function () {
             Route::post('/update', 'update')->name('update');
+        });
+    });
+
+    Route::controller(EventController::class)->group(function () {
+        Route::prefix('event')->name('event.')->group(function () {
+            Route::get('teacher/popular', 'popularEvent');
+        });
+    });
+    Route::controller(CourseController::class)->group(function () {
+        Route::prefix('course')->name('course.')->group(function () {
+            Route::get('teacher/popular', 'popularCourse');
         });
     });
 });
