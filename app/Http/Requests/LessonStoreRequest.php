@@ -36,7 +36,7 @@ class LessonStoreRequest extends FormRequest
                     ->where('chapter_id', $this->input('chapter_id'));
                 }),
             ],
-            'video_url'  => ['required', 'mimes:mp4,mov,ogg,qt', 'max:6000'],
+            'video_url'  => ['required', 'mimes:mp4,mov,ogg,qt', 'max:46000'],
             'duration'   => ['required', 'integer'],
         ];
     }
