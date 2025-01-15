@@ -19,6 +19,7 @@ class CategoryController extends Controller
         $this->categoryServiceObj = new CategoryService();
     }
 
+
     /**
      * Display a listing of the active categories.
      *
@@ -50,7 +51,7 @@ class CategoryController extends Controller
     {
         $name      = $request->input('name');
         $createdBy = request()->user()->id;
-        
+
         return $this->categoryServiceObj->store($name, $createdBy);
     }
 
@@ -70,7 +71,7 @@ class CategoryController extends Controller
         $id        = $request->input('id');
         $name      = $request->input('name');
         $status    = $request->input('status');
-        
+
         return $this->categoryServiceObj->update($id,$name, $status);
     }
 }
