@@ -96,7 +96,7 @@ class EventController extends Controller
         // Fetch popular events created by the authenticated teacher
         $events = Event::with(['category:id,name'])
             ->where('events.created_by', $user->id) // Filter events by the authenticated teacher
-            ->select('events.id', 'events.title', 'events.thumbnail', 'events.event_location', 'events.category_id', 'events.status')
+            ->select('events.id', 'events.title', 'events.thumbnail', 'events.event_date', 'events.event_location', 'events.category_id', 'events.status')
             ->leftJoin('book_events', 'events.id', '=', 'book_events.event_id') // Join with book_events to calculate popularity
             ->selectRaw('COUNT(book_events.id) as bookings_count')
             ->groupBy('events.id', 'events.title', 'events.thumbnail', 'events.event_location', 'events.category_id', 'events.status')
