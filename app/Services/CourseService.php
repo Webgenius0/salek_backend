@@ -239,6 +239,33 @@ class CourseService extends Service
             return $this->failedResponse('Failed to create lesson.', $e->getMessage(), 500);
         }
     }
+    public function lessonStoreTwo($course_id, $chapter_id, string $name)
+    {
+        try {
+            DB::beginTransaction();
+
+            $lesson = new Lesson();
+
+
+            $lastLessonOrder = Lesson::where('chapter_id', $chapter_id)
+                ->max('lesson_order');
+
+            $lesson->chapter_id   = $chapter_id;
+            $lesson->course_id    = $course_id;
+            $lesson->name         = $name;
+            $lesson->lesson_order = $lastLessonOrder ? $lastLessonOrder + 1 : 1;
+
+            $res = $lesson->save();
+            DB::commit();
+            if ($res) {
+                return $this->successResponse(true, 'Lesson created successfully.', $lesson, 201);
+            }
+        } catch (\Exception $e) {
+            DB::rollback();
+            info($e);
+            return $this->failedResponse('Failed to create lesson.', $e->getMessage(), 500);
+        }
+    }
 
     /**
      * Course Service class

@@ -200,6 +200,27 @@ class CourseController extends Controller
 
         return $this->courseServiceObj->lessonStore($course_id, $chapter_id, $name, $video, $duration);
     }
+    public function lessonStoreTwo(LessonStoreRequest $request)
+    {
+        $course_id    = $request->input('course_id');
+        $chapter_id   = $request->input('chapter_id');
+        $name         = $request->input('name');
+
+        $user   = User::find(Auth::id());
+        $course = Course::find($course_id);
+
+        $checkItem = HelperService::checkItemByCourse($course_id, $chapter_id);
+
+        if (!$checkItem) {
+            return $this->failedResponse('This chapter not exists in your selected course', 404);
+        }
+
+        if ($user->id != $course->created_by) {
+            return $this->failedResponse('You have no permission to access this course', 403);
+        }
+
+        return $this->courseServiceObj->lessonStoreTwo($course_id, $chapter_id, $name);
+    }
 
     /**
      * Course Details method
