@@ -388,6 +388,7 @@ class CourseService extends Service
                     'lesson_name' => $lesson->name,
                     'duration'    => $lesson->duration,
                     'video_url'   => $lesson->video_url,
+                    'photo'   => $lesson->photo,
                 ];
             }
 
