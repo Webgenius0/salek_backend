@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Auth;
 
 class Lesson extends Model
 {
-    
+
     protected $fillable = [
         'chapter_id',
         'course_id',
@@ -15,6 +15,7 @@ class Lesson extends Model
         'lesson_order',
         'video_url',
         'duration',
+        'photo'
     ];
 
     // Relation Start

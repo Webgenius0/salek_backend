@@ -204,7 +204,7 @@ class CourseService extends Service
      * @param integer $duration
      * @return mixed
      */
-    public function lessonStore($course_id, $chapter_id, $video, $duration, $lesson_id)
+    public function lessonStore($course_id, $chapter_id, $video, $duration, $lesson_id, $photoPath = null)
     {
         try {
             DB::beginTransaction();
@@ -226,6 +226,7 @@ class CourseService extends Service
             $lesson->lesson_order = $lastLessonOrder ? $lastLessonOrder + 1 : 1;
             $lesson->video_url    = $videoPath;
             $lesson->duration     = $duration;
+            $lesson->photo        = $photoPath;
 
             $res = $lesson->save();
             DB::commit();
@@ -237,6 +238,7 @@ class CourseService extends Service
                     'lesson_order' => $lesson->lesson_order,
                     'video_url'    => $lesson->video_url,
                     'duration'     => $lesson->duration,
+                    'photo'     => $lesson->photo,
                 ], 201);
             }
         }  catch (\Exception $e) {

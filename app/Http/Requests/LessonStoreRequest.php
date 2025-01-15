@@ -37,6 +37,11 @@ class LessonStoreRequest extends FormRequest
                 }),
             ],
             'video_url'  => ['required', 'mimes:mp4,mov,ogg,qt', 'max:6000'],
+            'photos' => [
+            'nullable',
+            'mimes:jpeg,png,jpg,gif',
+            'max:20480', // Maximum size in KB (2 MB)
+        ],
             'duration'   => ['required', 'integer'],
         ];
     }

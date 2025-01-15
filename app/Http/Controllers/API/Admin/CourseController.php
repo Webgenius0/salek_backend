@@ -8,16 +8,17 @@ use App\Models\Lesson;
 use App\Models\Chapter;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
+use App\Services\ImageService;
 use App\Services\CourseService;
 use App\Services\HelperService;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\CourseStoreRequest;
+
 use App\Http\Requests\LessonStoreRequest;
-
 use Illuminate\Support\Facades\Validator;
-use App\Http\Requests\ChapterStoreRequest;
 
+use App\Http\Requests\ChapterStoreRequest;
 use function PHPUnit\Framework\returnSelf;
 use App\Http\Requests\LessonStoreRequestTwo;
 
@@ -185,9 +186,16 @@ class CourseController extends Controller
         $lesson_id    = $request->input('lesson_id');
         $video        = $request->file('video_url');
         $duration     = $request->input('duration');
+        $photo      = $request->file('photo');
 
         $user   = User::find(Auth::id());
         $course = Course::find($course_id);
+
+          // Handle voice memo update (delete old and upload new)
+          if ($request->hasFile('photo')) {
+
+            $photoPath = ImageService::uploadeImage($photo , 'lessons/');
+        }
 
         $checkItem = HelperService::checkItemByCourse($course_id, $chapter_id);
 
@@ -199,7 +207,7 @@ class CourseController extends Controller
             return $this->failedResponse('You have no permission to access this course', 403);
         }
 
-        return $this->courseServiceObj->lessonStore($course_id, $chapter_id, $video, $duration, $lesson_id);
+        return $this->courseServiceObj->lessonStore($course_id, $chapter_id, $video, $duration, $lesson_id, $photoPath);
     }
     public function lessonStoreTwo(LessonStoreRequestTwo $request)
     {

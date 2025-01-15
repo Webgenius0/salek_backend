@@ -19,6 +19,7 @@ return new class extends Migration
             $table->integer('lesson_order')->default(0);
             $table->string('video_url', 250)->nullable();
             $table->string('duration', 50)->nullable();
+            $table->string('photo')->nullable();
             $table->timestamps();
         });
     }
