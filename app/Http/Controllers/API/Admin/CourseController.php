@@ -384,8 +384,15 @@ class CourseController extends Controller
 
     public function courseChapterWiseLession($course_id, $chapter_id)
     {
-        $lession = Lesson::where('course_id', $course_id)->where('chapter_id', $chapter_id)->get();
-        return $this->successResponse(true, 'All Courses', $lession, 200);
+        $lessions = Lesson::where('course_id', $course_id)->where('chapter_id', $chapter_id)->get();
+
+        // Add a flag to each lesson
+        $lessions = $lessions->map(function ($lesson) {
+            $lesson->is_set = !empty($lesson->video_url) || !empty($lesson->duration);
+            return $lesson;
+        });
+
+        return $this->successResponse(true, 'All Courses', $lessions, 200);
     }
 
     // public function popularCourse()
