@@ -204,7 +204,7 @@ class CourseService extends Service
      * @param integer $duration
      * @return mixed
      */
-    public function lessonStore($course_id, $chapter_id, $video, $duration)
+    public function lessonStore($course_id, $chapter_id, $video, $duration, $lesson_id)
     {
         try {
             DB::beginTransaction();
@@ -231,7 +231,7 @@ class CourseService extends Service
             DB::commit();
             if ($res) {
                 return $this->successResponse(true, 'Lesson created successfully.', [
-                    'lesson_id'    => $lesson->id,
+                    'lesson_id'    => $lesson_id,
                     'course_id'    => $lesson->course_id,
                     'chapter_id'   => $lesson->chapter_id,
                     'lesson_order' => $lesson->lesson_order,
