@@ -99,7 +99,7 @@ class EventController extends Controller
             ->select('events.id', 'events.title', 'events.thumbnail', 'events.event_date', 'events.event_location', 'events.category_id', 'events.status')
             ->leftJoin('book_events', 'events.id', '=', 'book_events.event_id') // Join with book_events to calculate popularity
             ->selectRaw('COUNT(book_events.id) as bookings_count')
-            ->groupBy('events.id', 'events.title', 'events.thumbnail', 'events.event_location', 'events.category_id', 'events.status')
+            ->groupBy('events.id', 'events.title', 'events.thumbnail', 'events.event_date', 'events.event_location', 'events.category_id', 'events.status')
             ->orderByDesc('bookings_count') // Order by popularity
             ->limit(10) // Limit to top 10 events
             ->get();
