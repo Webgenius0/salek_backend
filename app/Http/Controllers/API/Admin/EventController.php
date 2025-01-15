@@ -103,6 +103,7 @@ class EventController extends Controller
             ->orderByDesc('bookings_count') // Order by popularity
             ->limit(10) // Limit to top 10 events
             ->get();
+            
 
         if ($events->isEmpty()) {
             return $this->success([], 'No popular events found.', 200);
