@@ -227,14 +227,19 @@ class CourseService extends Service
             $lesson->video_url    = $videoPath;
             $lesson->duration     = $duration;
 
-            $lesson['lession_id'] = $lesson->id;
-
             $res = $lesson->save();
             DB::commit();
             if ($res) {
-                return $this->successResponse(true, 'Lesson created successfully.', $lesson, 201);
+                return $this->successResponse(true, 'Lesson created successfully.', [
+                    'lesson_id'    => $lesson->id,
+                    'course_id'    => $lesson->course_id,
+                    'chapter_id'   => $lesson->chapter_id,
+                    'lesson_order' => $lesson->lesson_order,
+                    'video_url'    => $lesson->video_url,
+                    'duration'     => $lesson->duration,
+                ], 201);
             }
-        } catch (\Exception $e) {
+        }  catch (\Exception $e) {
             DB::rollback();
             info($e);
             return $this->failedResponse('Failed to create lesson.', $e->getMessage(), 500);
