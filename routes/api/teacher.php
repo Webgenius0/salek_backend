@@ -24,6 +24,7 @@ Route::middleware(['auth:api', 'onlyTeacher'])->group(function () {
         Route::prefix('course')->name('course.')->group(function () {
             Route::post('/store', 'store')->name('store');
             Route::get('/details/{id}', 'show')->name('details');
+            Route::get('/details/short/{id}', 'showShort');
             Route::post('/chpater/store', 'chapterStore')->name('chapter');
             Route::post('/lesson/store', 'lessonStoreTwo')->name('lesson');
             Route::post('/lesson/next/store', 'lessonStore');

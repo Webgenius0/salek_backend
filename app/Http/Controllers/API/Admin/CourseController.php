@@ -242,6 +242,10 @@ class CourseController extends Controller
     {
         return $this->courseServiceObj->show($id);
     }
+    public function showShort($id)
+    {
+        return $this->courseServiceObj->showShort($id);
+    }
 
     /**
      * Current Course

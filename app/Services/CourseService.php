@@ -479,6 +479,29 @@ class CourseService extends Service
 
         return $this->successResponse(true, 'Course with chapters and lessons', $data, 200);
     }
+    public function showShort($id)
+    {
+        $course = Course::with(['category', 'creator'])->find($id);
+
+        if (!$course) {
+            return $this->failedResponse('Course not found', 404);
+        }
+
+        $data = [
+            'course_id'      => $course->id,
+            'course_title'   => $course->name,
+            'course_thumbnail'   => $course->cover_photo,
+            'course_video'   => $course->class_video,
+            'description'    => $course->description,
+            'category_name'  => $course->category ? $course->category->name : 'No category',
+            'total_duration' => $course->lessons->sum('duration'),
+            'total_class'    => $course->total_class,
+            'price'          => $course->price,
+
+        ];
+
+        return $this->successResponse(true, 'Course with chapters and lessons', $data, 200);
+    }
 
     /**
      * Current Course method
