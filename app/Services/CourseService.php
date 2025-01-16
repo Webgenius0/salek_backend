@@ -249,66 +249,66 @@ class CourseService extends Service
     // }
 
     public function lessonStore($course_id, $chapter_id, $video, $duration, $lesson_id = null, $photoPath = null)
-{
-    try {
-        DB::beginTransaction();
+    {
+        try {
+            DB::beginTransaction();
 
-        // Determine if updating an existing lesson or creating a new one
-        $lesson = $lesson_id ? Lesson::find($lesson_id) : new Lesson();
+            // Determine if updating an existing lesson or creating a new one
+            $lesson = $lesson_id ? Lesson::find($lesson_id) : new Lesson();
 
-        if ($lesson_id && !$lesson) {
+            if ($lesson_id && !$lesson) {
+                DB::rollback();
+                return $this->failedResponse('Lesson not found.', null, 404);
+            }
+
+            // Handle video upload
+            if ($video != null) {
+                $fileName  = time() . '.' . $video->getClientOriginalExtension();
+                $videoPath = 'uploads/course/lessons/videos/' . $fileName;
+                $video->move(public_path('uploads/course/lessons/videos'), $fileName);
+                $lesson->video_url = $videoPath; // Update video URL
+            }
+
+            // Handle photo upload
+            if ($photoPath) {
+                $lesson->photo = $photoPath; // Update photo path
+            }
+
+            // If creating a new lesson, calculate and set the lesson order
+            if (!$lesson_id) {
+                $lastLessonOrder = Lesson::where('chapter_id', $chapter_id)->max('lesson_order');
+                $lesson->lesson_order = $lastLessonOrder ? $lastLessonOrder + 1 : 1;
+            }
+
+            // Update lesson properties
+            $lesson->chapter_id = $chapter_id;
+            $lesson->course_id = $course_id;
+            $lesson->duration = $duration;
+
+            $res = $lesson->save();
+            DB::commit();
+
+            if ($res) {
+                return $this->successResponse(
+                    true,
+                    $lesson_id ? 'Lesson updated successfully.' : 'Lesson created successfully.',
+                    [
+                        'lesson_id'    => $lesson->id,
+                        'course_id'    => $lesson->course_id,
+                        'chapter_id'   => $lesson->chapter_id,
+                        'lesson_order' => $lesson->lesson_order,
+                        'video_url'    => $lesson->video_url,
+                        'duration'     => $lesson->duration,
+                        'photo'        => $lesson->photo,
+                    ],
+                    $lesson_id ? 200 : 201
+                );
+            }
+        } catch (\Exception $e) {
             DB::rollback();
-            return $this->failedResponse('Lesson not found.', null, 404);
+            return $this->failedResponse('Failed to process lesson.', $e->getMessage(), 500);
         }
-
-        // Handle video upload
-        if ($video != null) {
-            $fileName  = time() . '.' . $video->getClientOriginalExtension();
-            $videoPath = 'uploads/course/lessons/videos/' . $fileName;
-            $video->move(public_path('uploads/course/lessons/videos'), $fileName);
-            $lesson->video_url = $videoPath; // Update video URL
-        }
-
-        // Handle photo upload
-        if ($photoPath) {
-            $lesson->photo = $photoPath; // Update photo path
-        }
-
-        // If creating a new lesson, calculate and set the lesson order
-        if (!$lesson_id) {
-            $lastLessonOrder = Lesson::where('chapter_id', $chapter_id)->max('lesson_order');
-            $lesson->lesson_order = $lastLessonOrder ? $lastLessonOrder + 1 : 1;
-        }
-
-        // Update lesson properties
-        $lesson->chapter_id = $chapter_id;
-        $lesson->course_id = $course_id;
-        $lesson->duration = $duration;
-
-        $res = $lesson->save();
-        DB::commit();
-
-        if ($res) {
-            return $this->successResponse(
-                true,
-                $lesson_id ? 'Lesson updated successfully.' : 'Lesson created successfully.',
-                [
-                    'lesson_id'    => $lesson->id,
-                    'course_id'    => $lesson->course_id,
-                    'chapter_id'   => $lesson->chapter_id,
-                    'lesson_order' => $lesson->lesson_order,
-                    'video_url'    => $lesson->video_url,
-                    'duration'     => $lesson->duration,
-                    'photo'        => $lesson->photo,
-                ],
-                $lesson_id ? 200 : 201
-            );
-        }
-    } catch (\Exception $e) {
-        DB::rollback();
-        return $this->failedResponse('Failed to process lesson.', $e->getMessage(), 500);
     }
-}
 
 
     public function lessonStoreTwo($course_id, $chapter_id, string $name)
@@ -390,25 +390,64 @@ class CourseService extends Service
     public function parentPopularCourse()
     {
         // Fetch popular courses from all teachers
-    $popularCourses = Course::select(
-        'courses.id',
-        'courses.name',
-        'courses.cover_photo',
-        'courses.price',
-        'courses.total_class'
-    )
-        ->leftJoin('course_user', 'courses.id', '=', 'course_user.course_id')
-        ->leftJoin('reviews', 'courses.id', '=', 'reviews.reviewable_id')
-        ->selectRaw('
+        $popularCourses = Course::select(
+            'courses.id',
+            'courses.name',
+            'courses.cover_photo',
+            'courses.price',
+            'courses.total_class'
+        )
+            ->leftJoin('course_user', 'courses.id', '=', 'course_user.course_id')
+            ->leftJoin('reviews', 'courses.id', '=', 'reviews.reviewable_id')
+            ->selectRaw('
             COUNT(DISTINCT course_user.user_id) AS purchase_count,
             AVG(reviews.rating) AS avg_rating,
             COUNT(reviews.id) AS total_reviews,
             (COUNT(DISTINCT course_user.user_id) * 0.7 + AVG(reviews.rating) * 0.3) AS popularity_score
         ')
-        ->groupBy('courses.id', 'courses.name', 'courses.cover_photo', 'courses.price', 'courses.total_class')
-        ->orderBy('popularity_score', 'desc')
-        ->take(10) // Adjust this number to control how many courses are fetched
-        ->get();
+            ->groupBy('courses.id', 'courses.name', 'courses.cover_photo', 'courses.price', 'courses.total_class')
+            ->orderBy('popularity_score', 'desc')
+            ->take(10) // Adjust this number to control how many courses are fetched
+            ->get();
+
+
+
+        $data = $popularCourses->map(function ($course) {
+            return [
+                'course_id'    => $course->id,
+                'course_title' => $course->name,
+                'thumbnail'    => $course->cover_photo,
+                'price'        => $course->price,
+                'review'       => number_format($course->avg_rating, 1) . ' (' . $course->total_reviews . ' Reviews)',
+                'total_class'  => $course->total_class,
+                'students'     => 1234,
+            ];
+        });
+
+        return $this->successResponse(true, 'Popular Courses', $data, 200);
+    }
+    public function studentPopularCourse()
+    {
+        // Fetch popular courses from all teachers
+        $popularCourses = Course::select(
+            'courses.id',
+            'courses.name',
+            'courses.cover_photo',
+            'courses.price',
+            'courses.total_class'
+        )
+            ->leftJoin('course_user', 'courses.id', '=', 'course_user.course_id')
+            ->leftJoin('reviews', 'courses.id', '=', 'reviews.reviewable_id')
+            ->selectRaw('
+            COUNT(DISTINCT course_user.user_id) AS purchase_count,
+            AVG(reviews.rating) AS avg_rating,
+            COUNT(reviews.id) AS total_reviews,
+            (COUNT(DISTINCT course_user.user_id) * 0.7 + AVG(reviews.rating) * 0.3) AS popularity_score
+        ')
+            ->groupBy('courses.id', 'courses.name', 'courses.cover_photo', 'courses.price', 'courses.total_class')
+            ->orderBy('popularity_score', 'desc')
+            ->take(10) // Adjust this number to control how many courses are fetched
+            ->get();
 
 
 
