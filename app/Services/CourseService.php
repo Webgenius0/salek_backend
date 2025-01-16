@@ -470,6 +470,7 @@ class CourseService extends Service
             'description'    => $course->description,
             'total_duration' => $course->lessons->sum('duration'),
             'total_class'    => $course->total_class,
+            'price'          => $course->price,
             'instructor'     => [
                 'avatar'      => $course->creator->profile->avatar ?? null,
                 'name'        => $course->creator->name,
