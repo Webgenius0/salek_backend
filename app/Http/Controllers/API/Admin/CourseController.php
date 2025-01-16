@@ -98,6 +98,10 @@ class CourseController extends Controller
     {
         return $this->courseServiceObj->parentPopularCourse();
     }
+    public function studentPopularCourse()
+    {
+        return $this->courseServiceObj->studentPopularCourse();
+    }
 
     /**
      * course store method
