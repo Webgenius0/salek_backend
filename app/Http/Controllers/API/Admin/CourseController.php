@@ -403,37 +403,26 @@ class CourseController extends Controller
         return $this->successResponse(true, 'All Courses', $lessions, 200);
     }
 
-    // public function popularCourse()
-    // {
-    //     // Fetch courses with relationships and calculate ratings
-    //     $courses = Course::with(['students', 'reviews'])
-    //         ->where('created_by', Auth::id()) // Get courses created by the authenticated teacher
-    //         ->get();
+    public function getLesson($course_id, $chapter_id, $lesson_id)
+    {
+        try {
+            // Build the query with course_id and chapter_id
+            $query = Lesson::where('course_id', $course_id)
+                           ->where('chapter_id', $chapter_id)
+                           ->where('id', $lesson_id);
 
-    //     // Map and calculate the required data
-    //     $data = $courses->map(function ($course) {
-    //         $ratingCount   = $course->reviews->count();
-    //         $ratingSum     = $course->reviews->sum('rating');
-    //         $averageRating = $ratingCount > 0 ? number_format($ratingSum / $ratingCount, 1) : 0;
+            // Fetch the lesson(s)
+            $lesson = $query->get();
 
-    //         return [
-    //             'course_id'      => $course->id,
-    //             'course_title'   => $course->introduction_title,
-    //             'cover_photo'    => $course->cover_photo,
-    //             'tag'            => 'Online Course',
-    //             'price'          => $course->price,
-    //             'total_class'    => $course->total_class ?? 0,
-    //             'students'       => $course->students->count() ?? 0,
-    //             'rating_count'   => $ratingCount,
-    //             'rating_sum'     => $ratingSum,
-    //             'course_status'  => $course->status,
-    //             'average_rating' => $averageRating,
-    //         ];
-    //     });
+            // Check if any lesson exists
+            if ($lesson->isEmpty()) {
+                return $this->failedResponse('Lesson not found for the given criteria.', null, 404);
+            }
 
-    //     // Sort courses by highest average rating
-    //     $sortedData = $data->sortByDesc('average_rating')->values();
-
-    //     return $this->successResponse(true, 'Popular Courses', $sortedData, 200);
-    // }
+            // Return the lesson(s) details
+            return $this->successResponse(true, 'Lesson(s) retrieved successfully.', $lesson, 200);
+        } catch (\Exception $e) {
+            return $this->failedResponse('Failed to fetch lesson.', $e->getMessage(), 500);
+        }
+    }
 }

@@ -75,6 +75,12 @@ Route::middleware(['auth:api', 'onlyTeacher'])->group(function () {
             Route::get('teacher/popular', 'popularCourse');
         });
     });
+    Route::controller(CourseController::class)->group(function () {
+        Route::prefix('course')->name('course.')->group(function () {
+            Route::get('/lessons/{course_id}/{chapter_id}/{lesson_id}', 'getLesson');
+
+        });
+    });
 
 
 });
