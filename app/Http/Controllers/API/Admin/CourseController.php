@@ -191,10 +191,10 @@ class CourseController extends Controller
         $user   = User::find(Auth::id());
         $course = Course::find($course_id);
 
-          // Handle voice memo update (delete old and upload new)
-          if ($request->hasFile('photo')) {
+        // Handle voice memo update (delete old and upload new)
+        if ($request->hasFile('photo')) {
 
-            $photoPath = ImageService::uploadeImage($photo , 'lessons/');
+            $photoPath = ImageService::uploadeImage($photo, 'lessons/');
         }
 
         $checkItem = HelperService::checkItemByCourse($course_id, $chapter_id);
@@ -410,21 +410,28 @@ class CourseController extends Controller
     public function getLesson($course_id, $chapter_id, $lesson_id)
     {
         try {
-            // Build the query with course_id and chapter_id
-            $query = Lesson::where('course_id', $course_id)
-                           ->where('chapter_id', $chapter_id)
-                           ->where('id', $lesson_id);
+            // Fetch the lesson directly with the provided criteria
+            $lesson = Lesson::where('course_id', $course_id)
+                ->where('chapter_id', $chapter_id)
+                ->where('id', $lesson_id)
+                ->first();
 
-            // Fetch the lesson(s)
-            $lesson = $query->get();
-
-            // Check if any lesson exists
-            if ($lesson->isEmpty()) {
+            // Check if the lesson exists
+            if (!$lesson) {
                 return $this->failedResponse('Lesson not found for the given criteria.', null, 404);
             }
 
-            // Return the lesson(s) details
-            return $this->successResponse(true, 'Lesson(s) retrieved successfully.', $lesson, 200);
+            // Return the lesson details
+            return $this->successResponse(true, 'Lesson retrieved successfully.', [
+                'lesson_id'    => $lesson->id,
+                'course_id'    => $lesson->course_id,
+                'chapter_id'   => $lesson->chapter_id,
+                'lesson_order' => $lesson->lesson_order,
+                'name'         => $lesson->name,
+                'video_url'    => $lesson->video_url,
+                'duration'     => $lesson->duration,
+                'photo'        => $lesson->photo,
+            ], 200);
         } catch (\Exception $e) {
             return $this->failedResponse('Failed to fetch lesson.', $e->getMessage(), 500);
         }
