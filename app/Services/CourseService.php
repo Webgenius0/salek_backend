@@ -204,49 +204,113 @@ class CourseService extends Service
      * @param integer $duration
      * @return mixed
      */
-    public function lessonStore($course_id, $chapter_id, $video, $duration, $lesson_id, $photoPath = null)
-    {
-        try {
-            DB::beginTransaction();
+    // public function lessonStore($course_id, $chapter_id, $video, $duration, $lesson_id, $photoPath = null)
+    // {
+    //     try {
+    //         DB::beginTransaction();
 
-            $lesson = new Lesson();
+    //         $lesson = new Lesson();
 
-            $videoPath = null;
-            if ($video != null) {
-                $fileName  = time() . '.' . $video->getClientOriginalExtension();
-                $videoPath = 'uploads/course/lessons/videos/' . $fileName;
-                $video->move(public_path('uploads/course/lessons/videos'), $fileName);
-            }
+    //         $videoPath = null;
+    //         if ($video != null) {
+    //             $fileName  = time() . '.' . $video->getClientOriginalExtension();
+    //             $videoPath = 'uploads/course/lessons/videos/' . $fileName;
+    //             $video->move(public_path('uploads/course/lessons/videos'), $fileName);
+    //         }
 
-            $lastLessonOrder = Lesson::where('chapter_id', $chapter_id)
-                ->max('lesson_order');
+    //         $lastLessonOrder = Lesson::where('chapter_id', $chapter_id)
+    //             ->max('lesson_order');
 
-            $lesson->chapter_id   = $chapter_id;
-            $lesson->course_id    = $course_id;
+    //         $lesson->chapter_id   = $chapter_id;
+    //         $lesson->course_id    = $course_id;
+    //         $lesson->lesson_order = $lastLessonOrder ? $lastLessonOrder + 1 : 1;
+    //         $lesson->video_url    = $videoPath;
+    //         $lesson->duration     = $duration;
+    //         $lesson->photo        = $photoPath;
+
+    //         $res = $lesson->save();
+    //         DB::commit();
+    //         if ($res) {
+    //             return $this->successResponse(true, 'Lesson created successfully.', [
+    //                 'lesson_id'    => $lesson_id,
+    //                 'course_id'    => $lesson->course_id,
+    //                 'chapter_id'   => $lesson->chapter_id,
+    //                 'lesson_order' => $lesson->lesson_order,
+    //                 'video_url'    => $lesson->video_url,
+    //                 'duration'     => $lesson->duration,
+    //                 'photo'     => $lesson->photo,
+    //             ], 201);
+    //         }
+    //     }  catch (\Exception $e) {
+    //         DB::rollback();
+    //         info($e);
+    //         return $this->failedResponse('Failed to create lesson.', $e->getMessage(), 500);
+    //     }
+    // }
+
+    public function lessonStore($course_id, $chapter_id, $video, $duration, $lesson_id = null, $photoPath = null)
+{
+    try {
+        DB::beginTransaction();
+
+        // Determine if updating an existing lesson or creating a new one
+        $lesson = $lesson_id ? Lesson::find($lesson_id) : new Lesson();
+
+        if ($lesson_id && !$lesson) {
+            DB::rollback();
+            return $this->failedResponse('Lesson not found.', null, 404);
+        }
+
+        // Handle video upload
+        if ($video != null) {
+            $fileName  = time() . '.' . $video->getClientOriginalExtension();
+            $videoPath = 'uploads/course/lessons/videos/' . $fileName;
+            $video->move(public_path('uploads/course/lessons/videos'), $fileName);
+            $lesson->video_url = $videoPath; // Update video URL
+        }
+
+        // Handle photo upload
+        if ($photoPath) {
+            $lesson->photo = $photoPath; // Update photo path
+        }
+
+        // If creating a new lesson, calculate and set the lesson order
+        if (!$lesson_id) {
+            $lastLessonOrder = Lesson::where('chapter_id', $chapter_id)->max('lesson_order');
             $lesson->lesson_order = $lastLessonOrder ? $lastLessonOrder + 1 : 1;
-            $lesson->video_url    = $videoPath;
-            $lesson->duration     = $duration;
-            $lesson->photo        = $photoPath;
+        }
 
-            $res = $lesson->save();
-            DB::commit();
-            if ($res) {
-                return $this->successResponse(true, 'Lesson created successfully.', [
-                    'lesson_id'    => $lesson_id,
+        // Update lesson properties
+        $lesson->chapter_id = $chapter_id;
+        $lesson->course_id = $course_id;
+        $lesson->duration = $duration;
+
+        $res = $lesson->save();
+        DB::commit();
+
+        if ($res) {
+            return $this->successResponse(
+                true,
+                $lesson_id ? 'Lesson updated successfully.' : 'Lesson created successfully.',
+                [
+                    'lesson_id'    => $lesson->id,
                     'course_id'    => $lesson->course_id,
                     'chapter_id'   => $lesson->chapter_id,
                     'lesson_order' => $lesson->lesson_order,
                     'video_url'    => $lesson->video_url,
                     'duration'     => $lesson->duration,
-                    'photo'     => $lesson->photo,
-                ], 201);
-            }
-        }  catch (\Exception $e) {
-            DB::rollback();
-            info($e);
-            return $this->failedResponse('Failed to create lesson.', $e->getMessage(), 500);
+                    'photo'        => $lesson->photo,
+                ],
+                $lesson_id ? 200 : 201
+            );
         }
+    } catch (\Exception $e) {
+        DB::rollback();
+        return $this->failedResponse('Failed to process lesson.', $e->getMessage(), 500);
     }
+}
+
+
     public function lessonStoreTwo($course_id, $chapter_id, string $name)
     {
         try {
