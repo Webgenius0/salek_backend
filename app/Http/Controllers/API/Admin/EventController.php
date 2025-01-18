@@ -184,7 +184,7 @@ class EventController extends Controller
         $event = Event::with(['eventBook.user.profile'])->find($id);
 
         // Get the authenticated user
-        $authenticatedUserId = auth()->id;
+        $authenticatedUserId = auth('api')->user()->id;
 
         // Check if the authenticated user has purchased the event
         $isPurchased = $event->eventBook->contains('user_id', $authenticatedUserId);
