@@ -19,7 +19,7 @@ use function PHPUnit\Framework\returnSelf;
 class InstructorController extends Controller
 {
     use ApiResponse;
-    
+
     /**
     * Display a listing of instructors.
     *
@@ -80,7 +80,7 @@ class InstructorController extends Controller
         $upcomingEvents = $events->filter(function($event){
             return $event->status === 'upcoming';
         });
-        
+
         $data = [
             'student_overview' => [
                 'new_student'   => count($newUsers),
@@ -119,7 +119,7 @@ class InstructorController extends Controller
         if(!$student):
             return $this->failedResponse('Student not found', 404);
         endif;
-        
+
         $lessonUser = LessonUser::where('user_id', $id)->where('updated_at', now())->latest()->first();
 
         $totalDuration = 10;
@@ -128,16 +128,16 @@ class InstructorController extends Controller
         if($lessonUser):
             $lesson        = Lesson::with('course')->find($lessonUser->lesson_id);
             $chapters      = $lesson->course->chapters->load('lessons');
-            
+
             $totalDuration = $chapters->flatMap(function ($chapter) {
                 return $chapter->lessons;
             })->sum('duration');
-            
+
             $learnToday = $lessonUser->watched_time;
         endif;
-        
+
         $currentCourse = $student->purchasedCourses()->latest('purchased_at')->first();
-        
+
         $currentCourseOverview = StudentProgress::where('course_id', $currentCourse->id)->where('user_id', $id)->first();
 
         $totalCourse = $student->purchasedCourses->count();
@@ -150,7 +150,7 @@ class InstructorController extends Controller
             'avatar'             => $student->profile->avatar ?? asset('files/images/user.png'),
             'learned_today'      => round($learnToday / 60) . ' min',
             'total_time'         => $totalDuration . ' min',
-            'completion_rate'    => $currentCourseOverview->course_progress + $currentCourseOverview->homework_progress,
+            'completion_rate'    => $currentCourseOverview->course_progress + $currentCourseOverview->homework_progress ?? null,
             'total_course'       => $totalCourse,
             'achievements'       => 6
         ];
@@ -168,7 +168,7 @@ class InstructorController extends Controller
      * description, price, and status.
      *
      * @param int $id The ID of the student.
-     * @return \Illuminate\Http\JsonResponse A JSON response containing the success status, message, 
+     * @return \Illuminate\Http\JsonResponse A JSON response containing the success status, message,
      *                                       course data, and HTTP status code.
     */
     public function studentCourses($id)
@@ -176,7 +176,7 @@ class InstructorController extends Controller
         $studentCourseIds = CourseUser::where('user_id', $id)->pluck('course_id');
 
         $courses = Course::whereIn('id', $studentCourseIds)->where('status', 'publish')->get();
-        
+
         $data = $courses->map(function($course){
             return [
                 'course_id' => $course->id,
