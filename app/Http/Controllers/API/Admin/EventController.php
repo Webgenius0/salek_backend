@@ -257,7 +257,7 @@ class EventController extends Controller
 
         $eventGuest = BookEvent::with('user')->whereIn('user_id', $guests)->get()->map(function ($guest) {
             return [
-                'avatar'    => $guest->user->profile->avatar,
+                'avatar'    => $guest->user->profile->avatar ?? null,
                 'name'      => $guest->user->name,
                 'bookId'    => $guest->booking_code,
                 'date_book' => Carbon::parse($guest->created_at)->format('dM,Y')
