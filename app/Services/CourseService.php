@@ -87,11 +87,11 @@ class CourseService extends Service
         int $category_id,
         int $totalClass,
         int $price,
+        $start_date,
         int $total_month,
         int $additional_charge,
         string $introduction_title,
         $cover_photo,
-        $start_date,
         $class_video
     ) {
         try {
@@ -136,6 +136,7 @@ class CourseService extends Service
                     'status'             => $this->courseObj->status,
                     'cover_photo'        => asset($this->courseObj->cover_photo),
                     'class_video'        => asset($this->courseObj->class_video),
+                    'start_date'         => $this->courseObj->start_date,
                     'created_at'         => $this->courseObj->created_at,
                 ];
 
@@ -511,6 +512,7 @@ class CourseService extends Service
             'description'    => $course->description,
             'total_duration' => $course->lessons->sum('duration'),
             'total_class'    => $course->total_class,
+            'start_date'    => $course->start_date,
             'price'          => $course->price,
             'instructor'     => [
                 'avatar'      => $course->creator->profile->avatar ?? null,
