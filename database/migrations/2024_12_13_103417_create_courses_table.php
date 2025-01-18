@@ -26,6 +26,7 @@ return new class extends Migration
             $table->string('introduction_title', 250)->nullable();
             $table->string('cover_photo', 250)->nullable();
             $table->string('class_video', 250)->nullable();
+            $table->date('start_date')->nullable();
 
             $table->enum('status', ['publish', 'unpublish']);
             $table->timestamps();

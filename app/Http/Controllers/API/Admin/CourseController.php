@@ -120,6 +120,7 @@ class CourseController extends Controller
         $total_month        = $request->input('total_month');
         $additional_charge  = $request->input('additional_charge');
         $introduction_title = $request->input('introduction_title');
+        $start_date         = $request->input('start_date');
 
         $cover_photo = null;
         if ($request->hasFile('cover_photo')) {
@@ -138,6 +139,7 @@ class CourseController extends Controller
             (int) $category_id,
             (int) $totalClass,
             (int) $price,
+            $start_date,
             (int) $total_month,
             (int) $additional_charge,
             (string) $introduction_title,

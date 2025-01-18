@@ -91,6 +91,7 @@ class CourseService extends Service
         int $additional_charge,
         string $introduction_title,
         $cover_photo,
+        $start_date,
         $class_video
     ) {
         try {
@@ -118,6 +119,7 @@ class CourseService extends Service
             $this->courseObj->total_month        = $total_month;
             $this->courseObj->additional_charge  = $additional_charge;
             $this->courseObj->introduction_title = $introduction_title;
+            $this->courseObj->start_date         = $start_date;
             $this->courseObj->status             = 'publish';
 
             $res = $this->courseObj->save();
