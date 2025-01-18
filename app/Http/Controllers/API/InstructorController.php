@@ -150,7 +150,7 @@ class InstructorController extends Controller
             'avatar'             => $student->profile->avatar ?? asset('files/images/user.png'),
             'learned_today'      => round($learnToday / 60) . ' min',
             'total_time'         => $totalDuration . ' min',
-            'completion_rate'    => ($currentCourseOverview->course_progress + $currentCourseOverview->homework_progress) ?? null,
+            'completion_rate'    => ($currentCourseOverview->course_progress) ?? null  + ($currentCourseOverview->homework_progress) ?? null,
             'total_course'       => $totalCourse,
             'achievements'       => 6
         ];
