@@ -117,7 +117,7 @@ class CourseController extends Controller
         $category_id        = $request->input('category_id');
         $totalClass         = $request->input('total_class');
         $price              = $request->input('price');
-        $total_month        = $request->input('total_month');
+        $total_month        = (int) $request->input('total_month');
         $additional_charge  = $request->input('additional_charge');
         $introduction_title = $request->input('introduction_title');
         $start_date         = $request->input('start_date');
