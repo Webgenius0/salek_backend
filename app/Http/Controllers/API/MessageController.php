@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Auth;
 class MessageController extends Controller
 {
     public $messageServiceObj;
-[[7]]
+
     public function __construct()
     {
         $this->messageServiceObj = new MessageService();
