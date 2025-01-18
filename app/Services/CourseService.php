@@ -50,7 +50,7 @@ class CourseService extends Service
             $averageRating = $ratingCount > 0 ? number_format($ratingSum / $ratingCount, 1) : null;
             return [
                 'course_id'      => $course->id,
-                'course_title'   => $course->introduction_title,
+                'course_title'   => $course->name,
                 'cover_photo'    => $course->cover_photo,
                 'tag'            => 'Online Course',
                 'price'          => $course->price,
