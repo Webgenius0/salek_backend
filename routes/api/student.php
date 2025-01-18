@@ -51,7 +51,7 @@ Route::middleware(['auth:api', 'onlyStudent'])->group(function () {
     Route::prefix('events')->name('event.')->group(function () {
         Route::controller(EventController::class)->group(function () {
             Route::post('/booking', 'bookEvent')->name('booking');
-            Route::get('student/details/{id}', 'show');
+            Route::get('student/details/{id}', 'studentShow');
         });
     });
 

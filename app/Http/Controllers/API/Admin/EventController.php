@@ -103,7 +103,7 @@ class EventController extends Controller
             ->orderByDesc('bookings_count') // Order by popularity
             ->limit(10) // Limit to top 10 events
             ->get();
-            
+
 
         if ($events->isEmpty()) {
             return $this->success([], 'No popular events found.', 200);
@@ -179,6 +179,39 @@ class EventController extends Controller
 
         return $this->successResponse(true, 'Event details', $data, 200);
     }
+    public function studentShow($id)
+    {
+        $event = Event::with(['eventBook.user.profile'])->find($id);
+
+        // Get the authenticated user
+        $authenticatedUserId = auth()->id;
+
+        // Check if the authenticated user has purchased the event
+        $isPurchased = $event->eventBook->contains('user_id', $authenticatedUserId);
+
+        $data = [
+            'event_id'       => $event->id,
+            'event_title'    => $event->title,
+            'event_slug'     => $event->slug,
+            'description'    => $event->description,
+            'event_location' => $event->event_location,
+            'category'       => $event->category->name,
+            'price'          => $event->price,
+            'thumbnail'      => $event->thumbnail,
+            'created_by'     => $event->creator->name,
+            'status'         => $event->status,
+            'event_date'     => $event->event_date,
+            'is_purchased'   => $isPurchased, // Add the purchase status flag
+            'attendance'     => $event->eventBook->map(function ($book) {
+                return [
+                    'attendance_id' => $book->user_id,
+                    'avatar' => $book->user->profile->avatar ?? null
+                ];
+            })
+        ];
+
+        return $this->successResponse(true, 'Event details', $data, 200);
+    }
 
     /**
      * Books an event based on the provided request data.
@@ -222,7 +255,7 @@ class EventController extends Controller
         $guests = User::where('role', 'student')->pluck('id');
         // dd($guests);
 
-        $eventGuest = BookEvent::with('user')->whereIn('user_id', $guests)->get()->map(function($guest){
+        $eventGuest = BookEvent::with('user')->whereIn('user_id', $guests)->get()->map(function ($guest) {
             return [
                 'avatar'    => $guest->user->profile->avatar,
                 'name'      => $guest->user->name,
