@@ -357,6 +357,7 @@ class CourseService extends Service
             'courses.id',
             'courses.name',
             'courses.cover_photo',
+            'courses.course_video',
             'courses.price',
             'courses.total_class'
         )
@@ -381,6 +382,7 @@ class CourseService extends Service
                 'course_id'    => $course->id,
                 'course_title' => $course->name,
                 'thumbnail'    => $course->cover_photo,
+                'course_video' => $course->course_video,
                 'price'        => $course->price,
                 'review'       => number_format($course->avg_rating, 1) . ' (' . $course->total_reviews . ' Reviews)',
                 'total_class'  => $course->total_class,
