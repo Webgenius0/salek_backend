@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('course_id')->nullable()->constrained('courses')->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('chapter_id')->nullable()->constrained('chapters')->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('lesson_id')->nullable()->constrained('lessons')->onUpdate('cascade')->onDelete('cascade');
-            $table->text('title');
+            $table->text('title')->nullable();
             $table->datetime('deadline')->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();

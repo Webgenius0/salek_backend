@@ -131,7 +131,7 @@ class HomeworkController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'title' => 'required|string',
+            'title' => 'nullable|string',
             'course_id' => 'nullable|exists:courses,id',
             'chapter_id' => 'nullable|exists:chapters,id',
             'lesson_id' => 'nullable|exists:lessons,id',
