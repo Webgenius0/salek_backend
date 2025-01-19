@@ -130,7 +130,7 @@ class HomeworkController extends Controller
 
     public function store(Request $request)
     {
-        dd($request->all());
+        // dd($request->all());
         $validated = $request->validate([
             'title' => 'required|string',
             'course_id' => 'nullable|exists:courses,id',
