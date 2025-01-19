@@ -137,7 +137,7 @@ class HomeworkController extends Controller
             'chapter_id' => 'nullable|exists:chapters,id',
             'lesson_id' => 'nullable|exists:lessons,id',
             'deadline' => 'nullable|date',
-            'questions' => 'required|array',
+            'question' => 'required|array',
             'question.*' => 'required|string',
         ]);
 
