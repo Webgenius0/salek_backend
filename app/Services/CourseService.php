@@ -516,6 +516,7 @@ class CourseService extends Service
             'total_class'    => $course->total_class,
             'start_date'    => $course->start_date,
             'price'          => $course->price,
+            'status'         => $course->status,
             'instructor'     => [
                 'avatar'      => $course->creator->profile->avatar ?? null,
                 'name'        => $course->creator->name,
