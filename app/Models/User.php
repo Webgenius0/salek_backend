@@ -81,7 +81,7 @@ class User extends Authenticatable implements JWTSubject
                     ->withTimestamps();
     }
 
-    
+
     public function courses()
     {
         return $this->hasMany(Course::class, 'created_by');
@@ -114,5 +114,15 @@ class User extends Authenticatable implements JWTSubject
     public function profile()
     {
         return $this->hasOne(Profile::class);
+    }
+
+    public function getStudents()
+    {
+        return User::select('users.*')
+            ->join('course_user', 'users.id', '=', 'course_user.user_id')
+            ->join('courses', 'course_user.course_id', '=', 'courses.id')
+            ->where('courses.created_by', $this->id) // $this->id refers to the teacher's ID
+            ->distinct()
+            ->get();
     }
 }

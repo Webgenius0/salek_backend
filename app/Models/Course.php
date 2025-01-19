@@ -80,13 +80,4 @@ class Course extends Model
         return $this->hasMany(CourseUser::class, 'course_id', 'id');
     }
 
-    public function getStudents()
-    {
-        return User::select('users.*')
-            ->join('course_user', 'users.id', '=', 'course_user.user_id')
-            ->join('courses', 'course_user.course_id', '=', 'courses.id')
-            ->where('courses.created_by', $this->id) // $this->id refers to the teacher's ID
-            ->distinct()
-            ->get();
-    }
 }
