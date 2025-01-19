@@ -34,8 +34,11 @@ class EventController extends Controller
         endif;
 
         $events = $query->get();
+        // Get the authenticated user ID
+        $authenticatedUserId = auth('api')->id();
 
-        $events = $events->map(function ($event) {
+        $events = $events->map(function ($event) use ($authenticatedUserId) {
+            $isPurchased = $event->eventBook->contains('user_id', $authenticatedUserId);
             return [
                 'event_id' => $event->id,
                 'event_title' => $event->title,
@@ -47,6 +50,7 @@ class EventController extends Controller
                     'category_id' => $event->category->id,
                     'category_name' => $event->category->name,
                 ],
+                'is_purchased' => $isPurchased,
                 'attendance' => $event->eventBook->map(function ($book) {
                     return [
                         'attendance_id' => $book->user_id,
