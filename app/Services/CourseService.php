@@ -370,7 +370,7 @@ class CourseService extends Service
             COUNT(reviews.id) AS total_reviews,
             (COUNT(DISTINCT course_user.user_id) * 0.7 + AVG(reviews.rating) * 0.3) AS popularity_score
         ')
-            ->groupBy('courses.id', 'courses.name', 'courses.cover_photo', 'courses.price', 'courses.total_class')
+            ->groupBy('courses.id', 'courses.name', 'courses.cover_photo', 'courses.price', 'courses.total_class', 'courses.class_video')
             ->orderBy('popularity_score', 'desc')
             ->take(10)
             ->get();
