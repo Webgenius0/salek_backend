@@ -49,7 +49,6 @@ Route::middleware(['auth:api', 'onlyTeacher'])->group(function () {
 
         // Event Booking Overview
         Route::get('/booking/overview', 'bookingOverview')->name('booking-overview');
-
     });
 
     Route::controller(HomeworkController::class)->group(function () {
@@ -79,17 +78,11 @@ Route::middleware(['auth:api', 'onlyTeacher'])->group(function () {
     Route::controller(CourseController::class)->group(function () {
         Route::prefix('course')->name('course.')->group(function () {
             Route::get('/lessons/{course_id}/{chapter_id}/{lesson_id}', 'getLesson');
-
         });
     });
     Route::controller(CourseController::class)->group(function () {
-        Route::prefix('course')->name('course.')->group(function () {
-            Route::get('/teacher/student/list', 'getTeacherStudents');
 
-        });
+        Route::get('/teacher/student/list', 'getTeacherStudents');
     });
-
-
-
 });
 //'END' :- For admin route
