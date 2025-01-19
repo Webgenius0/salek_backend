@@ -136,7 +136,6 @@ class HomeworkController extends Controller
             'chapter_id' => 'nullable|exists:chapters,id',
             'lesson_id' => 'nullable|exists:lessons,id',
             'deadline' => 'nullable|date',
-            'status' => 'required|in:active,inactive',
             'questions' => 'required|array',
             'questions.*.label' => 'nullable|string',
             'questions.*.question' => 'required|string',
@@ -148,7 +147,6 @@ class HomeworkController extends Controller
             'lesson_id' => $request->lesson_id,
             'title' => $request->title,
             'deadline' => $request->deadline,
-            'status' => $request->status,
         ]);
 
         foreach ($validated['questions'] as $q) {
