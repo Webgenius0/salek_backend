@@ -138,9 +138,9 @@ class HomeworkController extends Controller
             'lesson_id' => 'nullable|exists:lessons,id',
             'deadline' => 'nullable|date',
             'questions' => 'required|array',
-            'questions.*.label' => 'nullable|string',
-            'questions.*.question' => 'required|string',
+            'question.*' => 'required|string',
         ]);
+
 
         $homework = Homework::create([
             'course_id' => $request->course_id,
