@@ -130,7 +130,6 @@ class HomeworkController extends Controller
 
     public function store(Request $request)
     {
-        // dd($request->all());
         $validated = $request->validate([
             'title' => 'required|string',
             'course_id' => 'nullable|exists:courses,id',
@@ -138,31 +137,34 @@ class HomeworkController extends Controller
             'lesson_id' => 'nullable|exists:lessons,id',
             'deadline' => 'nullable|date',
             'question' => 'required|array',
-            'question.*' => 'required|string',
+            'question.*.label' => 'required|string', // Validate label as a string
+            'question.*.question' => 'required|string', // Validate question as a string
         ]);
 
-
+        // Create the homework
         $homework = Homework::create([
-            'course_id' => $request->course_id,
-            'chapter_id' => $request->chapter_id,
-            'lesson_id' => $request->lesson_id,
-            'title' => $request->title,
-            'deadline' => $request->deadline,
+            'course_id' => $validated['course_id'],
+            'chapter_id' => $validated['chapter_id'],
+            'lesson_id' => $validated['lesson_id'],
+            'title' => $validated['title'],
+            'deadline' => $validated['deadline'],
         ]);
 
-        foreach ($validated['questions'] as $q) {
+        // Attach questions to the homework
+        foreach ($validated['question'] as $q) {
             $homework->questions()->create([
-                'label' => $q['label'],
-                'question' => $q['question'],
+                'label' => $q['label'], // Use the provided label
+                'question' => $q['question'], // Use the provided question
             ]);
         }
 
+        // Return success response
         return response()->json([
             'message' => 'Homework created successfully',
             'data' => $homework->load('questions')
         ], 201);
-    }
 
+    }
 
 
 }
