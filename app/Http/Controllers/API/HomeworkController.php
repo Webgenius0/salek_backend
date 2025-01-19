@@ -140,6 +140,7 @@ class HomeworkController extends Controller
             'questions.*.label' => 'nullable|string',
             'questions.*.question' => 'required|string',
         ]);
+        dd($validated);
 
         $homework = Homework::create([
             'course_id' => $request->course_id,
