@@ -458,9 +458,14 @@ class CourseController extends Controller
         // Get the teacher's students
         $students = $teacher->getStudents();
 
-        return response()->json([
-            'message' => 'Students fetched successfully',
-            'data' => $students
-        ], 200);
+        $data = $students->map(function($student){
+            return [
+                'id'     => $student->id,
+                'name'   => $student->name,
+                'avatar' => $student->profile->avatar ?? 'files/images/user.png',
+            ];
+        });
+
+        return $this->successResponse(true, 'Student List', $data, 200);
     }
 }
