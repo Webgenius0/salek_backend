@@ -442,4 +442,25 @@ class CourseController extends Controller
             return $this->failedResponse('Failed to fetch lesson.', $e->getMessage(), 500);
         }
     }
+
+    public function getTeacherStudents()
+    {
+        // Find the teacher
+
+        $id = auth('api')->user()->id;
+
+        $teacher = User::find($id);
+
+        if (!$teacher) {
+            return response()->json(['message' => 'Teacher not found'], 404);
+        }
+
+        // Get the teacher's students
+        $students = $teacher->getStudents();
+
+        return response()->json([
+            'message' => 'Students fetched successfully',
+            'data' => $students
+        ], 200);
+    }
 }

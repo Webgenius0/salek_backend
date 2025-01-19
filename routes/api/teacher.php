@@ -82,6 +82,13 @@ Route::middleware(['auth:api', 'onlyTeacher'])->group(function () {
 
         });
     });
+    Route::controller(CourseController::class)->group(function () {
+        Route::prefix('course')->name('course.')->group(function () {
+            Route::get('/teacher/student/list', 'getTeacherStudents');
+
+        });
+    });
+
 
 
 });
