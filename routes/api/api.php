@@ -13,6 +13,7 @@ use App\Http\Controllers\API\InstructorController;
 use App\Http\Controllers\API\Admin\CourseController;
 use App\Http\Controllers\API\BookingController;
 use App\Http\Controllers\API\CardController;
+use App\Http\Controllers\API\ChatController;
 use App\Http\Controllers\API\MessageController;
 use App\Http\Controllers\API\NotificationController;
 use App\Http\Controllers\API\SubscriptionController;
@@ -165,3 +166,11 @@ Route::middleware(['auth:api'])->group(function () {
 //'END' :- For global route
 
 Route::post('/stripe/webhook', [PaymentController::class, 'handleWebhook'])->name('stripe.webhook');
+
+
+
+// For chat route
+Route::get('/chat/get/{user}', [ChatController::class, 'getMessages']);
+Route::post('/chat/send/{user}', [ChatController::class, 'sendMessage']);
+Route::get('/chat/group/{user}', [ChatController::class, 'getGroup']);
+// For chat route

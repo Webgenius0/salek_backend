@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('otp', 10)->nullable();
             $table->timestamp('otp_expire_at')->nullable();
             $table->enum('role', ['student', 'parent', 'teacher', 'admin', 'customer_care'])->default('student');
+            $table->string('avatar')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
