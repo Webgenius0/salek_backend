@@ -3,6 +3,7 @@ $settings = \App\Models\Setting::first();
 @endphp
 <!doctype html>
 <html lang="en" dir="ltr">
+
 <head>
     <!-- META DATA -->
     <meta charset="UTF-8">
@@ -22,10 +23,10 @@ $settings = \App\Models\Setting::first();
     <!-- Scripts -->
 
     @vite(['resources/js/app.js'])
-    
+
     @include('backend.partials.styles')
-    
-    
+
+
 </head>
 
 <body class="ltr app sidebar-mini">
@@ -45,9 +46,23 @@ $settings = \App\Models\Setting::first();
         @include('backend.partials.footer')
 
     </div>
-    <!-- page -->
     @include('backend.partials.scripts')
     
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let groupId=3;
+            console.log(groupId);
+            if (groupId) {
+                Echo.private(`chat.${groupId}`).listen('MessageSent', (e) => {
+                    console.log('Message Receiver:', e.message);
+                    if ($('#ReceiverId').val()) {
+                        getMessage($('#ReceiverId').val());
+                    }
+                });
+            }
+        });
+    </script>
+    <!-- page -->
 </body>
 
 </html>
