@@ -170,6 +170,7 @@ Route::post('/stripe/webhook', [PaymentController::class, 'handleWebhook'])->nam
 
 
 // For chat route
+Route::get('/chat/all', [ChatController::class, 'index']);
 Route::get('/chat/get/{user}', [ChatController::class, 'getMessages']);
 Route::post('/chat/send/{user}', [ChatController::class, 'sendMessage']);
 Route::get('/chat/group/{user}', [ChatController::class, 'getGroup']);
