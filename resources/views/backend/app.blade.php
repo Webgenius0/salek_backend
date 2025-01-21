@@ -58,6 +58,8 @@ $settings = \App\Models\Setting::first();
                     if ($('#ReceiverId').val()) {
                         getMessage($('#ReceiverId').val());
                     }
+                }).listenForWhisper('typing', (e) => {
+                    console.log(e.name + ' is typing...');
                 });
             }
         });
