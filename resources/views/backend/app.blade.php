@@ -50,7 +50,7 @@ $settings = \App\Models\Setting::first();
     
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            let groupId=8;
+            let groupId=1;
             console.log(groupId);
             if (groupId) {
                 Echo.private(`chat.${groupId}`).listen('MessageSent', (e) => {
