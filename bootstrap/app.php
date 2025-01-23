@@ -20,6 +20,10 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::middleware(['api'])->prefix('api')->name('api.')->group(base_path('routes/api/global.php'));
         }
     )
+    ->withBroadcasting(
+        __DIR__.'/../routes/channels.php',
+        ['prefix' => 'api', 'middleware' => ['auth:api']],
+    )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'onlyTeacher' => \App\Http\Middleware\CheckTeacher::class,
