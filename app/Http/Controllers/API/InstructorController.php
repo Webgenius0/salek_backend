@@ -4,16 +4,17 @@ namespace App\Http\Controllers\API;
 
 use App\Models\User;
 use App\Models\Event;
+use App\Models\Course;
+use App\Models\Lesson;
+use App\Models\Review;
 use App\Models\Payment;
+use App\Models\CourseUser;
+use App\Models\LessonUser;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use App\Models\Course;
-use App\Models\CourseUser;
-use App\Models\Lesson;
-use App\Models\LessonUser;
 use App\Models\StudentProgress;
 
+use App\Http\Controllers\Controller;
 use function PHPUnit\Framework\returnSelf;
 
 class InstructorController extends Controller
@@ -107,10 +108,9 @@ class InstructorController extends Controller
     public function show($id)
     {
         // Retrieve the teacher details
-        $teacher = User::with(['reviews','profile'])
+        $teacher = User::with(['reviews'])
             ->where('id', $id)
             ->where('role', 'teacher')
-            ->select()
             ->first();
 
         if (!$teacher) {
@@ -137,8 +137,21 @@ class InstructorController extends Controller
             ->groupBy('courses.id', 'courses.name', 'courses.cover_photo', 'courses.price', 'courses.total_class')
             ->get();
 
-        // Map the teacher's courses into a detailed structure
+        // Map the teacher's courses into a detailed structure, including reviews
         $courses = $teacherCourses->map(function ($course) {
+            // Retrieve reviews for each course with reviewer details
+            $reviews = Review::select(
+                'reviews.id',
+                'reviews.rating',
+                'reviews.comment',
+                'users.name as reviewer_name',
+                'users.avatar as reviewer_avatar'
+            )
+                ->join('users', 'reviews.user_id', '=', 'users.id')
+                ->where('reviews.reviewable_id', $course->id)
+                ->where('reviews.reviewable_type', Course::class)
+                ->get();
+
             return [
                 'course_id'    => $course->id,
                 'course_title' => $course->name,
@@ -148,6 +161,15 @@ class InstructorController extends Controller
                 'total_class'  => $course->total_class,
                 'purchase_count' => $course->purchase_count,
                 'popularity_score' => $course->popularity_score,
+                'reviews' => $reviews->map(function ($review) {
+                    return [
+                        'review_id'     => $review->id,
+                        'rating'        => $review->rating,
+                        'comment'       => $review->comment,
+                        'reviewer_name' => $review->reviewer_name,
+                        'reviewer_avatar' => $review->reviewer_avatar,
+                    ];
+                }),
             ];
         });
 
@@ -156,7 +178,7 @@ class InstructorController extends Controller
             'teacher' => [
                 'id'    => $teacher->id,
                 'name'  => $teacher->name,
-                'avatar' => $student->profile->avatar ?? asset('files/images/user.png'),
+                'email' => $teacher->email,
                 'reviews' => $teacher->reviews,
             ],
             'courses' => $courses,
