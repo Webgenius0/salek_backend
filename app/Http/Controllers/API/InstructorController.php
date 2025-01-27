@@ -137,21 +137,8 @@ class InstructorController extends Controller
             ->groupBy('courses.id', 'courses.name', 'courses.cover_photo', 'courses.price', 'courses.total_class')
             ->get();
 
-        // Map the teacher's courses into a detailed structure, including reviews
+        // Map the teacher's courses into a detailed structure
         $courses = $teacherCourses->map(function ($course) {
-            // Retrieve reviews for each course with reviewer details
-            $reviews = Review::select(
-                'reviews.id',
-                'reviews.rating',
-                'reviews.comment',
-                'users.name as reviewer_name',
-                'users.avatar as reviewer_avatar'
-            )
-                ->join('users', 'reviews.user_id', '=', 'users.id')
-                ->where('reviews.reviewable_id', $course->id)
-                ->where('reviews.reviewable_type', Course::class)
-                ->get();
-
             return [
                 'course_id'    => $course->id,
                 'course_title' => $course->name,
@@ -161,27 +148,40 @@ class InstructorController extends Controller
                 'total_class'  => $course->total_class,
                 'purchase_count' => $course->purchase_count,
                 'popularity_score' => $course->popularity_score,
-                'reviews' => $reviews->map(function ($review) {
-                    return [
-                        'review_id'     => $review->id,
-                        'rating'        => $review->rating,
-                        'comment'       => $review->comment,
-                        'reviewer_name' => $review->reviewer_name,
-                        'reviewer_avatar' => $review->reviewer_avatar,
-                    ];
-                }),
             ];
         });
 
-        // Build the response with teacher details and their courses
+        // Combine all reviews for the teacher's courses
+        $reviews = Review::select(
+            'reviews.id as review_id',
+            'reviews.rating',
+            'reviews.comment',
+            'users.name as reviewer_name',
+            'users.avatar as reviewer_avatar',
+            'reviews.reviewable_id as course_id'
+        )
+            ->join('users', 'reviews.user_id', '=', 'users.id')
+            ->whereIn('reviews.reviewable_id', $teacherCourses->pluck('id')) // Reviews for the teacher's courses
+            ->get();
+
+        // Build the response
         $response = [
             'teacher' => [
                 'id'    => $teacher->id,
                 'name'  => $teacher->name,
                 'email' => $teacher->email,
-                'reviews' => $teacher->reviews,
             ],
             'courses' => $courses,
+            'reviews' => $reviews->map(function ($review) {
+                return [
+                    'review_id'       => $review->review_id,
+                    'course_id'       => $review->course_id,
+                    'rating'          => $review->rating,
+                    'comment'         => $review->comment,
+                    'reviewer_name'   => $review->reviewer_name,
+                    'reviewer_avatar' => $review->reviewer_avatar,
+                ];
+            }),
         ];
 
         return $this->successResponse(true, 'Teacher Profile Retrieved Successfully', $response, 200);
