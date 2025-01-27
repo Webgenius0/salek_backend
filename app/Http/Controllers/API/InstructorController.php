@@ -106,6 +106,7 @@ class InstructorController extends Controller
     */
     public function show($id)
     {
+        dd($id);
         $teacher = User::where('id', $id)->where('role', 'teacher')->first();
         dd($teacher);
 
