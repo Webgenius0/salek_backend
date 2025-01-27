@@ -139,6 +139,10 @@ class InstructorController extends Controller
 
         // Map the teacher's courses into a detailed structure
         $courses = $teacherCourses->map(function ($course) {
+
+            $totalStudents =CourseUser::where('course_id', $course->id)
+            ->count('user_id'); // Count distinct students
+
             return [
                 'course_id'    => $course->id,
                 'course_title' => $course->name,
@@ -146,8 +150,7 @@ class InstructorController extends Controller
                 'price'        => $course->price,
                 'review'       => number_format($course->avg_rating, 1) . ' (' . $course->total_reviews . ' Reviews)',
                 'total_class'  => $course->total_class,
-                'purchase_count' => $course->purchase_count,
-                'popularity_score' => $course->popularity_score,
+                'total_students' => $totalStudents,
             ];
         });
 
@@ -169,7 +172,7 @@ class InstructorController extends Controller
             'teacher' => [
                 'id'    => $teacher->id,
                 'name'  => $teacher->name,
-                'email' => $teacher->email,
+                'avatar' => $teacher->profile->avatar ?? asset('files/images/user.png'),
             ],
             'courses' => $courses,
             'reviews' => $reviews->map(function ($review) {
@@ -179,7 +182,7 @@ class InstructorController extends Controller
                     'rating'          => $review->rating,
                     'comment'         => $review->comment,
                     'reviewer_name'   => $review->reviewer_name,
-                    'reviewer_avatar' => $review->reviewer_avatar,
+                    'reviewer_avatar' => $review->reviewer_avatar ?? asset('files/images/user.png'),
                 ];
             }),
         ];
