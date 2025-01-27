@@ -106,8 +106,8 @@ class InstructorController extends Controller
     */
     public function show($id)
     {
-        $teacher = User::where('id', $id)->where('role', 'teacher')->first();
-     
+        $teacher = User::where('id', $id)->where('role', 'teacher')->get();
+
         if(!$teacher){
             return $this->failedResponse('Instructor not found', 404);
         }
