@@ -106,24 +106,63 @@ class InstructorController extends Controller
     */
     public function show($id)
     {
-        // $teacher = User::where('id', $id)->where('role', 'teacher')->first();
+        // Retrieve the teacher details
+        $teacher = User::with(['reviews','profile'])
+            ->where('id', $id)
+            ->where('role', 'teacher')
+            ->select()
+            ->first();
 
-        // Retrieve the teacher with related upcoming courses and reviews
-    $teacher = User::with([
-        'courses' => function ($query) {
-            $query->where('start_date', '>', now()); // Assuming 'start_date' is the field for course schedule
-        },
-        'reviews'
-    ])
-    ->where('id', $id)
-    ->where('role', 'teacher')
-    ->first();
-
-        if(!$teacher){
+        if (!$teacher) {
             return $this->failedResponse('Instructor not found', 404);
         }
 
-        return $this->successResponse(true, 'Teacher Profile Retrived Successfully', $teacher, 200);
+        // Retrieve the teacher's courses with additional calculated columns
+        $teacherCourses = Course::select(
+            'courses.id',
+            'courses.name',
+            'courses.cover_photo',
+            'courses.price',
+            'courses.total_class'
+        )
+            ->leftJoin('course_user', 'courses.id', '=', 'course_user.course_id')
+            ->leftJoin('reviews', 'courses.id', '=', 'reviews.reviewable_id')
+            ->selectRaw('
+                COUNT(DISTINCT course_user.user_id) AS purchase_count,
+                AVG(reviews.rating) AS avg_rating,
+                COUNT(reviews.id) AS total_reviews,
+                (COUNT(DISTINCT course_user.user_id) * 0.7 + AVG(reviews.rating) * 0.3) AS popularity_score
+            ')
+            ->where('courses.created_by', $id) // Fetch only courses created by this teacher
+            ->groupBy('courses.id', 'courses.name', 'courses.cover_photo', 'courses.price', 'courses.total_class')
+            ->get();
+
+        // Map the teacher's courses into a detailed structure
+        $courses = $teacherCourses->map(function ($course) {
+            return [
+                'course_id'    => $course->id,
+                'course_title' => $course->name,
+                'thumbnail'    => $course->cover_photo,
+                'price'        => $course->price,
+                'review'       => number_format($course->avg_rating, 1) . ' (' . $course->total_reviews . ' Reviews)',
+                'total_class'  => $course->total_class,
+                'purchase_count' => $course->purchase_count,
+                'popularity_score' => $course->popularity_score,
+            ];
+        });
+
+        // Build the response with teacher details and their courses
+        $response = [
+            'teacher' => [
+                'id'    => $teacher->id,
+                'name'  => $teacher->name,
+                'avatar' => $student->profile->avatar ?? asset('files/images/user.png'),
+                'reviews' => $teacher->reviews,
+            ],
+            'courses' => $courses,
+        ];
+
+        return $this->successResponse(true, 'Teacher Profile Retrieved Successfully', $response, 200);
     }
 
     public function studentProfile($id)
