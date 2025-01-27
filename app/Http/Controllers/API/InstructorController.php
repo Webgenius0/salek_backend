@@ -106,11 +106,13 @@ class InstructorController extends Controller
     */
     public function show($id)
     {
-        $teacher = User::where('id', $id)->where('role', 'teacher')->get();
+        $teacher = User::where('id', $id)->where('role', 'teacher')->first();
 
         if(!$teacher){
             return $this->failedResponse('Instructor not found', 404);
         }
+
+        return $this->successResponse(true, 'Teacher Profile Retrived Successfully', $teacher, 200);
     }
 
     public function studentProfile($id)
