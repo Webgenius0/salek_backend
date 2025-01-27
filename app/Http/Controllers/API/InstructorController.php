@@ -106,7 +106,18 @@ class InstructorController extends Controller
     */
     public function show($id)
     {
-        $teacher = User::where('id', $id)->where('role', 'teacher')->first();
+        // $teacher = User::where('id', $id)->where('role', 'teacher')->first();
+
+        // Retrieve the teacher with related upcoming courses and reviews
+    $teacher = User::with([
+        'courses' => function ($query) {
+            $query->where('start_date', '>', now()); // Assuming 'start_date' is the field for course schedule
+        },
+        'reviews'
+    ])
+    ->where('id', $id)
+    ->where('role', 'teacher')
+    ->first();
 
         if(!$teacher){
             return $this->failedResponse('Instructor not found', 404);
