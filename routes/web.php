@@ -35,4 +35,18 @@ Route::get('/run-migrate-fresh', function () {
     }
 });
 
+Route::get('/optimize-clear', function () {
+    try {
+        Artisan::call('optimize:clear');
+        return response()->json([
+            'message' => 'Optimize cleared.',
+        ], 200);
+    } catch (\Exception $e) {
+        return response()->json([
+            'message' => 'An error occurred while clearing optimize.',
+            'error' => $e->getMessage(),
+        ], 500);
+    }
+});
+
 require __DIR__.'/auth.php';
