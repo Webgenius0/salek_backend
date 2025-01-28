@@ -39,6 +39,13 @@ class EventController extends Controller
         $authenticatedUserId = auth('api')->id();
 
         $events = $events->map(function ($event) use ($authenticatedUserId) {
+
+            // Update status if the event date has passed
+            if (now()->greaterThan($event->event_date) && $event->status !== 'expired') {
+                $event->status = 'expired';
+                $event->save();
+            }
+
             $isPurchased = $event->eventBook->contains('user_id', $authenticatedUserId);
             return [
                 'event_id' => $event->id,
@@ -161,12 +168,6 @@ class EventController extends Controller
     public function show($id)
     {
         $event = Event::with(['eventBook.user.profile'])->find($id);
-
-        // Check if the event date has passed and update the status in the database
-        if (now()->greaterThan($event->event_date) && $event->status !== 'expired') {
-            $event->status = 'expired';
-            $event->save();
-        }
 
 
         $data = [
