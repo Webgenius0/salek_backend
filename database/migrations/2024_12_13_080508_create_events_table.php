@@ -27,7 +27,7 @@ return new class extends Migration
             $table->longText('address')->nullable();
             $table->foreignId('created_by')->constrained('users')->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onUpdate('cascade')->onDelete('cascade');
-            $table->enum('status', ['on_going', 'upcoming', 'complete'])->default('upcoming');
+            $table->enum('status', ['on_going', 'upcoming', 'complete','expired'])->default('upcoming');
             $table->integer('flag')->default(0);
             $table->timestamps();
         });

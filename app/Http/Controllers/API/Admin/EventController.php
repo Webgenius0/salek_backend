@@ -162,6 +162,7 @@ class EventController extends Controller
     {
         $event = Event::with(['eventBook.user.profile'])->find($id);
 
+
         $data = [
             'event_id'       => $event->id,
             'event_title'    => $event->title,
@@ -172,7 +173,7 @@ class EventController extends Controller
             'price'          => $event->price,
             'thumbnail'      => $event->thumbnail,
             'created_by'     => $event->creator->name,
-            'status'         => $event->status,
+            'status' =>      now()->greaterThan($event->event_date) ? 'completed' : $event->status,
             'event_date'     => $event->event_date,
             'attendance'     => $event->eventBook->map(function ($book) {
                 return [
@@ -323,7 +324,8 @@ class EventController extends Controller
         }
     }
 
-    public function bookmarkList() {
+    public function bookmarkList()
+    {
 
         $userId = auth('api')->id();
 
@@ -336,5 +338,4 @@ class EventController extends Controller
 
         return $this->success($bookmarks, 'Bookmark list retrived successfully', 200);
     }
-
 }
