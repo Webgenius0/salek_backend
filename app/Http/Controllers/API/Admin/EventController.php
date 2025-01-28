@@ -284,42 +284,52 @@ class EventController extends Controller
 
 
     public function toggleBookmark(Request $request, $eventId)
-{
-    // Authenticate user
-    $userId = auth('api')->id();
+    {
+        // Authenticate user
+        $userId = auth('api')->id();
 
-    // Check if the event exists
-    $event = Event::find($eventId);
+        // Check if the event exists
+        $event = Event::find($eventId);
 
-    if (!$event) {
-        return response()->json([
-            'status' => true,
-            'message' => 'Event not found',
-        ], 200);
+        if (!$event) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Event not found',
+            ], 200);
+        }
+
+        // Check if the bookmark already exists
+        $bookmark = Bookmark::where('user_id', $userId)
+            ->where('event_id', $eventId)
+            ->first();
+
+        if ($bookmark) {
+            // If exists, remove the bookmark (toggle off)
+            $bookmark->delete();
+            return response()->json([
+                'status' => true,
+                'message' => 'Bookmark removed successfully',
+            ], 200);
+        } else {
+            // If not, create a new bookmark (toggle on)
+            Bookmark::create([
+                'user_id' => $userId,
+                'event_id' => $eventId,
+            ]);
+            return response()->json([
+                'status' => true,
+                'message' => 'Bookmark added successfully',
+            ], 201);
+        }
     }
 
-    // Check if the bookmark already exists
-    $bookmark = Bookmark::where('user_id', $userId)
-        ->where('event_id', $eventId)
-        ->first();
+    public function bookmarkList() {
+        
+        $userId = auth('api')->id();
 
-    if ($bookmark) {
-        // If exists, remove the bookmark (toggle off)
-        $bookmark->delete();
-        return response()->json([
-            'status' => true,
-            'message' => 'Bookmark removed',
-        ], 200);
-    } else {
-        // If not, create a new bookmark (toggle on)
-        Bookmark::create([
-            'user_id' => $userId,
-            'event_id' => $eventId,
-        ]);
-        return response()->json([
-            'status' => true,
-            'message' => 'Bookmark added',
-        ], 201);
+        $bookmarks = Bookmark::with('event')->where('user_id', $userId)->get();
+
+        return $this->success($bookmarks, 'Bookmark list retrived successfully', 200);
     }
-}
+
 }

@@ -52,6 +52,7 @@ Route::middleware(['auth:api', 'onlyStudent'])->group(function () {
         Route::controller(EventController::class)->group(function () {
             Route::post('/booking', 'bookEvent')->name('booking');
             Route::post('{id}/toggle-bookmark', 'toggleBookmark');
+            Route::get('bookmark/list', 'bookmarkList');
             Route::get('student/details/{id}', 'studentShow');
         });
     });
