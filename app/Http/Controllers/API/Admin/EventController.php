@@ -173,7 +173,7 @@ class EventController extends Controller
             'price'          => $event->price,
             'thumbnail'      => $event->thumbnail,
             'created_by'     => $event->creator->name,
-            'status' =>      now()->greaterThan($event->event_date) ? 'completed' : $event->status,
+            'status' =>      now()->greaterThan($event->event_date) ? 'expired' : $event->status,
             'event_date'     => $event->event_date,
             'attendance'     => $event->eventBook->map(function ($book) {
                 return [
