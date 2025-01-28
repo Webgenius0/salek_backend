@@ -481,7 +481,7 @@ class CourseService extends Service
      */
     public function show($id)
     {
-        $course = Course::with(['chapters.lessons', 'category', 'creator','reviews'])->find($id);
+        $course = Course::with(['chapters.lessons', 'category', 'creator', 'reviews'])->find($id);
 
         if (!$course) {
             return $this->failedResponse('Course not found', 404);
@@ -512,6 +512,22 @@ class CourseService extends Service
             ];
         }
 
+        // Prepare reviews data
+        $reviewsData = [];
+        foreach ($course->reviews as $review) {
+            $reviewsData[] = [
+                'user' => [
+                    'id'     => $review->user->id,
+                    'name'   => $review->user->name,
+                    'avatar' => $review->user->profile->avatar ?? null,
+                ],
+                'rating'  => $review->rating,
+                'comment' => $review->comment,
+                'reactions' => $review->reactions->count(), // Example: reaction count
+                'created_at' => $review->created_at->format('Y-m-d H:i:s'),
+            ];
+        }
+
         $data = [
             'course_id'      => $course->id,
             'course_title'   => $course->name,
@@ -523,12 +539,13 @@ class CourseService extends Service
             'start_date'    => $course->start_date,
             'price'          => $course->price,
             'status'         => $course->status,
-             'is_purchased'     => $isPurchased,
+            'is_purchased'     => $isPurchased,
             'instructor'     => [
                 'avatar'      => $course->creator->profile->avatar ?? null,
                 'name'        => $course->creator->name,
             ],
             'chapters' => $chaptersData,
+            'reviews'          => $reviewsData, // Include reviews
         ];
 
         return $this->successResponse(true, 'Course with chapters and lessons', $data, 200);
