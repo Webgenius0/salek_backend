@@ -46,7 +46,7 @@ class EventController extends Controller
                 'event_location' => $event->event_location,
                 'event_thumbnail' => $event->thumbnail,
                 'event_date' => Carbon::parse($event->event_date)->toDateTimeString(),
-                'status' =>      now()->greaterThan($event->event_date) ? 'expired' : $event->status,
+                'event_status' => $event->status,
                 'category' => [
                     'category_id' => $event->category->id,
                     'category_name' => $event->category->name,
