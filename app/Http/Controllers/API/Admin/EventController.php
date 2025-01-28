@@ -324,10 +324,15 @@ class EventController extends Controller
     }
 
     public function bookmarkList() {
-        
+
         $userId = auth('api')->id();
 
         $bookmarks = Bookmark::with('event')->where('user_id', $userId)->get();
+
+        if ($bookmarks->isEmpty()) {
+
+            return $this->success('Bookmark list not found', 200);
+        }
 
         return $this->success($bookmarks, 'Bookmark list retrived successfully', 200);
     }
