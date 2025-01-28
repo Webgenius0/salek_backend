@@ -7,13 +7,14 @@ use App\Models\User;
 use App\Models\Course;
 use App\Models\Lesson;
 use App\Models\Chapter;
+use App\Models\Purchase;
 use App\Models\CourseUser;
 use App\Models\LessonUser;
 use App\Traits\ApiResponse;
 use Illuminate\Support\Str;
 use App\Models\StudentProgress;
-use Illuminate\Support\Facades\DB;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Notifications\StudentNotification;
 use function PHPUnit\Framework\returnSelf;
@@ -486,6 +487,11 @@ class CourseService extends Service
             return $this->failedResponse('Course not found', 404);
         }
 
+        // Check if the authenticated user has purchased the course
+        $isPurchased = Purchase::where('user_id', auth('api')->id())
+            ->where('course_id', $id)
+            ->exists();
+
         $chaptersData = [];
 
         foreach ($course->chapters as $index => $chapter) {
@@ -517,6 +523,7 @@ class CourseService extends Service
             'start_date'    => $course->start_date,
             'price'          => $course->price,
             'status'         => $course->status,
+             'is_purchased'     => $isPurchased,
             'instructor'     => [
                 'avatar'      => $course->creator->profile->avatar ?? null,
                 'name'        => $course->creator->name,
