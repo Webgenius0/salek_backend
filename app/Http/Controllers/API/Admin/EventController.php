@@ -162,6 +162,12 @@ class EventController extends Controller
     {
         $event = Event::with(['eventBook.user.profile'])->find($id);
 
+        // Check if the event date has passed and update the status in the database
+        if (now()->greaterThan($event->event_date) && $event->status !== 'expired') {
+            $event->status = 'expired';
+            $event->save();
+        }
+
 
         $data = [
             'event_id'       => $event->id,
@@ -173,7 +179,7 @@ class EventController extends Controller
             'price'          => $event->price,
             'thumbnail'      => $event->thumbnail,
             'created_by'     => $event->creator->name,
-            'status' =>      now()->greaterThan($event->event_date) ? 'expired' : $event->status,
+            'status'         => $event->status,
             'event_date'     => $event->event_date,
             'attendance'     => $event->eventBook->map(function ($book) {
                 return [
