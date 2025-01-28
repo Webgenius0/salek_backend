@@ -481,7 +481,7 @@ class CourseService extends Service
      */
     public function show($id)
     {
-        $course = Course::with(['chapters.lessons', 'category', 'creator'])->find($id);
+        $course = Course::with(['chapters.lessons', 'category', 'creator','reviews'])->find($id);
 
         if (!$course) {
             return $this->failedResponse('Course not found', 404);
