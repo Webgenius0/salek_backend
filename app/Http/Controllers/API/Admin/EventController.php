@@ -167,8 +167,16 @@ class EventController extends Controller
      */
     public function show($id)
     {
+        // Get the authenticated user
+        $user = auth('api')->user();
+
         $event = Event::with(['eventBook.user.profile'])->find($id);
 
+        // Check if the authenticated user has bookmarked the event
+        $isBookmarked = false;
+        if ($user) {
+            $isBookmarked = $event->eventBook->contains('user_id', $user->id);
+        }
 
         $data = [
             'event_id'       => $event->id,
@@ -182,6 +190,9 @@ class EventController extends Controller
             'created_by'     => $event->creator->name,
             'status'         => $event->status,
             'event_date'     => $event->event_date,
+            'latitude'       => $event->latitude,
+            'longitude'      => $event->longitude,
+            'is_bookmarked'  => $isBookmarked,
             'attendance'     => $event->eventBook->map(function ($book) {
                 return [
                     'attendance_id' => $book->user_id,
