@@ -175,7 +175,7 @@ class EventController extends Controller
         // Check if the authenticated user has bookmarked the event
         $isBookmarked = false;
         if ($user) {
-            $isBookmarked = $event->eventBook->contains('user_id', $user->id);
+            $isBookmarked = $event->bookmarks->contains('user_id', $user->id);
         }
 
         $data = [
