@@ -36,7 +36,7 @@ class VideoController extends Controller
     public function show(ShowVideoRequest $request) : mixed
     {
         $user = User::find(Auth::id());
-        
+
         if(!$user || $user->role !== 'student') {
             return response()->json(['message' => 'User not found or You are not permitted.'], 404);
         }
@@ -58,7 +58,7 @@ class VideoController extends Controller
         }
 
         $video = $course->chapters->where('id', $chapterId)->first()->lessons->where('id', $lessonId)->first();
-        
+
         if(!$video) {
             return response()->json(['message' => 'Video not found.'], 404);
         }
@@ -78,7 +78,7 @@ class VideoController extends Controller
                 ['user_id' => $user->id, 'homework_id' => $studentProgress->id]
             );
         endif;
-        
+
         $data = [
             'name'        => $video->name,
             'video_url'   => $video->video_url,
@@ -100,11 +100,11 @@ class VideoController extends Controller
     public function update(ShowVideoRequest $request) : mixed
     {
         $user = User::find(Auth::id());
-        
+
         if(!$user || $user->role !== 'student') {
             return response()->json(['message' => 'User not found or You are not permitted.'], 404);
         }
-        
+
         $watchedTime = $request->input('watched_time');
         $courseId    = $request->input('course_id');
         $chapterId   = $request->input('chapter_id');
@@ -112,7 +112,7 @@ class VideoController extends Controller
 
 
         $course = Course::with(['chapters.lessons', 'homework'])->where('id',$courseId)->first();
-        
+
         $totalHomework = $course->homework->count();
 
         if(!$course) {
@@ -122,21 +122,21 @@ class VideoController extends Controller
         if (!CourseUser::where('user_id', $user->id)->where('course_id', $courseId)->where('access_granted', 1)->exists()) {
             return response()->json(['message' => 'You are not enrolled in this course.'], 403);
         }
-        
+
         $video = $course->chapters
             ->where('id', $chapterId)
             ->flatMap->lessons
             ->where('id', $lessonId)
             ->first();
-        
+
         if (!$video) {
             return response()->json(['message' => 'Video not found.'], 404);
         }
-        
+
         $lessonUser = LessonUser::firstOrNew(
             ['user_id' => $user->id, 'lesson_id' => $lessonId]
         );
-        
+
         if($lessonUser->completed == 1){
             return response()->json([
                 'status'  => false,
@@ -150,14 +150,14 @@ class VideoController extends Controller
         $perlessonNumber       = $totalCourseNumber / $course->lessons->count();
         $persecondLessonNumber = $perlessonNumber / $totalDuration;
 
-        
+
         $watchedTime += $lessonUser->watched_time;
         if($watchedTime >= $totalDuration){
-            
+
             if($watchedTime == $totalDuration){
                 $earnpoint = $watchedTime * $persecondLessonNumber;
                 $earnpoint = round($earnpoint, 2);
-                
+
                 $lessonUser->score        += $earnpoint;
                 $lessonUser->completed     = 1;
                 $lessonUser->completed_at  = now();
@@ -176,17 +176,17 @@ class VideoController extends Controller
             $watchedTime = $watchedTime - $totalDuration;
             $earnpoint   = $watchedTime * $persecondLessonNumber;
             $earnpoint   = round($earnpoint, 2);
-            
+
             $lessonUser->score        += $earnpoint;
             $lessonUser->completed     = 1;
             $lessonUser->completed_at  = now();
             $lessonUser->watched_time  = $totalDuration;
             $lessonUser->updated_at    = now();
-            
+
             $lessonUser->save();
 
             $this->videoServiceObj->progressCalucate($user->id, $course->id, $earnpoint);
-            
+
             return response()->json([
                 'message' => 'Your video is completely seen'
             ]);
@@ -197,9 +197,9 @@ class VideoController extends Controller
         $lessonUser->watched_time  = $watchedTime;
         $lessonUser->score        += $earnpoint;
         $lessonUser->updated_at    = now();
-        
+
         $res = $lessonUser->save();
-        
+
         if($res){
             $this->videoServiceObj->progressCalucate($user->id, $course->id, $earnpoint);
             return response()->json([
