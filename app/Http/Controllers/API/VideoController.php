@@ -253,9 +253,16 @@ class VideoController extends Controller
 
     if ($lessonUser->completed) {
         return response()->json([
-            'status'  => false,
-            'message' => 'Your progress is already updated.',
-            'code'    => 422
+            'status'       => true,
+            'message'      => 'Lesson already completed.',
+            'is_complete'  => true,
+            'score'        => $lessonUser->score,
+            'watched_time' => $lessonUser->watched_time,
+            'next_lesson_id' => Lesson::where('chapter_id', $chapterId)
+                ->where('id', '>', $lessonId)
+                ->orderBy('id')
+                ->first()
+                ?->id
         ]);
     }
 
