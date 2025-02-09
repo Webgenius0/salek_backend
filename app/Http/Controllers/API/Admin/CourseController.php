@@ -6,18 +6,20 @@ use App\Models\User;
 use App\Models\Course;
 use App\Models\Lesson;
 use App\Models\Chapter;
+use App\Models\CourseUser;
+use App\Models\LessonUser;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use App\Services\ImageService;
 use App\Services\CourseService;
 use App\Services\HelperService;
 use App\Http\Controllers\Controller;
+
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\CourseStoreRequest;
 
 use App\Http\Requests\LessonStoreRequest;
 use Illuminate\Support\Facades\Validator;
-
 use App\Http\Requests\ChapterStoreRequest;
 use function PHPUnit\Framework\returnSelf;
 use App\Http\Requests\LessonStoreRequestTwo;
@@ -458,7 +460,7 @@ class CourseController extends Controller
         // Get the teacher's students
         $students = $teacher->getStudents();
 
-        $data = $students->map(function($student){
+        $data = $students->map(function ($student) {
             return [
                 'id'     => $student->id,
                 'name'   => $student->name,
@@ -467,5 +469,53 @@ class CourseController extends Controller
         });
 
         return $this->successResponse(true, 'Student List', $data, 200);
+    }
+
+    public function getCourseChaptersWithLessons($courseId)
+    {
+        $user = auth('api')->user();
+
+        if (!$user || $user->role !== 'student') {
+            return response()->json(['message' => 'Unauthorized access.'], 403);
+        }
+
+        // Fetch course with chapters and lessons
+        $course = Course::with(['chapters.lessons'])->findOrFail($courseId);
+
+        if (!CourseUser::where('user_id', $user->id)->where('course_id', $courseId)->where('access_granted', 1)->exists()) {
+            return response()->json(['message' => 'You are not enrolled in this course.'], 403);
+        }
+
+        // Get user progress for lessons
+        $userLessonProgress = LessonUser::where('user_id', $user->id)
+            ->whereIn('lesson_id', $course->chapters->flatMap->lessons->pluck('id'))
+            ->get()
+            ->keyBy('lesson_id'); // Key by lesson_id for easy lookup
+
+        $courseData = [
+            'chapters' => $course->chapters->map(function ($chapter) use ($userLessonProgress) {
+                return [
+                    'chapter_name' => $chapter->name,
+                    'lessons'      => $chapter->lessons->map(function ($lesson) use ($userLessonProgress) {
+                        $progress = $userLessonProgress[$lesson->id] ?? null;
+
+                        return [
+                            'lesson_name'  => $lesson->name,
+                            'duration'     => (string) $lesson->duration, // Convert to string as in your sample
+                            'video_url'    => $lesson->video_url,
+                            'photo'        => str_replace('//', '/', $lesson->photo), // Fix double slashes
+                            'is_completed' => (bool) optional($progress)->completed,
+                            'watched_time' => optional($progress)->watched_time ?? 0
+                        ];
+                    }),
+                ];
+            }),
+        ];
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'Chapters and lessons with progress',
+            'data'    => $courseData
+        ]);
     }
 }
