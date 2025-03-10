@@ -26,6 +26,7 @@ class ChapterStoreRequest extends FormRequest
     {
         return [
             'course_id' => ['required', 'integer', 'exists:courses,id'],
+            'level_id' => ['required', 'integer', 'exists:levels,id'],
             'name'      => [
             'required',
             'string',

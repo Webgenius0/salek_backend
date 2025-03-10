@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API\Admin;
 
 use App\Models\User;
+use App\Models\Level;
 use App\Models\Course;
 use App\Models\Lesson;
 use App\Models\Chapter;
@@ -13,11 +14,11 @@ use Illuminate\Http\Request;
 use App\Services\ImageService;
 use App\Services\CourseService;
 use App\Services\HelperService;
+
 use App\Http\Controllers\Controller;
-
 use Illuminate\Support\Facades\Auth;
-use App\Http\Requests\CourseStoreRequest;
 
+use App\Http\Requests\CourseStoreRequest;
 use App\Http\Requests\LessonStoreRequest;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Requests\ChapterStoreRequest;
@@ -123,6 +124,7 @@ class CourseController extends Controller
         $additional_charge  = $request->input('additional_charge');
         $introduction_title = $request->input('introduction_title');
         $start_date         = $request->input('start_date');
+        $total_levels       = $request->input('total_levels');
 
         $cover_photo = null;
         if ($request->hasFile('cover_photo')) {
@@ -146,7 +148,8 @@ class CourseController extends Controller
             (int) $additional_charge,
             (string) $introduction_title,
             $cover_photo,
-            $class_video
+            $class_video,
+            (int) $total_levels
         );
     }
 
@@ -158,28 +161,33 @@ class CourseController extends Controller
      */
     public function chapterStore(ChapterStoreRequest $request)
     {
-        $course_id     = $request->input('course_id');
-        $name          = $request->input('name');
+        $course_id = $request->input('course_id');
+        $name = $request->input('name');
+        $level_id = $request->input('level_id'); // ✅ Get level_id from request
 
-        $user   = User::find(Auth::id());
+        // ✅ Validate that the Level belongs to the Course
+        $level = Level::where('id', $level_id)->where('course_id', $course_id)->first();
+        if (!$level) {
+            return $this->failedResponse('Invalid level for this course.', null, 400);
+        }
+
+        $user = User::find(Auth::id());
         $course = Course::find($course_id);
 
         if ($user->id != $course->created_by) {
             return $this->failedResponse('You have no permission to access this course', 403);
         }
 
-        $prevoiusChapter = Chapter::where('course_id', $course_id)->get()->toArray();
+        // ✅ Get the order for the new chapter within this level
+        $totalChapters = Chapter::where('course_id', $course_id)
+                                ->where('level_id', $level_id)
+                                ->count();
 
-        if (empty($prevoiusChapter)) {
-            return $this->courseServiceObj->chapterStore($course_id, $name, 'beginner', 1);
-        }
+        $chapter_order = $totalChapters + 1; // Increment chapter order
 
-        $totalChapter = count($prevoiusChapter);
-
-        $difficultyLevel = HelperService::getDifficultyLevel($totalChapter + 1);
-
-        return $this->courseServiceObj->chapterStore($course_id, $name, $difficultyLevel['level'], $difficultyLevel['order']);
+        return $this->courseServiceObj->chapterStore($course_id, $level_id, $name, $chapter_order);
     }
+
 
     /**
      * Lesson Store method

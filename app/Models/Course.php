@@ -19,6 +19,7 @@ class Course extends Model
         'introduction_title',
         'cover_photo',
         'class_video',
+        'total_levels',
         'status',
     ];
 
