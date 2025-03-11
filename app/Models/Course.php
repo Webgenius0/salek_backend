@@ -81,4 +81,8 @@ class Course extends Model
         return $this->hasMany(CourseUser::class, 'course_id', 'id');
     }
 
+    public function levels()
+    {
+        return $this->hasMany(Level::class);
+    }
 }
