@@ -566,6 +566,7 @@ class CourseService extends Service
         $levelsData = [];
         foreach ($course->levels as $level) {
             $levelsData[] = [
+                'level_id' => $level->id,
                 'course_id' => $level->course_id,
                 'level_name'    => $level->name,
                 'level_order'   => $level->level_order,
