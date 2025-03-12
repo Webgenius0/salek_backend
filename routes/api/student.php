@@ -86,7 +86,7 @@ Route::middleware(['auth:api', 'onlyStudent'])->group(function () {
     Route::controller(CourseController::class)->group(function () {
         Route::prefix('course')->name('course.')->group(function () {
             Route::get('/popular/student', 'studentPopularCourse');
-            Route::get('/{course_id}/levels', 'getLevelsByCourse');
+            Route::get('/student/{course_id}/levels', 'getLevelsByCourse');
         });
     });
 
