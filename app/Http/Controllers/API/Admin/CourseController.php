@@ -542,6 +542,7 @@ class CourseController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Levels retrieved successfully.',
+            'course' => $course,
             'data' => $levels
         ]);
     }
