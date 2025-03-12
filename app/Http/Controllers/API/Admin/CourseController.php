@@ -526,4 +526,23 @@ class CourseController extends Controller
             'data'    => $courseData
         ]);
     }
+
+    public function getLevelsByCourse($course_id) {
+
+       // Check if the course exists
+       $course = Course::find($course_id);
+
+       if (!$course) {
+           return response()->json(['message' => 'Course not found'], 404);
+       }
+
+       // Fetch levels associated with the course
+       $levels = Level::where('course_id', $course_id)->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Levels retrieved successfully.',
+            'data' => $levels
+        ]);
+    }
 }

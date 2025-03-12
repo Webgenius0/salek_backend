@@ -32,6 +32,7 @@ Route::middleware(['auth:api', 'onlyTeacher'])->group(function () {
             Route::get('/wise/chapter/{id}', 'courseWiseChapter')->name('wisechapter');
             Route::get('chapter/wise/lesson/{course_id}/{chapter_id}', 'courseChapterWiseLession')->name('wiselession');
             Route::post('/publish', 'publish')->name('publish');
+            Route::get('/{course_id}/levels', 'getLevelsByCourse');
         });
     });
 
