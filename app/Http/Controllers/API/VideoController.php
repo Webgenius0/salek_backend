@@ -273,7 +273,7 @@ class VideoController extends Controller
     $watchedTime = min($lessonUser->watched_time + $watchedTime, $totalDuration);
 
     // Calculate points
-    $totalHomework = $course->homework->count();
+    $totalHomework = $course->homework ? $course->homework->count() : 0;
     $totalCourseNumber = ($totalHomework > 0) ? 80 : 100;
     $perLessonPoints = $totalCourseNumber / $course->lessons->count();
     $perSecondPoints = $perLessonPoints / $totalDuration;
