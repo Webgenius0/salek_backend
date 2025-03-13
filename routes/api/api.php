@@ -102,7 +102,7 @@ Route::middleware(['auth:api'])->group(function () {
         Route::prefix('course')->name('course.')->group(function () {
             Route::get('/all', 'index')->name('list');
             Route::post('/details/{id}', 'show')->name('details');
-            Route::post('/level-wise/details/{id}', 'levelWise')->name('levelWise');
+            Route::post('/level/{levelId}', 'levelWise')->name('levelWise');
 
             Route::get('/{courseId}/chapters-lessons', 'getCourseChaptersWithLessons');
 

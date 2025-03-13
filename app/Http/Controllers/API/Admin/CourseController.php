@@ -569,47 +569,39 @@ class CourseController extends Controller
         ]);
     }
 
-    public function levelWise($id)
+    public function levelWise($levelId)
     {
-        // Eager load the course with levels, chapters, and lessons
-        $course = Course::with(['levels.chapters.lessons', 'category', 'creator', 'reviews.user.profile', 'reviews.reactions'])
-            ->find($id);
+        // Find the level with the given levelId, eager load the necessary relations
+        $level = Level::with(['course.chapters.lessons'])
+                    ->find($levelId);
 
-        if (!$course) {
-            return $this->failedResponse('Course not found', 404);
+        if (!$level) {
+            return $this->failedResponse('Level not found', 404);
         }
+
+        $course = $level->course; // Get the associated course for this level
 
         // Check if the authenticated user has purchased the course
         $isPurchased = Purchase::where('user_id', auth('api')->id())
-            ->where('course_id', $id)
+            ->where('course_id', $course->id)
             ->exists();
 
-        // Prepare levels data with chapters and lessons
-        $levelsData = $course->levels->map(function ($level) {
-            // For each level, get the chapters and lessons
-            $chaptersData = $level->chapters->map(function ($chapter) {
-                return [
-                    'chapter_name' => $chapter->name,
-                    'lessons' => $chapter->lessons->map(function ($lesson) {
-                        return [
-                            'lesson_name' => $lesson->name,
-                            'duration'    => $lesson->duration,
-                            'video_url'   => $lesson->video_url,
-                            'photo'       => $lesson->photo,
-                        ];
-                    })->toArray(),
-                ];
-            });
-
+        // Prepare chapters and lessons data
+        $chaptersData = $level->chapters->map(function ($chapter) {
             return [
-                'level_id'      => $level->id,
-                'level_name'    => $level->name,
-                'level_order'   => $level->level_order,
-                'chapters'      => $chaptersData,
+                'chapter_name' => $chapter->name,
+                'lessons' => $chapter->lessons->map(function ($lesson) {
+                    return [
+                        'lesson_name' => $lesson->name,
+                        'duration'    => $lesson->duration,
+                        'video_url'   => $lesson->video_url,
+                        'photo'       => $lesson->photo,
+                    ];
+                })->toArray(),
             ];
         });
 
-        // Prepare reviews data
+        // Prepare reviews data (Optional, if needed)
         $reviewsData = $course->reviews->map(function ($review) {
             return [
                 'user' => [
@@ -620,7 +612,7 @@ class CourseController extends Controller
                 'rating'    => $review->rating,
                 'comment'   => $review->comment,
                 'reactions' => $review->reactions->count(),
-                'created_at' => $review->created_at->format('Y-m-d H:i:s'),
+                'created_at'=> $review->created_at->format('Y-m-d H:i:s'),
             ];
         });
 
@@ -641,7 +633,14 @@ class CourseController extends Controller
                 'avatar' => $course->creator->profile->avatar ?? null,
                 'name'   => $course->creator->name,
             ],
-            'levels'         => $levelsData,
+            'levels'         => [
+                [
+                    'level_id'      => $level->id,
+                    'level_name'    => $level->name,
+                    'level_order'   => $level->level_order,
+                    'chapters'      => $chaptersData,
+                ]
+            ],
             'reviews'        => $reviewsData,
         ];
 
