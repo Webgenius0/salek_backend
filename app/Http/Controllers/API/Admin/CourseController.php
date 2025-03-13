@@ -7,17 +7,18 @@ use App\Models\Level;
 use App\Models\Course;
 use App\Models\Lesson;
 use App\Models\Chapter;
+use App\Models\Purchase;
 use App\Models\CourseUser;
 use App\Models\LessonUser;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use App\Services\ImageService;
 use App\Services\CourseService;
+
 use App\Services\HelperService;
-
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
 
+use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\CourseStoreRequest;
 use App\Http\Requests\LessonStoreRequest;
 use Illuminate\Support\Facades\Validator;
@@ -180,8 +181,8 @@ class CourseController extends Controller
 
         // ✅ Get the order for the new chapter within this level
         $totalChapters = Chapter::where('course_id', $course_id)
-                                ->where('level_id', $level_id)
-                                ->count();
+            ->where('level_id', $level_id)
+            ->count();
 
         $chapter_order = $totalChapters + 1; // Increment chapter order
 
@@ -527,17 +528,18 @@ class CourseController extends Controller
         ]);
     }
 
-    public function getLevelsByCourse($course_id) {
+    public function getLevelsByCourse($course_id)
+    {
 
-       // Check if the course exists
-       $course = Course::find($course_id);
+        // Check if the course exists
+        $course = Course::find($course_id);
 
-       if (!$course) {
-           return response()->json(['message' => 'Course not found'], 404);
-       }
+        if (!$course) {
+            return response()->json(['message' => 'Course not found'], 404);
+        }
 
-       // Fetch levels associated with the course
-       $levels = Level::where('course_id', $course_id)->get();
+        // Fetch levels associated with the course
+        $levels = Level::where('course_id', $course_id)->get();
 
         return response()->json([
             'status' => true,
@@ -547,22 +549,102 @@ class CourseController extends Controller
         ]);
     }
 
-    public function getLevelsByCourseTeacher($course_id) {
+    public function getLevelsByCourseTeacher($course_id)
+    {
 
-       // Check if the course exists
-       $course = Course::find($course_id);
+        // Check if the course exists
+        $course = Course::find($course_id);
 
-       if (!$course) {
-           return response()->json(['message' => 'Course not found'], 404);
-       }
+        if (!$course) {
+            return response()->json(['message' => 'Course not found'], 404);
+        }
 
-       // Fetch levels associated with the course
-       $levels = Level::where('course_id', $course_id)->get();
+        // Fetch levels associated with the course
+        $levels = Level::where('course_id', $course_id)->get();
 
         return response()->json([
             'status' => true,
             'message' => 'Levels retrieved successfully.',
             'data' => $levels
         ]);
+    }
+
+    public function levelWise($id)
+    {
+        // Eager load the course with levels, chapters, and lessons
+        $course = Course::with(['levels.chapters.lessons', 'category', 'creator', 'reviews.user.profile', 'reviews.reactions'])
+            ->find($id);
+
+        if (!$course) {
+            return $this->failedResponse('Course not found', 404);
+        }
+
+        // Check if the authenticated user has purchased the course
+        $isPurchased = Purchase::where('user_id', auth('api')->id())
+            ->where('course_id', $id)
+            ->exists();
+
+        // Prepare levels data with chapters and lessons
+        $levelsData = $course->levels->map(function ($level) {
+            // For each level, get the chapters and lessons
+            $chaptersData = $level->chapters->map(function ($chapter) {
+                return [
+                    'chapter_name' => $chapter->name,
+                    'lessons' => $chapter->lessons->map(function ($lesson) {
+                        return [
+                            'lesson_name' => $lesson->name,
+                            'duration'    => $lesson->duration,
+                            'video_url'   => $lesson->video_url,
+                            'photo'       => $lesson->photo,
+                        ];
+                    })->toArray(),
+                ];
+            });
+
+            return [
+                'level_id'      => $level->id,
+                'level_name'    => $level->name,
+                'level_order'   => $level->level_order,
+                'chapters'      => $chaptersData,
+            ];
+        });
+
+        // Prepare reviews data
+        $reviewsData = $course->reviews->map(function ($review) {
+            return [
+                'user' => [
+                    'id'     => $review->user->id,
+                    'name'   => $review->user->name,
+                    'avatar' => $review->user->profile->avatar ?? null,
+                ],
+                'rating'    => $review->rating,
+                'comment'   => $review->comment,
+                'reactions' => $review->reactions->count(),
+                'created_at' => $review->created_at->format('Y-m-d H:i:s'),
+            ];
+        });
+
+        // Structure the final response data
+        $data = [
+            'course_id'      => $course->id,
+            'course_title'   => $course->name,
+            'course_thumbnail' => $course->cover_photo,
+            'course_video'   => $course->class_video,
+            'description'    => $course->description,
+            'total_duration' => $course->lessons->sum('duration'),
+            'total_class'    => $course->total_class,
+            'start_date'     => $course->start_date,
+            'price'          => $course->price,
+            'status'         => $course->status,
+            'is_purchased'   => $isPurchased,
+            'instructor'     => [
+                'avatar' => $course->creator->profile->avatar ?? null,
+                'name'   => $course->creator->name,
+            ],
+            'levels'         => $levelsData,
+            'reviews'        => $reviewsData,
+        ];
+
+        return $this->successResponse(true, 'Level-wise course details with chapters and lessons', $data, 200);
     }
 }
