@@ -570,6 +570,94 @@ class CourseController extends Controller
         ]);
     }
 
+    // public function levelWise($levelId)
+    // {
+    //     // Find the level with the given levelId, eager load the necessary relations
+    //     $level = Level::with(['course.chapters.lessons'])
+    //         ->find($levelId);
+
+    //     if (!$level) {
+    //         return $this->failedResponse('Level not found', 404);
+    //     }
+
+    //     $course = $level->course; // Get the associated course for this level
+
+
+
+    //     // Check if the authenticated user has purchased the course
+    //     $isPurchased = Purchase::where('user_id', auth('api')->id())
+    //         ->where('course_id', $course->id)
+    //         ->exists();
+
+    //     // Prepare chapters and lessons data
+    //     $chaptersData = $level->chapters->map(function ($chapter) {
+    //         return [
+    //             'chapter_id'   => $chapter->id,
+    //             'chapter_name' => $chapter->name,
+    //             'lessons' => $chapter->lessons->map(function ($lesson) {
+    //                 $userId = auth('api')->id();
+    //                 $isCompleted = DB::table('lesson_user')
+    //                     ->where('user_id', $userId)
+    //                     ->where('lesson_id', $lesson->id)
+    //                     ->where('completed', true)
+    //                     ->exists();
+    //                 return [
+    //                     'lesson_id'    => $lesson->id,
+    //                     'lesson_name' => $lesson->name,
+    //                     'duration'    => $lesson->duration,
+    //                     'video_url'   => $lesson->video_url,
+    //                     'photo'       => $lesson->photo,
+    //                     'is_completed' => $isCompleted,
+    //                 ];
+    //             })->toArray(),
+    //         ];
+    //     });
+
+    //     // Prepare reviews data (Optional, if needed)
+    //     $reviewsData = $course->reviews->map(function ($review) {
+    //         return [
+    //             'user' => [
+    //                 'id'     => $review->user->id,
+    //                 'name'   => $review->user->name,
+    //                 'avatar' => $review->user->profile->avatar ?? null,
+    //             ],
+    //             'rating'    => $review->rating,
+    //             'comment'   => $review->comment,
+    //             'reactions' => $review->reactions->count(),
+    //             'created_at' => $review->created_at->format('Y-m-d H:i:s'),
+    //         ];
+    //     });
+
+    //     // Structure the final response data
+    //     $data = [
+    //         'course_id'      => $course->id,
+    //         'course_title'   => $course->name,
+    //         'course_thumbnail' => $course->cover_photo,
+    //         'course_video'   => $course->class_video,
+    //         'description'    => $course->description,
+    //         'total_duration' => $course->lessons->sum('duration'),
+    //         'total_class'    => $course->total_class,
+    //         'start_date'     => $course->start_date,
+    //         'price'          => $course->price,
+    //         'status'         => $course->status,
+    //         'is_purchased'   => $isPurchased,
+    //         'instructor'     => [
+    //             'avatar' => $course->creator->profile->avatar ?? null,
+    //             'name'   => $course->creator->name,
+    //         ],
+    //         'levels'         =>
+    //         [
+    //             'level_id'      => $level->id,
+    //             'level_name'    => $level->name,
+    //             'level_order'   => $level->level_order,
+    //             'chapters'      => $chaptersData,
+    //         ],
+    //         'reviews'        => $reviewsData,
+    //     ];
+
+    //     return $this->successResponse(true, 'Level-wise course details with chapters and lessons', $data, 200);
+    // }
+
     public function levelWise($levelId)
     {
         // Find the level with the given levelId, eager load the necessary relations
@@ -582,25 +670,36 @@ class CourseController extends Controller
 
         $course = $level->course; // Get the associated course for this level
 
-
-
         // Check if the authenticated user has purchased the course
         $isPurchased = Purchase::where('user_id', auth('api')->id())
             ->where('course_id', $course->id)
             ->exists();
 
+        // Get the authenticated user's ID
+        $userId = auth('api')->id();
+
+        // Fetch all completed lessons for the user
+        $completedLessons = DB::table('lesson_user')
+            ->where('user_id', $userId)
+            ->where('completed', true)
+            ->pluck('lesson_id')
+            ->toArray();
+
+        // Find the next lesson to unlock
+        $nextLessonToUnlock = $this->getNextLessonToUnlock($userId, $course->id);
+
         // Prepare chapters and lessons data
-        $chaptersData = $level->chapters->map(function ($chapter) {
+        $chaptersData = $level->chapters->map(function ($chapter) use ($userId, $completedLessons, $nextLessonToUnlock) {
             return [
                 'chapter_id'   => $chapter->id,
                 'chapter_name' => $chapter->name,
-                'lessons' => $chapter->lessons->map(function ($lesson) {
-                    $userId = auth('api')->id();
-                    $isCompleted = DB::table('lesson_user')
-                        ->where('user_id', $userId)
-                        ->where('lesson_id', $lesson->id)
-                        ->where('completed', true)
-                        ->exists();
+                'lessons' => $chapter->lessons->map(function ($lesson) use ($userId, $completedLessons, $nextLessonToUnlock) {
+                    // Check if the lesson is completed by the user
+                    $isCompleted = in_array($lesson->id, $completedLessons);
+
+                    // Check if this is the next lesson to unlock
+                    $isNextToUnlock = $nextLessonToUnlock && $nextLessonToUnlock->id === $lesson->id;
+
                     return [
                         'lesson_id'    => $lesson->id,
                         'lesson_name' => $lesson->name,
@@ -608,6 +707,7 @@ class CourseController extends Controller
                         'video_url'   => $lesson->video_url,
                         'photo'       => $lesson->photo,
                         'is_completed' => $isCompleted,
+                        'is_next_to_unlock' => $isNextToUnlock, // Add this field
                     ];
                 })->toArray(),
             ];
@@ -645,8 +745,7 @@ class CourseController extends Controller
                 'avatar' => $course->creator->profile->avatar ?? null,
                 'name'   => $course->creator->name,
             ],
-            'levels'         =>
-            [
+            'levels'         => [
                 'level_id'      => $level->id,
                 'level_name'    => $level->name,
                 'level_order'   => $level->level_order,
@@ -656,5 +755,29 @@ class CourseController extends Controller
         ];
 
         return $this->successResponse(true, 'Level-wise course details with chapters and lessons', $data, 200);
+    }
+
+
+    private function getNextLessonToUnlock($userId, $courseId)
+    {
+        // Find the last completed lesson by the user
+        $lastCompletedLesson = DB::table('lesson_user')
+            ->where('user_id', $userId)
+            ->where('completed', true)
+            ->orderBy('completed_at', 'desc')
+            ->first();
+
+        if (!$lastCompletedLesson) {
+            // If no lessons are completed, the first lesson is the next to unlock
+            return Lesson::where('course_id', $courseId)
+                ->orderBy('id')
+                ->first();
+        }
+
+        // Find the next lesson in the same chapter or the next chapter
+        return Lesson::where('course_id', $courseId)
+            ->where('id', '>', $lastCompletedLesson->lesson_id)
+            ->orderBy('id')
+            ->first();
     }
 }
