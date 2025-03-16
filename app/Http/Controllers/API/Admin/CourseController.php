@@ -589,9 +589,11 @@ class CourseController extends Controller
         // Prepare chapters and lessons data
         $chaptersData = $level->chapters->map(function ($chapter) {
             return [
+                'chapter_id'   => $chapter->id,
                 'chapter_name' => $chapter->name,
                 'lessons' => $chapter->lessons->map(function ($lesson) {
                     return [
+                        'lesson_id'    => $lesson->id,
                         'lesson_name' => $lesson->name,
                         'duration'    => $lesson->duration,
                         'video_url'   => $lesson->video_url,
