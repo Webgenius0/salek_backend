@@ -30,6 +30,7 @@ class AchievementController extends Controller
         $completionPercentage = round(($achievedCount / $totalPossibleAchievements) * 100);
 
         return response()->json([
+            'message' => 'Achievements fetched successfully.',
             'data' => $achievements,
             'completion_percentage' => $completionPercentage
         ], 200);
