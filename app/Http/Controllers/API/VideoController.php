@@ -298,14 +298,12 @@ class VideoController extends Controller
 
         $lessonUser->save();
 
-        // Unlock next lesson if this one is complete
-        $nextLesson = null;
-        if ($lessonUser->completed) {
-            $nextLesson = Lesson::where('chapter_id', $chapterId)
-                ->where('id', '>', $lessonId)
-                ->orderBy('id')
-                ->first();
-        }
+        // CHANGE THIS PART:
+        // Always get the next lesson, regardless of completion status
+        $nextLesson = Lesson::where('chapter_id', $chapterId)
+            ->where('id', '>', $lessonId)
+            ->orderBy('id')
+            ->first();
 
         // Update course progress
         $this->videoServiceObj->progressCalucate($user->id, $course->id, $earnpoint);
