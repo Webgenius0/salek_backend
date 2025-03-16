@@ -66,9 +66,9 @@ class VideoController extends Controller
 
         $chapter = $course->chapters->where('id', $chapterId)->first();
 
-        // Get the level associated with this chapter
-        $level = Level::where('id', $chapter->level_id)->first();
-        $levelId = $level ? $level->id : null;
+        // Load the level from the chapter
+        $chapter->load('level');
+        $level = $chapter->level;
 
         $lessonUser = LessonUser::updateOrCreate(
             ['user_id' => $user->id, 'lesson_id' => $lessonId],
@@ -87,7 +87,7 @@ class VideoController extends Controller
             'last_seen'   => $lessonUser->watched_time ?? 0,
             'score'       => $lessonUser->score ?? 0,
             'is_complete' => (bool) $lessonUser->completed,
-            'level_id'    => $levelId,
+            'level_id'    => $level ? $level->id : null,
         ];
 
         return response()->json(['message' => 'Video found.', 'data' => $data], 200);
