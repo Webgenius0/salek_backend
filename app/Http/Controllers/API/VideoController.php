@@ -3,20 +3,21 @@
 namespace App\Http\Controllers\API;
 
 use App\Models\User;
+use App\Models\Level;
 use App\Models\Course;
+use App\Models\Lesson;
+use App\Models\Homework;
 use App\Models\CourseUser;
+use App\Models\LessonUser;
 use Illuminate\Http\Request;
+use App\Services\VideoService;
+use App\Models\StudentHomework;
+use App\Models\StudentProgress;
+use App\Services\HelperService;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\ShowVideoRequest;
-use App\Models\Homework;
-use App\Models\Lesson;
-use App\Models\LessonUser;
-use App\Models\StudentHomework;
-use App\Models\StudentProgress;
-use App\Services\HelperService;
-use App\Services\VideoService;
 
 class VideoController extends Controller
 {
@@ -63,6 +64,12 @@ class VideoController extends Controller
             return response()->json(['message' => 'Video not found.'], 404);
         }
 
+        $chapter = $course->chapters->where('id', $chapterId)->first();
+
+        // Get the level associated with this chapter
+        $level = Level::where('id', $chapter->level_id)->first();
+        $levelId = $level ? $level->id : null;
+
         $lessonUser = LessonUser::updateOrCreate(
             ['user_id' => $user->id, 'lesson_id' => $lessonId],
             ['updated_at' => now()]
@@ -80,6 +87,7 @@ class VideoController extends Controller
             'last_seen'   => $lessonUser->watched_time ?? 0,
             'score'       => $lessonUser->score ?? 0,
             'is_complete' => (bool) $lessonUser->completed,
+            'level_id'    => $levelId,
         ];
 
         return response()->json(['message' => 'Video found.', 'data' => $data], 200);
