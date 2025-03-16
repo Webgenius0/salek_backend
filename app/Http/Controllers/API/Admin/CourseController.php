@@ -635,14 +635,14 @@ class CourseController extends Controller
                 'avatar' => $course->creator->profile->avatar ?? null,
                 'name'   => $course->creator->name,
             ],
-            'levels'         => [
+            'levels'         =>
                 [
                     'level_id'      => $level->id,
                     'level_name'    => $level->name,
                     'level_order'   => $level->level_order,
                     'chapters'      => $chaptersData,
                 ]
-            ],
+            ,
             'reviews'        => $reviewsData,
         ];
 
