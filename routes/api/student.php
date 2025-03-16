@@ -1,14 +1,15 @@
 <?php
 
-use App\Http\Controllers\API\Admin\CourseController;
-use App\Http\Controllers\API\Admin\EventController;
-use App\Http\Controllers\API\HomeworkController;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\API\VideoController;
 use App\Http\Controllers\API\PaymentController;
 use App\Http\Controllers\API\ProfileController;
-use App\Http\Controllers\API\ProgressController;
 use App\Http\Controllers\API\StudentController;
-use App\Http\Controllers\API\VideoController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\API\HomeworkController;
+use App\Http\Controllers\API\ProgressController;
+use App\Http\Controllers\API\AchievementController;
+use App\Http\Controllers\API\Admin\EventController;
+use App\Http\Controllers\API\Admin\CourseController;
 
 
 //'BEGIN' :- For student route
@@ -89,6 +90,8 @@ Route::middleware(['auth:api', 'onlyStudent'])->group(function () {
             Route::get('/student/{course_id}/levels', 'getLevelsByCourse');
         });
     });
+
+    Route::get('/achievements', [AchievementController::class, 'getUserAchievements']);
 
     Route::get('/upcoming/event', [EventController::class, 'upcomingEvent'])->name('upcomig.event');
 });
