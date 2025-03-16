@@ -16,8 +16,9 @@ use App\Services\ImageService;
 use App\Services\CourseService;
 
 use App\Services\HelperService;
-use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\CourseStoreRequest;
 use App\Http\Requests\LessonStoreRequest;
@@ -573,13 +574,15 @@ class CourseController extends Controller
     {
         // Find the level with the given levelId, eager load the necessary relations
         $level = Level::with(['course.chapters.lessons'])
-                    ->find($levelId);
+            ->find($levelId);
 
         if (!$level) {
             return $this->failedResponse('Level not found', 404);
         }
 
         $course = $level->course; // Get the associated course for this level
+
+
 
         // Check if the authenticated user has purchased the course
         $isPurchased = Purchase::where('user_id', auth('api')->id())
@@ -592,12 +595,19 @@ class CourseController extends Controller
                 'chapter_id'   => $chapter->id,
                 'chapter_name' => $chapter->name,
                 'lessons' => $chapter->lessons->map(function ($lesson) {
+                    $userId = auth('api')->id();
+                    $isCompleted = DB::table('lesson_user')
+                        ->where('user_id', $userId)
+                        ->where('lesson_id', $lesson->id)
+                        ->where('completed', true)
+                        ->exists();
                     return [
                         'lesson_id'    => $lesson->id,
                         'lesson_name' => $lesson->name,
                         'duration'    => $lesson->duration,
                         'video_url'   => $lesson->video_url,
                         'photo'       => $lesson->photo,
+                        'is_completed' => $isCompleted,
                     ];
                 })->toArray(),
             ];
@@ -614,7 +624,7 @@ class CourseController extends Controller
                 'rating'    => $review->rating,
                 'comment'   => $review->comment,
                 'reactions' => $review->reactions->count(),
-                'created_at'=> $review->created_at->format('Y-m-d H:i:s'),
+                'created_at' => $review->created_at->format('Y-m-d H:i:s'),
             ];
         });
 
@@ -636,13 +646,12 @@ class CourseController extends Controller
                 'name'   => $course->creator->name,
             ],
             'levels'         =>
-                [
-                    'level_id'      => $level->id,
-                    'level_name'    => $level->name,
-                    'level_order'   => $level->level_order,
-                    'chapters'      => $chaptersData,
-                ]
-            ,
+            [
+                'level_id'      => $level->id,
+                'level_name'    => $level->name,
+                'level_order'   => $level->level_order,
+                'chapters'      => $chaptersData,
+            ],
             'reviews'        => $reviewsData,
         ];
 
