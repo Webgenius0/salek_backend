@@ -24,7 +24,7 @@
             <!-- PAGE-HEADER END -->
 
             <!-- ROW-1 -->
-            <div class="row">
+            {{-- <div class="row">
                 <div class="col-lg-6 col-sm-12 col-md-6 col-xl-3">
                     <div class="card overflow-hidden">
                         <div class="card-body">
@@ -106,7 +106,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> --}}
             <!-- ROW-1 END-->
 
             <!-- ROW-2 -->
