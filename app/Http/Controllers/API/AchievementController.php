@@ -206,8 +206,9 @@ class AchievementController extends Controller
 
         // Return the weekly completion rates in the response
         return response()->json([
+            'message' => 'Weekly completion rates fetched successfully.',
             'course_id' => $course->id,
-            'completion_rates' => $completionRates
+            'data' => $completionRates
         ], 200);
     }
 
