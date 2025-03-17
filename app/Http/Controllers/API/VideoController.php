@@ -174,10 +174,10 @@ class VideoController extends Controller
 
         $lessonUser->save();
 
-        dd($lessonUser);
 
         // Update course progress based on number of completed lessons
         $totalLessons = $course->lessons->count();
+        dd($totalLessons);
         $completedLessons = $course->lessons()->whereHas('lessonUsers', function ($query) use ($user) {
             $query->where('user_id', $user->id)->where('completed', 1);
         })->count();
