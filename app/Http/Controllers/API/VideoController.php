@@ -150,10 +150,10 @@ class VideoController extends Controller
             ]);
         }
 
+        dd($lessonUser);
+
         // Calculate lesson duration in seconds
         $totalDuration = $video->duration * 60;
-
-        dd($totalDuration);
 
         // Ensure watched time doesn't exceed total duration
         $watchedTime = min($lessonUser->watched_time + $watchedTime, $totalDuration);
