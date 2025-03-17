@@ -174,6 +174,7 @@ class VideoController extends Controller
 
         $lessonUser->save();
 
+        dd($lessonUser);
 
         // Update course progress based on number of completed lessons
         $totalLessons = $course->lessons->count();
@@ -182,7 +183,6 @@ class VideoController extends Controller
         })->count();
 
         $completionRate = round(($completedLessons / $totalLessons) * 100);
-        dd($completionRate);
 
         // Always get the next lesson, regardless of completion status
         $nextLesson = Lesson::where('chapter_id', $chapterId)
