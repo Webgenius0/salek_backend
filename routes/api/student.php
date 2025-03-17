@@ -93,7 +93,7 @@ Route::middleware(['auth:api', 'onlyStudent'])->group(function () {
 
     Route::get('/achievements', [AchievementController::class, 'getUserAchievements']);
 
-    Route::get('/courses/{course}/weekly-progress/{user}', [AchievementController::class, 'getWeeklyCompletionRate']);
+    Route::get('/course/{courseId}/user/{userId}/weekly-completion-rate', [AchievementController::class, 'getWeeklyCompletionRate']);
 
 
     Route::get('/upcoming/event', [EventController::class, 'upcomingEvent'])->name('upcomig.event');
