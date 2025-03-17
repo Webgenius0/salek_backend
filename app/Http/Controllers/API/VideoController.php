@@ -203,15 +203,13 @@ class VideoController extends Controller
 
     public function progressCalucate($userId, $courseId, $completionRate)
     {
-        // Fetch or create the student's progress record
+        // Ensure the student progress is being created or updated
         $studentProgress = StudentProgress::updateOrCreate(
             ['user_id' => $userId, 'course_id' => $courseId],
+            ['course_progress' => $completionRate]  // Update or set the course progress
         );
 
-        // Update the course progress with the calculated completion rate
-        $studentProgress->course_progress = $completionRate;
-
-        // Save the updated progress
+        // Save the progress to the database
         $studentProgress->save();
 
         return true;
