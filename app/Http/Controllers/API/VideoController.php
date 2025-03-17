@@ -15,6 +15,7 @@ use App\Models\StudentHomework;
 use App\Models\StudentProgress;
 use App\Services\HelperService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\ShowVideoRequest;
@@ -203,14 +204,18 @@ class VideoController extends Controller
 
     public function progressCalucate($userId, $courseId, $completionRate)
     {
-        // Ensure the student progress is being created or updated
+        Log::info("Updating progress for user: $userId, course: $courseId, completion rate: $completionRate");
+
+        // Fetch or create the progress record
         $studentProgress = StudentProgress::updateOrCreate(
             ['user_id' => $userId, 'course_id' => $courseId],
-            ['course_progress' => $completionRate]  // Update or set the course progress
+            ['course_progress' => $completionRate]
         );
 
         // Save the progress to the database
         $studentProgress->save();
+
+        Log::info("Progress updated successfully for user: $userId, course: $courseId");
 
         return true;
     }
