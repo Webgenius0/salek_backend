@@ -128,8 +128,6 @@ class VideoController extends Controller
         // Find the requested lesson
         $video = Lesson::where('chapter_id', $chapterId)->where('id', $lessonId)->first();
 
-        dd($video);
-
         if (!$video) {
             return response()->json(['message' => 'Lesson not found.'], 404);
         }
@@ -152,6 +150,7 @@ class VideoController extends Controller
             ]);
         }
 
+        dd($lessonUser);
 
         // Calculate lesson duration in seconds
         $totalDuration = $video->duration * 60;
