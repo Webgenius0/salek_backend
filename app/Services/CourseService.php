@@ -631,7 +631,7 @@ class CourseService extends Service
     {
         $courses = $user->purchasedCourses->map(function ($course) use ($user) {
             $courseProgress = StudentProgress::where('user_id', $user->id)->where('course_id', $course->id)->first();
-            $totalProgress = $courseProgress ? ($courseProgress->course_progress + $courseProgress->homework_progress) : 0;
+            $totalProgress = $courseProgress ? ($courseProgress->course_progress) : 0;
 
             $courseAvatar = $course->cover_photo ?? null;
             return [
