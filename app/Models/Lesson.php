@@ -41,4 +41,5 @@ class Lesson extends Model
         return $this->hasMany(LessonUser::class, 'lesson_id', 'id')->where('user_id', Auth::id());
     }
 
+
 }

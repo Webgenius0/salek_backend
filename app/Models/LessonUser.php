@@ -16,4 +16,9 @@ class LessonUser extends Model
         'completed_at',
         'watched_time'
     ];
+
+    public function lesson()
+    {
+        return $this->belongsTo(Lesson::class, 'lesson_id');
+    }
 }
