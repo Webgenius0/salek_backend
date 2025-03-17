@@ -99,7 +99,7 @@ class VideoController extends Controller
      * @param  ShowVideoRequest  $request
      * @return mixed
      */
- 
+
     public function update(ShowVideoRequest $request): JsonResponse
     {
         $user = Auth::user();
@@ -173,7 +173,15 @@ class VideoController extends Controller
 
         $lessonUser->save();
 
-        // CHANGE THIS PART:
+
+        // Update course progress based on number of completed lessons
+        $totalLessons = $course->lessons->count();
+        $completedLessons = $course->lessons()->whereHas('lessonUsers', function ($query) use ($user) {
+            $query->where('user_id', $user->id)->where('completed', 1);
+        })->count();
+
+        $completionRate = round(($completedLessons / $totalLessons) * 100);
+
         // Always get the next lesson, regardless of completion status
         $nextLesson = Lesson::where('chapter_id', $chapterId)
             ->where('id', '>', $lessonId)
@@ -181,7 +189,7 @@ class VideoController extends Controller
             ->first();
 
         // Update course progress
-        $this->videoServiceObj->progressCalucate($user->id, $course->id, $earnpoint);
+        $this->videoServiceObj->progressCalucate($user->id, $course->id, $completionRate);
 
         return response()->json([
             'message'         => $lessonUser->completed ? 'Lesson completed' : 'Lesson progress updated',
