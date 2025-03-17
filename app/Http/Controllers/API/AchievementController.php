@@ -161,52 +161,50 @@ class AchievementController extends Controller
         return $achievements;
     }
 
-    public function getWeeklyCompletionRate($userId, $courseId)
+    public function getWeeklyCompletionRate($courseId)
     {
-        // Fetch the course
-        $course = Course::with('lessons')->find($courseId);
+        $user = auth()->user();
+
+        // Fetch the course with lessons and chapters
+        $course = Course::with(['lessons'])->find($courseId);
 
         if (!$course) {
             return response()->json(['message' => 'Course not found.'], 404);
         }
 
-        // Get all completed lessons for the user in this course
-        $completedLessons = LessonUser::where('user_id', $userId)
-            ->where('course_id', $courseId)
-            ->where('completed', 1)
-            ->get();
+        // Initialize an array for weekly completion rates
+        $weeklyCompletionRates = [];
 
-        // Group completed lessons by week
-        $weeklyCompletion = [];
+        // Calculate completion rates per week (assuming lessons are divided by week)
+        foreach ($course->lessons as $lesson) {
+            $lessonUser = LessonUser::where('user_id', $user->id)
+                                    ->where('lesson_id', $lesson->id)
+                                    ->first();
 
-        foreach ($completedLessons as $lessonUser) {
-            $weekNumber = Carbon::parse($lessonUser->completed_at)->weekOfYear;
+            if ($lessonUser) {
+                $weekNumber = ceil($lesson->lesson_order / 7);  // assuming lessons are grouped into weeks of 7 days
+                if (!isset($weeklyCompletionRates[$weekNumber])) {
+                    $weeklyCompletionRates[$weekNumber] = 0;
+                }
 
-            if (!isset($weeklyCompletion[$weekNumber])) {
-                $weeklyCompletion[$weekNumber] = 0;
+                if ($lessonUser->completed) {
+                    $weeklyCompletionRates[$weekNumber] += 1;
+                }
             }
-
-            $weeklyCompletion[$weekNumber]++;
         }
 
-        // Calculate completion rate for each week
-        $totalLessons = $course->lessons->count();
-        $weeklyRates = [];
+        // Normalize the completion rate to be a percentage
+        $totalWeeks = ceil($course->lessons->count() / 7);
+        $lessonCountPerWeek = ceil($course->lessons->count() / $totalWeeks);
 
-        foreach ($weeklyCompletion as $week => $completed) {
-            $completionRate = round(($completed / $totalLessons) * 100);
-            $weeklyRates[$week] = $completionRate;
-        }
-
-        // For weeks with no progress, set completion rate to 0%
-        for ($week = 1; $week <= 7; $week++) {  // assuming 7 weeks for this example
-            if (!isset($weeklyRates[$week])) {
-                $weeklyRates[$week] = 0;
-            }
+        // Calculate the final percentage for each week
+        foreach ($weeklyCompletionRates as $week => $completedLessons) {
+            $completionRate = round(($completedLessons / $lessonCountPerWeek) * 100);
+            $weeklyCompletionRates[$week] = $completionRate;
         }
 
         return response()->json([
-            'weekly_completion_rates' => $weeklyRates
+            'weekly_completion_rates' => $weeklyCompletionRates
         ], 200);
     }
 }
