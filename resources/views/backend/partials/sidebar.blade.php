@@ -42,7 +42,7 @@
                 <li>
                     <h3>Components</h3>
                 </li>
-                <li class="slide">
+                {{-- <li class="slide">
                     <a class="side-menu__item" data-bs-toggle="slide" href="#">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="side-menu__icon" viewBox="0 0 16 16">
                             <path d="M7.5 5.5a.5.5 0 0 0-1 0v.634l-.549-.317a.5.5 0 1 0-.5.866L6 7l-.549.317a.5.5 0 1 0 .5.866l.549-.317V8.5a.5.5 0 1 0 1 0v-.634l.549.317a.5.5 0 1 0 .5-.866L8 7l.549-.317a.5.5 0 1 0-.5-.866l-.549.317zm-2 4.5a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1zm0 2a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1z" />
@@ -54,7 +54,7 @@
                     <ul class="slide-menu">
                         <li><a href="{{ route('cms.page.auth.section.bg.index') }}" class="slide-item">Auth Page</a></li>
                     </ul>
-                </li>
+                </li> --}}
                 <li class="slide">
                     <a class="side-menu__item" data-bs-toggle="slide" href="#">
                         <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 512 512">
@@ -69,8 +69,8 @@
                         <li><a href="{{ route('setting.profile.index') }}" class="slide-item">Profile Settings</a></li>
                         <li><a href="{{ route('setting.mail.index') }}" class="slide-item">Mail Settings</a></li>
                         <li><a href="{{ route('setting.stripe.index') }}" class="slide-item">Stripe Settings</a></li>
-                        <li><a href="{{ route('setting.firebase.index') }}" class="slide-item">Firebase Settings</a></li>
-                        <li><a href="{{ route('setting.social.index') }}" class="slide-item">Social Settings</a></li>
+                        {{-- <li><a href="{{ route('setting.firebase.index') }}" class="slide-item">Firebase Settings</a></li> --}}
+                        {{-- <li><a href="{{ route('setting.social.index') }}" class="slide-item">Social Settings</a></li> --}}
                         <li><a href="{{ route('setting.google.map.index') }}" class="slide-item">Google Map Settings</a></li>
                     </ul>
                 </li>
