@@ -103,6 +103,7 @@ class VideoController extends Controller
 
     public function update(ShowVideoRequest $request): JsonResponse
     {
+        dd($request->all());
         $user = Auth::user();
 
         if (!$user || $user->role !== 'student') {
