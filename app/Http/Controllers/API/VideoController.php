@@ -136,7 +136,6 @@ class VideoController extends Controller
         $lessonUser = LessonUser::firstOrNew(['user_id' => $user->id, 'lesson_id' => $lessonId]);
 
         if ($lessonUser->completed) {
-            dd('Lesson already completed.');
             return response()->json([
                 'status'       => true,
                 'message'      => 'Lesson already completed.',
@@ -144,11 +143,12 @@ class VideoController extends Controller
                 'score'        => $lessonUser->score,
                 'watched_time' => $lessonUser->watched_time,
                 'next_lesson_id' => Lesson::where('chapter_id', $chapterId)
-                    ->where('id', '>', $lessonId)
-                    ->orderBy('id')
-                    ->first()
-                    ?->id
+                ->where('id', '>', $lessonId)
+                ->orderBy('id')
+                ->first()
+                ?->id
             ]);
+            dd('Lesson already completed.');
         }
 
         // Calculate lesson duration in seconds
