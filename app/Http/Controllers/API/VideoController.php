@@ -153,6 +153,8 @@ class VideoController extends Controller
         // Calculate lesson duration in seconds
         $totalDuration = $video->duration * 60;
 
+        dd($totalDuration);
+
         // Ensure watched time doesn't exceed total duration
         $watchedTime = min($lessonUser->watched_time + $watchedTime, $totalDuration);
 
@@ -177,7 +179,6 @@ class VideoController extends Controller
 
         // Update course progress based on number of completed lessons
         $totalLessons = $course->lessons->count();
-        dd($totalLessons);
         $completedLessons = $course->lessons()->whereHas('lessonUsers', function ($query) use ($user) {
             $query->where('user_id', $user->id)->where('completed', 1);
         })->count();
