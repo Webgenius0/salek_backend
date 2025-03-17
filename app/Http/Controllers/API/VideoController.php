@@ -135,6 +135,8 @@ class VideoController extends Controller
         // Fetch or create a progress record
         $lessonUser = LessonUser::firstOrNew(['user_id' => $user->id, 'lesson_id' => $lessonId]);
 
+        dd($lessonUser);
+
         if ($lessonUser->completed) {
             return response()->json([
                 'status'       => true,
@@ -149,8 +151,6 @@ class VideoController extends Controller
                     ?->id
             ]);
         }
-
-        dd($lessonUser);
 
         // Calculate lesson duration in seconds
         $totalDuration = $video->duration * 60;
