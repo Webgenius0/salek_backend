@@ -163,9 +163,9 @@ class AchievementController extends Controller
 
     public function getWeeklyCompletionRate($courseId)
     {
-        $user = auth()->user();
+        $user = auth('api')->user();
 
-        // Fetch the course with lessons and chapters
+        // Fetch the course with lessons
         $course = Course::with(['lessons'])->find($courseId);
 
         if (!$course) {
@@ -182,29 +182,43 @@ class AchievementController extends Controller
                                     ->first();
 
             if ($lessonUser) {
-                $weekNumber = ceil($lesson->lesson_order / 7);  // assuming lessons are grouped into weeks of 7 days
+                // Get the week number for each completed lesson (using the completed_at field or lesson_order)
+                $weekNumber = Carbon::parse($lessonUser->completed_at)->weekOfYear;
+
                 if (!isset($weeklyCompletionRates[$weekNumber])) {
                     $weeklyCompletionRates[$weekNumber] = 0;
                 }
 
+                // If the lesson is completed, increment the completion count for that week
                 if ($lessonUser->completed) {
-                    $weeklyCompletionRates[$weekNumber] += 1;
+                    $weeklyCompletionRates[$weekNumber]++;
                 }
             }
         }
 
-        // Normalize the completion rate to be a percentage
-        $totalWeeks = ceil($course->lessons->count() / 7);
-        $lessonCountPerWeek = ceil($course->lessons->count() / $totalWeeks);
+        // Total number of lessons in the course
+        $totalLessons = $course->lessons->count();
 
-        // Calculate the final percentage for each week
-        foreach ($weeklyCompletionRates as $week => $completedLessons) {
-            $completionRate = round(($completedLessons / $lessonCountPerWeek) * 100);
-            $weeklyCompletionRates[$week] = $completionRate;
+        // Total number of lessons per week (if evenly distributed, you can adjust the number of weeks)
+        $totalWeeks = 7;
+        $lessonsPerWeek = ceil($totalLessons / $totalWeeks);
+
+        // Calculate the completion rate for each of the 7 weeks
+        $weeklyRates = [];
+
+        for ($week = 1; $week <= $totalWeeks; $week++) {
+            // If no lessons were completed for a specific week, set it to 0%
+            $completedLessonsInWeek = isset($weeklyCompletionRates[$week]) ? $weeklyCompletionRates[$week] : 0;
+
+            // Calculate completion rate for the week
+            $completionRate = round(($completedLessonsInWeek / $lessonsPerWeek) * 100);
+
+            // Store the completion rate for the week
+            $weeklyRates[$week] = $completionRate;
         }
 
         return response()->json([
-            'weekly_completion_rates' => $weeklyCompletionRates
+            'weekly_completion_rates' => $weeklyRates
         ], 200);
     }
 }
