@@ -103,8 +103,7 @@ class VideoController extends Controller
 
     public function update(ShowVideoRequest $request): JsonResponse
     {
-        dd($request->all());
-        $user = Auth::user();
+        $user = auth('api')->user();
 
         if (!$user || $user->role !== 'student') {
             return response()->json(['message' => 'Unauthorized access.'], 403);
@@ -117,6 +116,8 @@ class VideoController extends Controller
 
         // Fetch the course with lessons
         $course = Course::with(['chapters.lessons', 'homework'])->find($courseId);
+
+        dd($course);    
 
         if (!$course) {
             return response()->json(['message' => 'Course not found.'], 404);
