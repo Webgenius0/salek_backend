@@ -10,6 +10,7 @@ use App\Models\LessonUser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 
 class AchievementController extends Controller
 {
@@ -163,7 +164,7 @@ class AchievementController extends Controller
 
     public function getWeeklyCompletionRate($courseId)
     {
-        $user = auth('api')->user();
+        $user = Auth::user();
 
         // Fetch the course with lessons
         $course = Course::with(['lessons'])->find($courseId);
