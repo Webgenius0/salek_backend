@@ -150,6 +150,8 @@ class VideoController extends Controller
             ]);
         }
 
+        Log::info("hello shamim");
+
         // Calculate lesson duration in seconds
         $totalDuration = $video->duration * 60;
 
