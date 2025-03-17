@@ -32,14 +32,17 @@ class Lesson extends Model
     public function users()
     {
         return $this->belongsToMany(User::class, 'lesson_user')
-                    ->withPivot('completed', 'completed_at')
-                    ->withTimestamps();
+            ->withPivot('completed', 'completed_at')
+            ->withTimestamps();
     }
 
-    public function lessonUser()
+    // public function lessonUser()
+    // {
+    //     return $this->hasMany(LessonUser::class, 'lesson_id', 'id')->where('user_id', Auth::id());
+    // }
+
+    public function lessonUsers()
     {
-        return $this->hasMany(LessonUser::class, 'lesson_id', 'id')->where('user_id', Auth::id());
+        return $this->hasMany(LessonUser::class, 'lesson_id');
     }
-
-
 }
