@@ -182,6 +182,7 @@ class VideoController extends Controller
         })->count();
 
         $completionRate = round(($completedLessons / $totalLessons) * 100);
+        dd($completionRate);
 
         // Always get the next lesson, regardless of completion status
         $nextLesson = Lesson::where('chapter_id', $chapterId)
