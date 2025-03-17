@@ -150,6 +150,8 @@ class VideoController extends Controller
             ]);
         }
 
+        dd($lessonUser);
+
         Log::info("hello shamim");
 
         // Calculate lesson duration in seconds
