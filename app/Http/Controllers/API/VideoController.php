@@ -190,7 +190,20 @@ class VideoController extends Controller
             ->first();
 
         // Update student progress based on calculated completion rate
-        $this->progressCalucate($user->id, $course->id, $completionRate);
+        // $this->progressCalucate($user->id, $course->id, $completionRate);
+
+        Log::info("Updating progress for user: $user->id, course: $course->id, completion rate: $completionRate");
+
+        // Fetch or create the progress record
+        $studentProgress = StudentProgress::updateOrCreate(
+            ['user_id' => $user->id, 'course_id' => $course->id],
+            ['course_progress' => $completionRate]
+        );
+
+        // Save the progress to the database
+        $studentProgress->save();
+
+        Log::info("Progress updated successfully for user: $user->id, course: $course->id");
 
 
         return response()->json([
@@ -202,21 +215,4 @@ class VideoController extends Controller
         ], 200);
     }
 
-    public function progressCalucate($userId, $courseId, $completionRate)
-    {
-        Log::info("Updating progress for user: $userId, course: $courseId, completion rate: $completionRate");
-
-        // Fetch or create the progress record
-        $studentProgress = StudentProgress::updateOrCreate(
-            ['user_id' => $userId, 'course_id' => $courseId],
-            ['course_progress' => $completionRate]
-        );
-
-        // Save the progress to the database
-        $studentProgress->save();
-
-        Log::info("Progress updated successfully for user: $userId, course: $courseId");
-
-        return true;
-    }
 }
