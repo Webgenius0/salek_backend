@@ -10,35 +10,43 @@ use App\Models\StudentProgress;
 
 class VideoService extends Service
 {
-    public function progressCalucate($userId, $courseId, $completionRate)
+    public function progressCalucate($userId, $courseId, $earnpoint)
     {
-        // Fetch the student's progress record, or create a new one if it doesn't exist
+        $homeworkNumber = 0;
+
         $studentProgress = StudentProgress::updateOrCreate(
             ['user_id' => $userId, 'course_id' => $courseId],
         );
 
-        // Fetch the course to get the total number of lessons
-        $course = Course::with('lessons')->where('id', $courseId)->first();
-        if (!$course) {
-            return false; // If the course doesn't exist, return false
+        $homework = Homework::where('course_id', $courseId)->first();
+        if($homework){
+            $studentProgress->lesson_progress   += $earnpoint;
+            $homeworkInfo = StudentHomework::where('homework_id', $homework->id)->where('user_id', $userId)->first();
+            if($homeworkInfo):
+                $homeworkNumber = $homeworkInfo->score;
+            endif;
+            $studentProgress->homework_progress += $homeworkNumber;
+
+            $courseLesson = Course::with('lessons')->where('id', $courseId)->first();
+
+            $courseLessonIds = $courseLesson->lessons->pluck('id');
+            $lessons = LessonUser::whereIn('lesson_id', $courseLessonIds)->where('user_id', $userId)->get();
+            if($lessons->isEmpty()){
+                $courseScore = 0;
+            }
+
+            $courseScore = $lessons->sum('score') + $homeworkNumber;
+
+
+            $studentProgress->course_progress = $courseScore;
+            $studentProgress->save();
+
+            return true;
         }
 
-        // Total number of lessons in the course
-        $totalLessons = $course->lessons->count();
-
-        // Get the number of lessons completed by the user
-        $completedLessons = LessonUser::where('user_id', $userId)
-            ->whereIn('lesson_id', $course->lessons->pluck('id'))
-            ->where('completed', 1) // Ensure only completed lessons are counted
-            ->count();
-
-        // Calculate the new course progress based on completed lessons
-        $newCompletionRate = round(($completedLessons / $totalLessons) * 100);
-
-        // Update course progress
-        $studentProgress->course_progress = $newCompletionRate;
-
-        // Save the updated progress
+        $studentProgress->lesson_progress   += $earnpoint;
+        $studentProgress->course_progress   += $earnpoint;
+        $studentProgress->homework_progress += 0;
         $studentProgress->save();
 
         return true;

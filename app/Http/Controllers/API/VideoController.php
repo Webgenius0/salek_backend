@@ -188,8 +188,9 @@ class VideoController extends Controller
             ->orderBy('id')
             ->first();
 
-        // Update course progress
-        $this->videoServiceObj->progressCalucate($user->id, $course->id, $completionRate);
+        // Update student progress based on calculated completion rate
+        $this->progressCalucate($user->id, $course->id, $completionRate);
+
 
         return response()->json([
             'message'         => $lessonUser->completed ? 'Lesson completed' : 'Lesson progress updated',
@@ -198,5 +199,21 @@ class VideoController extends Controller
             'score'           => $lessonUser->score,
             'watched_time'    => $lessonUser->watched_time
         ], 200);
+    }
+
+    public function progressCalucate($userId, $courseId, $completionRate)
+    {
+        // Fetch or create the student's progress record
+        $studentProgress = StudentProgress::updateOrCreate(
+            ['user_id' => $userId, 'course_id' => $courseId],
+        );
+
+        // Update the course progress with the calculated completion rate
+        $studentProgress->course_progress = $completionRate;
+
+        // Save the updated progress
+        $studentProgress->save();
+
+        return true;
     }
 }
