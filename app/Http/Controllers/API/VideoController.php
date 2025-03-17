@@ -190,9 +190,6 @@ class VideoController extends Controller
             ->first();
 
         // Update student progress based on calculated completion rate
-        // $this->progressCalucate($user->id, $course->id, $completionRate);
-
-        Log::info("Updating progress for user: $user->id, course: $course->id, completion rate: $completionRate");
 
         // Fetch or create the progress record
         $studentProgress = StudentProgress::updateOrCreate(
@@ -202,9 +199,6 @@ class VideoController extends Controller
 
         // Save the progress to the database
         $studentProgress->save();
-
-        Log::info("Progress updated successfully for user: $user->id, course: $course->id");
-
 
         return response()->json([
             'message'         => $lessonUser->completed ? 'Lesson completed' : 'Lesson progress updated',

@@ -93,6 +93,9 @@ Route::middleware(['auth:api', 'onlyStudent'])->group(function () {
 
     Route::get('/achievements', [AchievementController::class, 'getUserAchievements']);
 
+    Route::get('/course/{courseId}/weekly-completion', [VideoController::class, 'getWeeklyCompletionRate']);
+
+
     Route::get('/upcoming/event', [EventController::class, 'upcomingEvent'])->name('upcomig.event');
 });
 //'END' :- For student route
