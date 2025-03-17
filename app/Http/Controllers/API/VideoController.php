@@ -148,8 +148,8 @@ class VideoController extends Controller
                 ->first()
                 ?->id
             ]);
-            dd('Lesson already completed.');
         }
+        dd('Lesson already completed.');
 
         // Calculate lesson duration in seconds
         $totalDuration = $video->duration * 60;
