@@ -135,9 +135,8 @@ class VideoController extends Controller
         // Fetch or create a progress record
         $lessonUser = LessonUser::firstOrNew(['user_id' => $user->id, 'lesson_id' => $lessonId]);
 
-        dd($lessonUser);
-
         if ($lessonUser->completed) {
+            dd('Lesson already completed.');
             return response()->json([
                 'status'       => true,
                 'message'      => 'Lesson already completed.',
