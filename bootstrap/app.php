@@ -21,7 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
         }
     )
     ->withBroadcasting(
-        __DIR__.'/../routes/channels.php',
+        __DIR__ . '/../routes/channels.php',
         ['prefix' => 'api', 'middleware' => ['auth:api']],
     )
     ->withMiddleware(function (Middleware $middleware) {
@@ -33,6 +33,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'check.parent.student' => \App\Http\Middleware\CheckParentOrStudentRole::class,
             'authCheck' => App\Http\Middleware\AuthCheckMiddleware::class
         ]);
+
+        $middleware->append(\App\Http\Middleware\CustomPostSize::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

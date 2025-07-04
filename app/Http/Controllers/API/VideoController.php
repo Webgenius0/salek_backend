@@ -3,20 +3,22 @@
 namespace App\Http\Controllers\API;
 
 use App\Models\User;
+use App\Models\Level;
 use App\Models\Course;
-use App\Models\CourseUser;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
-use App\Http\Requests\ShowVideoRequest;
-use App\Models\Homework;
 use App\Models\Lesson;
+use App\Models\Homework;
+use App\Models\CourseUser;
 use App\Models\LessonUser;
+use Illuminate\Http\Request;
+use App\Services\VideoService;
 use App\Models\StudentHomework;
 use App\Models\StudentProgress;
 use App\Services\HelperService;
-use App\Services\VideoService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\ShowVideoRequest;
 
 class VideoController extends Controller
 {
@@ -32,12 +34,12 @@ class VideoController extends Controller
      *
      * @param  ShowVideoRequest  $request
      * @return mixed
-    */
-    public function show(ShowVideoRequest $request) : mixed
+     */
+    public function show(ShowVideoRequest $request): mixed
     {
         $user = User::find(Auth::id());
-        
-        if(!$user || $user->role !== 'student') {
+
+        if (!$user || $user->role !== 'student') {
             return response()->json(['message' => 'User not found or You are not permitted.'], 404);
         }
 
@@ -45,23 +47,29 @@ class VideoController extends Controller
         $chapterId = $request->input('chapter_id');
         $lessonId  = $request->input('lesson_id');
 
-        $course = Course::with(['chapters.lessons'])->where('id',$courseId)->first();
+        $course = Course::with(['chapters.lessons'])->where('id', $courseId)->first();
 
-        if(!$course) {
+        if (!$course) {
             return response()->json(['message' => 'Course not found.'], 404);
         }
 
         $checkCourse = CourseUser::where('user_id', $user->id)->where('course_id', $courseId)->where('access_granted', 1)->first();
 
-        if(!$checkCourse) {
+        if (!$checkCourse) {
             return response()->json(['message' => 'You are not enrolled in this course.'], 404);
         }
 
         $video = $course->chapters->where('id', $chapterId)->first()->lessons->where('id', $lessonId)->first();
-        
-        if(!$video) {
+
+        if (!$video) {
             return response()->json(['message' => 'Video not found.'], 404);
         }
+
+        $chapter = $course->chapters->where('id', $chapterId)->first();
+
+        // Load the level from the chapter
+        $chapter->load('level');
+        $level = $chapter->level;
 
         $lessonUser = LessonUser::updateOrCreate(
             ['user_id' => $user->id, 'lesson_id' => $lessonId],
@@ -72,13 +80,7 @@ class VideoController extends Controller
             ['user_id' => $user->id, 'course_id' => $courseId],
         );
 
-        $studentProgress = Homework::where('course_id', $course->id)->first();
-        if($studentProgress):
-            StudentHomework::updateOrCreate(
-                ['user_id' => $user->id, 'homework_id' => $studentProgress->id]
-            );
-        endif;
-        
+
         $data = [
             'name'        => $video->name,
             'video_url'   => $video->video_url,
@@ -86,6 +88,7 @@ class VideoController extends Controller
             'last_seen'   => $lessonUser->watched_time ?? 0,
             'score'       => $lessonUser->score ?? 0,
             'is_complete' => (bool) $lessonUser->completed,
+            'level_id'    => $level ? $level->id : null,
         ];
 
         return response()->json(['message' => 'Video found.', 'data' => $data], 200);
@@ -96,121 +99,114 @@ class VideoController extends Controller
      *
      * @param  ShowVideoRequest  $request
      * @return mixed
-    */
-    public function update(ShowVideoRequest $request) : mixed
+     */
+
+    public function update(ShowVideoRequest $request): JsonResponse
     {
-        $user = User::find(Auth::id());
-        
-        if(!$user || $user->role !== 'student') {
-            return response()->json(['message' => 'User not found or You are not permitted.'], 404);
+        $user = auth('api')->user();
+
+        if (!$user || $user->role !== 'student') {
+            return response()->json(['message' => 'Unauthorized access.'], 403);
         }
-        
+
         $watchedTime = $request->input('watched_time');
         $courseId    = $request->input('course_id');
         $chapterId   = $request->input('chapter_id');
         $lessonId    = $request->input('lesson_id');
 
+        // Fetch the course with lessons
+        $course = Course::with(['chapters.lessons', 'homework'])->find($courseId);
 
-        $course = Course::with(['chapters.lessons', 'homework'])->where('id',$courseId)->first();
-        
-        $totalHomework = $course->homework->count();
-
-        if(!$course) {
+        if (!$course) {
             return response()->json(['message' => 'Course not found.'], 404);
         }
 
         if (!CourseUser::where('user_id', $user->id)->where('course_id', $courseId)->where('access_granted', 1)->exists()) {
             return response()->json(['message' => 'You are not enrolled in this course.'], 403);
         }
-        
-        $video = $course->chapters
-            ->where('id', $chapterId)
-            ->flatMap->lessons
-            ->where('id', $lessonId)
-            ->first();
-        
+
+        // Find the requested lesson
+        $video = Lesson::where('chapter_id', $chapterId)->where('id', $lessonId)->first();
+
         if (!$video) {
-            return response()->json(['message' => 'Video not found.'], 404);
+            return response()->json(['message' => 'Lesson not found.'], 404);
         }
-        
-        $lessonUser = LessonUser::firstOrNew(
-            ['user_id' => $user->id, 'lesson_id' => $lessonId]
+
+        // Fetch or create a progress record
+        $lessonUser = LessonUser::firstOrNew(['user_id' => $user->id, 'lesson_id' => $lessonId]);
+
+        if ($lessonUser->completed) {
+            return response()->json([
+                'status'       => true,
+                'message'      => 'Lesson already completed.',
+                'is_complete'  => true,
+                'score'        => $lessonUser->score,
+                'watched_time' => $lessonUser->watched_time,
+                'next_lesson_id' => Lesson::where('chapter_id', $chapterId)
+                ->where('id', '>', $lessonId)
+                ->orderBy('id')
+                ->first()
+                ?->id
+            ]);
+        }
+
+        // Calculate lesson duration in seconds
+        $totalDuration = $video->duration * 60;
+
+        // Ensure watched time doesn't exceed total duration
+        $watchedTime = min($lessonUser->watched_time + $watchedTime, $totalDuration);
+
+        // Calculate points
+        $totalHomework = $course->homework ? $course->homework->count() : 0;
+        $totalCourseNumber = ($totalHomework > 0) ? 80 : 100;
+        $perLessonPoints = $totalCourseNumber / $course->lessons->count();
+        $perSecondPoints = $perLessonPoints / $totalDuration;
+        $earnpoint = round($watchedTime * $perSecondPoints, 2);
+
+        // Update lesson progress
+        $lessonUser->watched_time = $watchedTime;
+        $lessonUser->score += $earnpoint;
+
+        if ($watchedTime >= $totalDuration) {
+            $lessonUser->completed = 1;
+            $lessonUser->completed_at = now();
+        }
+
+        $lessonUser->save();
+
+
+        // Update course progress based on number of completed lessons
+        $totalLessons = $course->lessons->count();
+        $completedLessons = $course->lessons()->whereHas('lessonUsers', function ($query) use ($user) {
+            $query->where('user_id', $user->id)->where('completed', 1);
+        })->count();
+
+        $completionRate = round(($completedLessons / $totalLessons) * 100);
+
+        // Always get the next lesson, regardless of completion status
+        $nextLesson = Lesson::where('chapter_id', $chapterId)
+            ->where('id', '>', $lessonId)
+            ->orderBy('id')
+            ->first();
+
+        // Update student progress based on calculated completion rate
+
+        // Fetch or create the progress record
+        $studentProgress = StudentProgress::updateOrCreate(
+            ['user_id' => $user->id, 'course_id' => $course->id],
+            ['course_progress' => $completionRate]
         );
-        
-        if($lessonUser->completed == 1){
-            return response()->json([
-                'status'  => false,
-                'message' => 'Your progress already updated.!',
-                'code'    => 422
-            ]);
-        }
 
-        $totalCourseNumber     = ($totalHomework > 0) ? 80 : 100;
-        $totalDuration         = $video->duration * 60;
-        $perlessonNumber       = $totalCourseNumber / $course->lessons->count();
-        $persecondLessonNumber = $perlessonNumber / $totalDuration;
-
-        
-        $watchedTime += $lessonUser->watched_time;
-        if($watchedTime >= $totalDuration){
-            
-            if($watchedTime == $totalDuration){
-                $earnpoint = $watchedTime * $persecondLessonNumber;
-                $earnpoint = round($earnpoint, 2);
-                
-                $lessonUser->score        += $earnpoint;
-                $lessonUser->completed     = 1;
-                $lessonUser->completed_at  = now();
-                $lessonUser->watched_time  = $totalDuration;
-                $lessonUser->updated_at    = now();
-
-                $lessonUser->save();
-
-                $this->videoServiceObj->progressCalucate($user->id, $course->id, $earnpoint);
-
-                return response()->json([
-                    'message' => 'Your video is completely seen'
-                ]);
-            }
-
-            $watchedTime = $watchedTime - $totalDuration;
-            $earnpoint   = $watchedTime * $persecondLessonNumber;
-            $earnpoint   = round($earnpoint, 2);
-            
-            $lessonUser->score        += $earnpoint;
-            $lessonUser->completed     = 1;
-            $lessonUser->completed_at  = now();
-            $lessonUser->watched_time  = $totalDuration;
-            $lessonUser->updated_at    = now();
-            
-            $lessonUser->save();
-
-            $this->videoServiceObj->progressCalucate($user->id, $course->id, $earnpoint);
-            
-            return response()->json([
-                'message' => 'Your video is completely seen'
-            ]);
-        }
-
-        $earnpoint = $watchedTime * $persecondLessonNumber;
-
-        $lessonUser->watched_time  = $watchedTime;
-        $lessonUser->score        += $earnpoint;
-        $lessonUser->updated_at    = now();
-        
-        $res = $lessonUser->save();
-        
-        if($res){
-            $this->videoServiceObj->progressCalucate($user->id, $course->id, $earnpoint);
-            return response()->json([
-                'message' => 'Your video watched time added.',
-                'data'    => $video,
-            ], 200);
-        }
+        // Save the progress to the database
+        $studentProgress->save();
 
         return response()->json([
-            'message' => 'Your video watched time added.',
-            'data'    => $video,
+            'message'         => $lessonUser->completed ? 'Lesson completed' : 'Lesson progress updated',
+            'next_lesson_id'  => $nextLesson ? $nextLesson->id : null,
+            'is_complete'     => $lessonUser->completed,
+            'score'           => $lessonUser->score,
+            'watched_time'    => $lessonUser->watched_time
         ], 200);
     }
+
 }

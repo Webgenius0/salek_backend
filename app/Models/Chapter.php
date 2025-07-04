@@ -25,4 +25,8 @@ class Chapter extends Model
         return $this->hasMany(Lesson::class);
     }
 
+    public function level()
+    {
+        return $this->belongsTo(Level::class);
+    }
 }

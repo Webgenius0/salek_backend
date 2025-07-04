@@ -13,11 +13,11 @@ class VideoService extends Service
     public function progressCalucate($userId, $courseId, $earnpoint)
     {
         $homeworkNumber = 0;
-        
+
         $studentProgress = StudentProgress::updateOrCreate(
             ['user_id' => $userId, 'course_id' => $courseId],
         );
-        
+
         $homework = Homework::where('course_id', $courseId)->first();
         if($homework){
             $studentProgress->lesson_progress   += $earnpoint;
@@ -34,7 +34,7 @@ class VideoService extends Service
             if($lessons->isEmpty()){
                 $courseScore = 0;
             }
-            
+
             $courseScore = $lessons->sum('score') + $homeworkNumber;
 
 

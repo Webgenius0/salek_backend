@@ -178,6 +178,11 @@ class EventController extends Controller
             $isBookmarked = $event->bookmarks->contains('user_id', $user->id);
         }
 
+        // Get the authenticated user ID
+        $authenticatedUserId = auth('api')->id();
+
+        $isPurchased = $event->eventBook->contains('user_id', $authenticatedUserId);
+
         $data = [
             'event_id'       => $event->id,
             'event_title'    => $event->title,
@@ -193,6 +198,7 @@ class EventController extends Controller
             'latitude'       => $event->latitude,
             'longitude'      => $event->longitude,
             'is_bookmarked'  => $isBookmarked,
+            'is_purchased'   => $isPurchased,
             'attendance'     => $event->eventBook->map(function ($book) {
                 return [
                     'attendance_id' => $book->user_id,

@@ -19,6 +19,7 @@ class Course extends Model
         'introduction_title',
         'cover_photo',
         'class_video',
+        'total_levels',
         'status',
     ];
 
@@ -80,4 +81,8 @@ class Course extends Model
         return $this->hasMany(CourseUser::class, 'course_id', 'id');
     }
 
+    public function levels()
+    {
+        return $this->hasMany(Level::class);
+    }
 }
