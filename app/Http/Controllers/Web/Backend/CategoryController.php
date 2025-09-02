@@ -54,7 +54,7 @@ class CategoryController extends Controller
                                 </a>
                             </div>';
                 })
-                ->rawColumns([ 'image' ,'status', 'action'])
+                ->rawColumns(['image', 'status', 'action'])
                 ->make();
         }
         return view("backend.layouts.category.index");
@@ -73,21 +73,26 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
+        $user = auth()->id();
+
+        // dd($request->all());
+
         $validate = $request->validate([
             'name' => 'required|unique:categories,name',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
         ]);
 
         try {
             if ($request->hasFile('image')) {
-                $validate['image'] = Helper::fileUpload($request->file('image'), 'category', time() . '_' . getFileName($request->file('image')));
+                $validate['image'] = Helper::fileUpload($request->file('image'), 'category', time() . '_' . $request->file('image')->getClientOriginalName());
             }
             $validate['slug'] = Helper::makeSlug(Category::class, $validate['name']);
 
-            Category::create($validate);
+            $validate['created_by'] = $user->
+
+            Category::create($validate,);
 
             session()->put('t-success', 'Category created successfully');
-           
         } catch (Exception $e) {
             session()->put('t-error', $e->getMessage());
         }
@@ -157,7 +162,6 @@ class CategoryController extends Controller
                 'status' => 'success',
                 'message' => 'Your action was successful!'
             ]);
-            
         } catch (Exception $e) {
             return response()->json([
                 'status' => 'error',

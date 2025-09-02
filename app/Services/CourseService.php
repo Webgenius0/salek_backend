@@ -128,7 +128,7 @@ class CourseService extends Service
 
             $res = $this->courseObj->save();
 
-            // ✅ Create Dynamic Levels Based on `total_levels`
+            // Create Dynamic Levels Based on `total_levels`
             $levels = [];
             for ($i = 1; $i <= $total_levels; $i++) {
                 $level = Level::create([
@@ -416,7 +416,7 @@ class CourseService extends Service
             return [
                 'course_id'    => $course->id,
                 'course_title' => $course->name,
-                'thumbnail'    => $course->cover_photo,
+                'thumbnail'    => asset($course->cover_photo),
                 'course_video' => $course->class_video,
                 'price'        => $course->price,
                 'review'       => number_format($course->avg_rating, 1) . ' (' . $course->total_reviews . ' Reviews)',
@@ -456,7 +456,7 @@ class CourseService extends Service
             return [
                 'course_id'    => $course->id,
                 'course_title' => $course->name,
-                'thumbnail'    => $course->cover_photo,
+                'thumbnail'    => asset($course->cover_photo),
                 'price'        => $course->price,
                 'review'       => number_format($course->avg_rating, 1) . ' (' . $course->total_reviews . ' Reviews)',
                 'total_class'  => $course->total_class,
@@ -495,7 +495,7 @@ class CourseService extends Service
             return [
                 'course_id'    => $course->id,
                 'course_title' => $course->name,
-                'thumbnail'    => $course->cover_photo,
+                'thumbnail'    => asset($course->cover_photo),
                 'price'        => $course->price,
                 'review'       => number_format($course->avg_rating, 1) . ' (' . $course->total_reviews . ' Reviews)',
                 'total_class'  => $course->total_class,

@@ -21,7 +21,7 @@ class ProgressController extends Controller
     {
         $this->totalNumber = TOTAL_NUMBER;
     }
-    
+
     public function store(Request $request)
     {
         $user     = User::find(Auth::id());
@@ -29,10 +29,10 @@ class ProgressController extends Controller
 
         $course = Course::with(['chapters.lessons'])->where('id', $courseId)->first();
 
-        if(!$course){
+        if (!$course) {
             return $this->failedResponse('Course not found', 404);
         }
-        
+
         $lessons = $course->chapters->flatMap(function ($chapter) {
             return $chapter->lessons;
         });
@@ -45,22 +45,22 @@ class ProgressController extends Controller
 
         $courseUser = CourseUser::where('user_id', $user->id)->where('course_id', $courseId)->exists();
 
-        if(!$courseUser){
+        if (!$courseUser) {
             return $this->failedResponse('This course is not authorize for you.', 403);
         }
 
         $userCourseDetails = LessonUser::whereIn('lesson_id', $lessonIds)->where('user_id', $user->id)->get();
 
         $completedLessons = $userCourseDetails
-                        ->filter(function($value){
-                            return $value->completed == 1;
-                        })
-                        ->map(function($value){
-                            return $value->completed;
-                        });
+            ->filter(function ($value) {
+                return $value->completed == 1;
+            })
+            ->map(function ($value) {
+                return $value->completed;
+            });
 
         $lessonWeight = $this->totalNumber / $totalLesson;
-        
+
         $progress = 1 * $lessonWeight;
 
         $progress = floor($progress);

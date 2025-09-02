@@ -30,7 +30,7 @@
                         <span class="side-menu__label">Dashboard</span>
                     </a>
                 </li>
-                {{-- <li class="slide">
+                <li class="slide">
                     <a class="side-menu__item {{  request()->routeIs('category') ? 'has-link' : '' }}" href="{{ route('category.index') }}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="side-menu__icon" viewBox="0 0 16 16">
                             <path d="M3.5 11a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm3.5.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zm4.5-.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5z" />
@@ -38,7 +38,7 @@
                         </svg>
                         <span class="side-menu__label">Category</span>
                     </a>
-                </li> --}}
+                </li>
                 <li>
                     <h3>Components</h3>
                 </li>

@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Hash;
 class AuthService extends Service
 {
     use ApiResponse;
-    
+
     public $userObj;
 
     /**
@@ -100,9 +100,9 @@ class AuthService extends Service
             $user->otp           = null;
             $user->otp_expire_at = null;
             $user->is_verified   = true;
-            
+
             $res = $user->save();
-            
+
             DB::commit();
 
             if($res){

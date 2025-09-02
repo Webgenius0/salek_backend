@@ -76,6 +76,7 @@ Route::middleware(['auth:api', 'check.parent.student'])->group(function () {
 //'BEGIN' :- For global route
 Route::middleware(['auth:api'])->group(function () {
 
+    
     Route::controller(StudentController::class)->group(function () {
         Route::prefix('student')->name('student.')->group(function () {
             Route::get('/dashboard', 'index')->name('dashboard');
